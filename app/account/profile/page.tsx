@@ -2,16 +2,17 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 import AccountSidebar from '@/components/account/AccountSidebar';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfilePage() {
-  // Profile form state
+  const { user } = useAuth();
   const [fullName, setFullName] = useState('Muhammad Ibrahim');
   const [email, setEmail] = useState('ibrahim@example.com');
   const [phone, setPhone] = useState('+92 300 1234567');
   const [profileSaved, setProfileSaved] = useState(false);
 
-  // Password form state
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -29,184 +30,165 @@ export default function ProfilePage() {
     setTimeout(() => setPasswordSaved(false), 3000);
   };
 
+  const userInitials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'U';
+  const displayName = user?.email?.split('@')[0] || 'User';
+
   return (
     <div className="bg-brand-cream min-h-screen">
-      <div className="container-custom py-10 md:py-12">
+      <div className="container-custom py-8 sm:py-10 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-          {/* Left Sidebar */}
           <AccountSidebar
-            userName="Muhammad Ibrahim"
-            userInitials="MI"
+            userName={displayName}
+            userInitials={userInitials}
+            userEmail={user?.email}
             joinedDate="Jan 2026"
           />
 
-          {/* Right Content */}
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {/* Header */}
-            <div>
-              <p className="text-brand-gold font-semibold text-xs tracking-widest uppercase mb-3">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="text-brand-gold font-semibold text-[10px] sm:text-xs tracking-widest uppercase mb-2 sm:mb-3">
                 Account Settings
               </p>
-              <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-green mb-3">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2 sm:mb-3">
                 Account Details
               </h1>
-              <p className="text-sm md:text-base text-brand-text-muted leading-relaxed">
+              <p className="text-xs sm:text-sm md:text-base text-brand-text-muted leading-relaxed">
                 Update your personal information and password.
               </p>
-            </div>
+            </motion.div>
 
-            {/* Profile Information Card */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-              <h2 className="font-heading font-semibold text-xl md:text-2xl text-brand-green mb-6">
+            {/* Profile Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+            >
+              <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green mb-4 sm:mb-6">
                 Profile Information
               </h2>
 
-              <form onSubmit={handleProfileSubmit} className="space-y-5">
-                {/* Full Name */}
+              <form onSubmit={handleProfileSubmit} className="space-y-3 sm:space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-brand-text-dark mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
                   />
                 </div>
 
-                {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-brand-text-dark mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
                   />
                 </div>
 
-                {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-brand-text-dark mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
                   />
                 </div>
 
-                {/* Save Button */}
-                <div className="flex items-center gap-4 pt-2">
-                  <button
+                <div className="flex items-center gap-3 pt-2">
+                  <motion.button
                     type="submit"
-                    className="btn-primary px-8 py-3"
+                    whileTap={{ scale: 0.97 }}
+                    className="bg-brand-green hover:bg-black text-white font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-md transition-colors text-xs sm:text-sm"
                   >
                     Save Changes
-                  </button>
+                  </motion.button>
                   {profileSaved && (
-                    <span className="text-sm text-brand-green font-medium">
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-xs sm:text-sm text-brand-green font-medium"
+                    >
                       ✓ Profile updated!
-                    </span>
+                    </motion.span>
                   )}
                 </div>
               </form>
-            </div>
+            </motion.div>
 
-            {/* Change Password Card */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-              <h2 className="font-heading font-semibold text-xl md:text-2xl text-brand-green mb-6">
+            {/* Change Password */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+            >
+              <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green mb-4 sm:mb-6">
                 Change Password
               </h2>
 
-              <form onSubmit={handlePasswordSubmit} className="space-y-5">
-                {/* Current Password */}
-                <div>
-                  <label className="block text-sm font-medium text-brand-text-dark mb-2">
-                    Current Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showCurrent ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-12 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrent(!showCurrent)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
-                      aria-label="Toggle password visibility"
-                    >
-                      {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+              <form onSubmit={handlePasswordSubmit} className="space-y-3 sm:space-y-5">
+                {[
+                  { label: 'Current Password', show: showCurrent, setShow: setShowCurrent },
+                  { label: 'New Password', show: showNew, setShow: setShowNew },
+                  { label: 'Confirm New Password', show: showConfirm, setShow: setShowConfirm },
+                ].map((field, index) => (
+                  <div key={index}>
+                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                      {field.label}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={field.show ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => field.setShow(!field.show)}
+                        className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                      >
+                        {field.show ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ))}
 
-                {/* New Password */}
-                <div>
-                  <label className="block text-sm font-medium text-brand-text-dark mb-2">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showNew ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-12 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNew(!showNew)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
-                      aria-label="Toggle password visibility"
-                    >
-                      {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm New Password */}
-                <div>
-                  <label className="block text-sm font-medium text-brand-text-dark mb-2">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showConfirm ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-12 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
-                      aria-label="Toggle password visibility"
-                    >
-                      {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Update Button */}
-                <div className="flex items-center gap-4 pt-2">
-                  <button
+                <div className="flex items-center gap-3 pt-2">
+                  <motion.button
                     type="submit"
-                    className="btn-primary px-8 py-3"
+                    whileTap={{ scale: 0.97 }}
+                    className="bg-brand-green hover:bg-black text-white font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-md transition-colors text-xs sm:text-sm"
                   >
                     Update Password
-                  </button>
+                  </motion.button>
                   {passwordSaved && (
-                    <span className="text-sm text-brand-green font-medium">
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-xs sm:text-sm text-brand-green font-medium"
+                    >
                       ✓ Password updated!
-                    </span>
+                    </motion.span>
                   )}
                 </div>
               </form>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

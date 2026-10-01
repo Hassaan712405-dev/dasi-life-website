@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { signIn } from '@/services/auth/authService';
 
 export default function LoginPage() {
@@ -27,42 +28,48 @@ export default function LoginPage() {
       return;
     }
 
-    // Success — redirect to account
     router.push('/account');
     router.refresh();
   };
 
   return (
     <div className="bg-brand-cream min-h-screen">
-      <div className="container-custom py-12 md:py-16">
-        <div className="max-w-md mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm p-8 md:p-10">
-          
+      <div className="container-custom py-8 sm:py-12 md:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-md mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 md:p-10"
+        >
           {/* Heading */}
-          <div className="text-center mb-8">
-            <p className="text-brand-gold font-semibold text-xs tracking-widest uppercase mb-3">
+          <div className="text-center mb-6 sm:mb-8">
+            <p className="text-brand-gold font-semibold text-[10px] sm:text-xs tracking-widest uppercase mb-2 sm:mb-3">
               Secure Access
             </p>
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-green mb-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2 sm:mb-3">
               Welcome Back
             </h1>
-            <p className="text-sm text-brand-text-muted">
+            <p className="text-xs sm:text-sm text-brand-text-muted">
               Sign in to manage orders and checkout faster.
             </p>
           </div>
 
-          {/* Error Message */}
+          {/* Error */}
           {error && (
-            <div className="mb-5 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
-              <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 sm:mb-5 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2"
+            >
+              <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-red-600">{error}</p>
+            </motion.div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Email Address
               </label>
               <input
@@ -72,13 +79,12 @@ export default function LoginPage() {
                 placeholder="Enter your email"
                 required
                 disabled={loading}
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
             </div>
 
-            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Password
               </label>
               <div className="relative">
@@ -89,69 +95,68 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   required
                   disabled={loading}
-                  className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-16 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                  className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-14 sm:pr-16 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-brand-gold hover:text-brand-green transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-medium text-brand-gold hover:text-brand-green transition-colors"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>
 
-            {/* Remember + Forgot */}
             <div className="flex items-center justify-between gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded border-gray-400 accent-brand-green cursor-pointer"
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-400 accent-brand-green cursor-pointer"
                 />
-                <span className="text-sm text-brand-text-dark">Remember Me</span>
+                <span className="text-xs sm:text-sm text-brand-text-dark">Remember Me</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-brand-gold hover:text-brand-green transition-colors font-medium"
+                className="text-xs sm:text-sm text-brand-gold hover:text-brand-green transition-colors font-medium"
               >
                 Forgot Password?
               </Link>
             </div>
 
-            {/* Sign In */}
-            <button
+            <motion.button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3.5 text-base disabled:opacity-60 disabled:cursor-not-allowed"
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-brand-green hover:bg-black text-white font-medium py-3 sm:py-3.5 rounded-md transition-colors text-xs sm:text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {loading ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2 size={16} className="animate-spin" />
                   Signing in...
                 </>
               ) : (
                 'Sign In'
               )}
-            </button>
+            </motion.button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
+          <div className="flex items-center gap-3 my-5 sm:my-6">
             <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-xs text-brand-text-muted font-medium tracking-wide">
+            <span className="text-[10px] sm:text-xs text-brand-text-muted font-medium tracking-wide">
               OR CONTINUE WITH
             </span>
             <div className="flex-1 h-px bg-gray-200"></div>
           </div>
 
-          {/* Social Buttons (disabled for now) */}
-          <div className="space-y-3">
+          {/* Social */}
+          <div className="space-y-2.5 sm:space-y-3">
             <button
               type="button"
               disabled
-              className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm font-medium text-brand-text-muted transition-colors flex items-center justify-center gap-3 opacity-60 cursor-not-allowed"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-brand-text-muted transition-colors flex items-center justify-center gap-3 opacity-60 cursor-not-allowed"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -163,17 +168,16 @@ export default function LoginPage() {
             <button
               type="button"
               disabled
-              className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm font-medium text-brand-text-muted transition-colors flex items-center justify-center gap-3 opacity-60 cursor-not-allowed"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-brand-text-muted transition-colors flex items-center justify-center gap-3 opacity-60 cursor-not-allowed"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
               Continue with Facebook
             </button>
           </div>
 
-          {/* Register Link */}
-          <p className="text-center text-sm text-brand-text-muted mt-8">
+          <p className="text-center text-xs sm:text-sm text-brand-text-muted mt-6 sm:mt-8">
             Don't have an account?{' '}
             <Link
               href="/register"
@@ -182,7 +186,7 @@ export default function LoginPage() {
               Register Now
             </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
