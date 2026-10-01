@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Check, Package, Loader2, AlertCircle } from 'lucide-react';
+import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { OrderWithItems } from '@/types/order';
 
-export default function OrderSuccessPage() {
+// ============================================
+// INNER COMPONENT (uses useSearchParams)
+// ============================================
+function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
 
@@ -54,7 +57,10 @@ export default function OrderSuccessPage() {
     return (
       <div className="bg-brand-cream min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 size={40} className="animate-spin text-brand-green mx-auto mb-4" />
+          <Loader2
+            size={40}
+            className="animate-spin text-brand-green mx-auto mb-4"
+          />
           <p className="text-brand-text-muted">Loading your order...</p>
         </div>
       </div>
@@ -108,7 +114,7 @@ export default function OrderSuccessPage() {
 
         {/* Order Details Card */}
         <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8 mb-10">
-          {/* Top Row — Order Number | Date | Payment */}
+          {/* Top Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-6 border-b border-gray-200">
             <div>
               <p className="text-xs md:text-sm text-brand-text-muted mb-1">
@@ -167,13 +173,15 @@ export default function OrderSuccessPage() {
             </p>
           </div>
 
-          {/* Subtotal / Shipping / Total */}
+          {/* Subtotal */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
             <p className="text-sm text-brand-text-muted">Subtotal</p>
             <p className="text-sm font-medium text-brand-text-dark">
               Rs {order.subtotal.toLocaleString()}
             </p>
           </div>
+
+          {/* Shipping */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
             <p className="text-sm text-brand-text-muted">Shipping</p>
             <p className="text-sm font-medium text-brand-green">
@@ -183,6 +191,7 @@ export default function OrderSuccessPage() {
             </p>
           </div>
 
+          {/* Total */}
           <div className="flex items-center justify-between py-4 border-b border-gray-200">
             <p className="font-heading font-semibold text-base md:text-lg text-brand-green">
               Total Amount
@@ -227,5 +236,28 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ============================================
+// MAIN PAGE WITH SUSPENSE
+// ============================================
+export default function OrderSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-brand-cream min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Loader2
+              size={40}
+              className="animate-spin text-brand-green mx-auto mb-4"
+            />
+            <p className="text-brand-text-muted">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <OrderSuccessContent />
+    </Suspense>
   );
 }

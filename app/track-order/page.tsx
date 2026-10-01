@@ -1,17 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Check, Package, Loader2, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { OrderWithItems, OrderStatus } from '@/types/order';
 
-// Timeline steps
-const timelineSteps: { status: OrderStatus; title: string; description: string }[] = [
+// ============================================
+// TIMELINE STEPS (5 steps matching all statuses)
+// ============================================
+const timelineSteps: {
+  status: OrderStatus;
+  title: string;
+  description: string;
+}[] = [
   {
     status: 'pending',
     title: 'Order Placed',
     description: 'Received and confirmed at Lahore central dispatch.',
+  },
+  {
+    status: 'confirmed',
+    title: 'Order Confirmed',
+    description: 'Order verified by our team and being prepared.',
   },
   {
     status: 'processing',
@@ -30,8 +41,10 @@ const timelineSteps: { status: OrderStatus; title: string; description: string }
   },
 ];
 
-// Status order for comparison
-const statusOrder: Record<OrderStatus, number> = {
+// ============================================
+// STATUS → TIMELINE INDEX MAPPING
+// ============================================
+const statusToStepIndex: Record<OrderStatus, number> = {
   pending: 0,
   confirmed: 1,
   processing: 2,
@@ -40,15 +53,25 @@ const statusOrder: Record<OrderStatus, number> = {
   cancelled: -1,
 };
 
+// ============================================
+// STATUS BADGE COLORS
+// ============================================
 function getStatusBadgeColor(status: OrderStatus): string {
   switch (status) {
-    case 'pending': return 'bg-yellow-100 text-yellow-700';
-    case 'confirmed': return 'bg-blue-100 text-blue-700';
-    case 'processing': return 'bg-orange-100 text-orange-700';
-    case 'shipped': return 'bg-blue-100 text-blue-700';
-    case 'delivered': return 'bg-green-100 text-green-700';
-    case 'cancelled': return 'bg-red-100 text-red-700';
-    default: return 'bg-gray-100 text-gray-700';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-700';
+    case 'confirmed':
+      return 'bg-blue-100 text-blue-700';
+    case 'processing':
+      return 'bg-orange-100 text-orange-700';
+    case 'shipped':
+      return 'bg-blue-100 text-blue-700';
+    case 'delivered':
+      return 'bg-green-100 text-green-700';
+    case 'cancelled':
+      return 'bg-red-100 text-red-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
   }
 }
 
@@ -56,7 +79,10 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export default function TrackOrderPage() {
+// ============================================
+// INNER COMPONENT (uses useSearchParams)
+// ============================================
+function TrackOrderContent() {
   const searchParams = useSearchParams();
   const initialOrder = searchParams.get('order') || '';
 
@@ -64,19 +90,10 @@ export default function TrackOrderPage() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false);
 
-  // Auto-search if order number in URL
-  useEffect(() => {
-    if (initialOrder) {
-      handleTrack(initialOrder);
-    }
-  }, [initialOrder]);
-
-  const handleTrack = async (num: string) => {
+  const handleTrack = useCallback(async (num: string) => {
     setError('');
     setLoading(true);
-    setSearched(true);
 
     const normalized = num.trim().toUpperCase().replace(/^#/, '');
     const searchNumber = normalized.startsWith('DL-')
@@ -100,7 +117,13 @@ export default function TrackOrderPage() {
 
     setOrder(data as OrderWithItems);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (initialOrder) {
+      handleTrack(initialOrder);
+    }
+  }, [initialOrder, handleTrack]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,14 +132,9 @@ export default function TrackOrderPage() {
     }
   };
 
-  // Calculate current step index
-  const getCurrentStepIndex = (): number => {
-    if (!order) return -1;
-    if (order.status === 'cancelled') return -1;
-    return statusOrder[order.status] ?? 0;
-  };
-
-  const currentStepIndex = getCurrentStepIndex();
+  const currentStepIndex = order
+    ? statusToStepIndex[order.status] ?? 0
+    : -1;
 
   return (
     <div className="bg-brand-cream min-h-screen">
@@ -176,7 +194,6 @@ export default function TrackOrderPage() {
             <>
               <div className="border-t border-gray-200 mb-6"></div>
 
-              {/* Order Number + Status Badge */}
               <div className="mb-8">
                 <p className="text-xs md:text-sm text-brand-text-muted mb-1">
                   Active shipment code
@@ -186,7 +203,9 @@ export default function TrackOrderPage() {
                     Order {order.order_number}
                   </h2>
                   <span
-                    className={`${getStatusBadgeColor(order.status)} text-xs font-semibold px-3 py-1.5 rounded-full`}
+                    className={`${getStatusBadgeColor(
+                      order.status
+                    )} text-xs font-semibold px-3 py-1.5 rounded-full`}
                   >
                     {capitalize(order.status)}
                   </span>
@@ -200,7 +219,6 @@ export default function TrackOrderPage() {
                   const isCompleted = index < currentStepIndex;
                   const isActive = index === currentStepIndex;
 
-                  // Status history lookup for dates
                   const dateText = isActive
                     ? 'Current'
                     : isCompleted
@@ -209,7 +227,6 @@ export default function TrackOrderPage() {
 
                   return (
                     <div key={step.status} className="flex gap-4 pb-6 relative">
-                      {/* Vertical Line */}
                       {!isLast && (
                         <div
                           className={`absolute left-3 top-8 w-0.5 h-full ${
@@ -218,7 +235,6 @@ export default function TrackOrderPage() {
                         ></div>
                       )}
 
-                      {/* Circle */}
                       <div className="shrink-0 relative z-10">
                         {isCompleted ? (
                           <div className="w-6 h-6 rounded-full bg-brand-green flex items-center justify-center">
@@ -235,7 +251,6 @@ export default function TrackOrderPage() {
                         )}
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 pb-2">
                         <div className="flex items-baseline gap-2 flex-wrap mb-1">
                           <h3
@@ -260,7 +275,7 @@ export default function TrackOrderPage() {
                 })}
               </div>
 
-              {/* Estimated Delivery / Status Info Box */}
+              {/* Status Info Box */}
               <div className="mt-4 bg-brand-cream rounded-xl p-4 flex items-start gap-3">
                 <Package size={22} className="text-brand-green shrink-0 mt-0.5" />
                 <div>
@@ -270,8 +285,7 @@ export default function TrackOrderPage() {
                         Order Delivered Successfully
                       </p>
                       <p className="text-xs md:text-sm text-brand-text-muted">
-                        Thank you for shopping with Dasi Life. We hope you enjoy
-                        your Unani wellness products.
+                        Thank you for shopping with Dasi Life.
                       </p>
                     </>
                   ) : order.status === 'cancelled' ? (
@@ -280,8 +294,7 @@ export default function TrackOrderPage() {
                         Order Cancelled
                       </p>
                       <p className="text-xs md:text-sm text-brand-text-muted">
-                        This order has been cancelled. Please contact support if
-                        you have questions.
+                        This order has been cancelled. Please contact support.
                       </p>
                     </>
                   ) : (
@@ -302,5 +315,25 @@ export default function TrackOrderPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ============================================
+// MAIN PAGE WITH SUSPENSE
+// ============================================
+export default function TrackOrderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-brand-cream min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 size={40} className="animate-spin text-brand-green mx-auto mb-4" />
+            <p className="text-brand-text-muted">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <TrackOrderContent />
+    </Suspense>
   );
 }
