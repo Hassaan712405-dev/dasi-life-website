@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 interface Category {
   id: string;
@@ -23,12 +24,10 @@ export default function ShopSidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Read current params
   const currentMin = Number(searchParams.get('minPrice') || PRICE_MIN);
   const currentMax = Number(searchParams.get('maxPrice') || PRICE_MAX);
   const currentSort = searchParams.get('sortBy') || 'popularity';
 
-  // Update URL params
   const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, value]) => {
@@ -64,13 +63,18 @@ export default function ShopSidebar({
   };
 
   return (
-    <aside className="space-y-6">
+    <aside className="space-y-4 sm:space-y-6">
       {/* Categories */}
-      <div className="bg-[#F0EDE6] rounded-xl border border-gray-300 p-5">
-        <h3 className="font-heading font-semibold text-lg text-brand-green mb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="bg-[#F0EDE6] rounded-xl border border-gray-300 p-4 sm:p-5"
+      >
+        <h3 className="font-heading font-semibold text-base sm:text-lg text-brand-green mb-3 sm:mb-4">
           Categories
         </h3>
-        <ul className="space-y-3">
+        <ul className="space-y-2.5 sm:space-y-3">
           {/* All Categories */}
           <li>
             <button
@@ -85,7 +89,7 @@ export default function ShopSidebar({
                 className="w-4 h-4 rounded border-gray-400 accent-brand-green pointer-events-none"
               />
               <span
-                className={`text-sm transition-colors ${
+                className={`text-xs sm:text-sm transition-colors ${
                   !activeCategory
                     ? 'text-brand-green font-medium'
                     : 'text-brand-text-dark group-hover:text-brand-green'
@@ -96,7 +100,6 @@ export default function ShopSidebar({
             </button>
           </li>
 
-          {/* Category List */}
           {categories.map((cat) => (
             <li key={cat.id}>
               <button
@@ -111,7 +114,7 @@ export default function ShopSidebar({
                   className="w-4 h-4 rounded border-gray-400 accent-brand-green pointer-events-none"
                 />
                 <span
-                  className={`text-sm transition-colors ${
+                  className={`text-xs sm:text-sm transition-colors ${
                     activeCategory === cat.slug
                       ? 'text-brand-green font-medium'
                       : 'text-brand-text-dark group-hover:text-brand-green'
@@ -123,17 +126,21 @@ export default function ShopSidebar({
             </li>
           ))}
         </ul>
-      </div>
+      </motion.div>
 
       {/* Price Range */}
-      <div className="bg-[#F0EDE6] rounded-xl border border-gray-300 p-5">
-        <h3 className="font-heading font-semibold text-lg text-brand-green mb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="bg-[#F0EDE6] rounded-xl border border-gray-300 p-4 sm:p-5"
+      >
+        <h3 className="font-heading font-semibold text-base sm:text-lg text-brand-green mb-3 sm:mb-4">
           Price Range
         </h3>
 
-        {/* Min Price Slider */}
-        <div className="mb-4">
-          <label className="block text-xs text-brand-text-muted mb-2">
+        <div className="mb-3 sm:mb-4">
+          <label className="block text-[10px] sm:text-xs text-brand-text-muted mb-1.5 sm:mb-2">
             Min: Rs {currentMin.toLocaleString()}
           </label>
           <input
@@ -147,9 +154,8 @@ export default function ShopSidebar({
           />
         </div>
 
-        {/* Max Price Slider */}
-        <div className="mb-2">
-          <label className="block text-xs text-brand-text-muted mb-2">
+        <div className="mb-1 sm:mb-2">
+          <label className="block text-[10px] sm:text-xs text-brand-text-muted mb-1.5 sm:mb-2">
             Max: Rs {currentMax.toLocaleString()}
           </label>
           <input
@@ -163,28 +169,33 @@ export default function ShopSidebar({
           />
         </div>
 
-        <div className="flex items-center justify-between text-xs text-brand-text-muted mt-2">
+        <div className="flex items-center justify-between text-[10px] sm:text-xs text-brand-text-muted mt-2">
           <span>Rs {PRICE_MIN.toLocaleString()}</span>
           <span>Rs {PRICE_MAX.toLocaleString()}</span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Sort By */}
-      <div className="bg-[#F0EDE6] rounded-xl border border-gray-300 p-5">
-        <h3 className="font-heading font-semibold text-lg text-brand-green mb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="bg-[#F0EDE6] rounded-xl border border-gray-300 p-4 sm:p-5"
+      >
+        <h3 className="font-heading font-semibold text-base sm:text-lg text-brand-green mb-3 sm:mb-4">
           Sort By
         </h3>
         <select
           value={currentSort}
           onChange={(e) => handleSortChange(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green cursor-pointer"
+          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green cursor-pointer"
         >
           <option value="popularity">Popularity</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
           <option value="newest">Newest</option>
         </select>
-      </div>
+      </motion.div>
     </aside>
   );
 }

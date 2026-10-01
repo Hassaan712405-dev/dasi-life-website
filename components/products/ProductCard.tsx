@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ShoppingCart, Check, Heart } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 
@@ -63,16 +64,22 @@ export default function ProductCard({
   const inWishlist = isInWishlist(id);
 
   return (
-    <div className="group relative bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-brand-green/30 transition-all duration-500 flex flex-col">
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-brand-green/30 transition-shadow duration-500 flex flex-col h-full"
+    >
       {/* Image */}
       <Link
         href={`/product/${slug}`}
         className="block relative overflow-hidden bg-brand-cream"
       >
-        <img
+        <motion.img
           src={imageUrl}
           alt={name}
-          className="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+          className="w-full aspect-square object-cover"
+          whileHover={{ scale: 1.08 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         />
         {discount > 0 && (
           <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-brand-gold text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md shadow-md">
@@ -89,17 +96,19 @@ export default function ProductCard({
       </Link>
 
       {/* Wishlist Heart */}
-      <button
+      <motion.button
         type="button"
         onClick={handleWishlistToggle}
         aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-        className="absolute top-2 right-2 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md flex items-center justify-center hover:scale-110 transition-transform z-10"
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.9 }}
+        className="absolute top-2 right-2 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md flex items-center justify-center z-10"
       >
         <Heart
           size={14}
           className={
             inWishlist
-              ? 'text-red-500 fill-red-500'
+              ? 'text-red-500 fill-red-500 sm:hidden'
               : 'text-brand-text-muted sm:hidden'
           }
         />
@@ -111,7 +120,7 @@ export default function ProductCard({
               : 'text-brand-text-muted hidden sm:block'
           }
         />
-      </button>
+      </motion.button>
 
       {/* Info */}
       <div className="p-3 sm:p-4 flex flex-col flex-1">
@@ -135,9 +144,10 @@ export default function ProductCard({
             </span>
           </div>
 
-          <button
+          <motion.button
             type="button"
             onClick={handleAddToCart}
+            whileTap={{ scale: 0.97 }}
             className={`w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium py-2 sm:py-2.5 rounded-md transition-colors border-2 ${
               justAdded
                 ? 'bg-green-600 border-green-600 text-white'
@@ -155,9 +165,9 @@ export default function ProductCard({
                 Add to Cart
               </>
             )}
-          </button>
+          </motion.button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
