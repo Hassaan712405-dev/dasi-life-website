@@ -3,6 +3,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import PageTransition from '@/components/motion/PageTransition';
+import ScrollProgress from '@/components/motion/ScrollProgress';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import { SettingsProvider } from '@/contexts/SettingsContext';
@@ -79,6 +80,7 @@ export default function RootLayout({
         <SettingsProvider>
           <CartProvider>
             <WishlistProvider>
+              <ScrollProgress />
               <Header />
               <main className="flex-1">
                 <PageTransition>{children}</PageTransition>

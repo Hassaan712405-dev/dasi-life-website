@@ -1,4 +1,7 @@
+'use client';
+
 import { Star } from 'lucide-react';
+import FadeIn from '@/components/motion/FadeIn';
 
 const reviews = [
   {
@@ -47,34 +50,40 @@ const reviews = [
 
 function ReviewCard({ review }: { review: typeof reviews[0] }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col w-[320px] md:w-[380px] shrink-0">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5 flex flex-col w-[280px] sm:w-[340px] md:w-[380px] shrink-0">
       {/* Stars + Time */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-0.5">
           {Array.from({ length: review.rating }).map((_, i) => (
             <Star
               key={i}
-              size={16}
+              size={14}
               className="text-brand-gold fill-brand-gold"
             />
           ))}
         </div>
-        <span className="text-xs text-brand-text-muted">{review.timeAgo}</span>
+        <span className="text-[10px] sm:text-xs text-brand-text-muted">
+          {review.timeAgo}
+        </span>
       </div>
 
       {/* Review Text */}
-      <p className="text-sm text-brand-text-muted leading-relaxed italic mb-5 flex-1">
+      <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed italic mb-4 sm:mb-5 flex-1">
         "{review.text}"
       </p>
 
       {/* Author */}
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-        <div className="w-10 h-10 rounded-full bg-brand-gold text-white flex items-center justify-center font-semibold text-sm shrink-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-gold text-white flex items-center justify-center font-semibold text-xs sm:text-sm shrink-0">
           {review.initial}
         </div>
         <div>
-          <p className="font-semibold text-sm text-brand-green">{review.name}</p>
-          <p className="text-xs text-brand-text-muted">Verified Buyer</p>
+          <p className="font-semibold text-xs sm:text-sm text-brand-green">
+            {review.name}
+          </p>
+          <p className="text-[10px] sm:text-xs text-brand-text-muted">
+            Verified Buyer
+          </p>
         </div>
       </div>
     </div>
@@ -82,31 +91,30 @@ function ReviewCard({ review }: { review: typeof reviews[0] }) {
 }
 
 export default function ReviewsSection() {
-  // Duplicate reviews for seamless infinite loop
   const duplicatedReviews = [...reviews, ...reviews];
 
   return (
-    <section className="bg-brand-cream py-12 md:py-16 overflow-hidden">
+    <section className="bg-brand-cream py-10 sm:py-12 md:py-16 overflow-hidden">
       <div className="container-custom">
         {/* Header */}
-        <div className="text-center mb-10 md:mb-12">
-          <p className="text-brand-gold font-semibold text-xs md:text-sm tracking-widest uppercase mb-3">
-            Customer Reviews
-          </p>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-green">
-            Loved by Thousands
-          </h2>
-        </div>
+        <FadeIn>
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <p className="text-brand-gold font-semibold text-[10px] sm:text-xs md:text-sm tracking-widest uppercase mb-2 sm:mb-3">
+              Customer Reviews
+            </p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-green">
+              Loved by Thousands
+            </h2>
+          </div>
+        </FadeIn>
       </div>
 
-      {/* Marquee Container — Full Width */}
+      {/* Marquee Container */}
       <div className="marquee-container relative w-full">
-        {/* Gradient Fade Edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 md:w-32 bg-gradient-to-r from-brand-cream to-transparent z-10 pointer-events-none"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-20 md:w-32 bg-gradient-to-l from-brand-cream to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-r from-brand-cream to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-l from-brand-cream to-transparent z-10 pointer-events-none"></div>
 
-        {/* Scrolling Reviews */}
-        <div className="flex gap-6 animate-marquee w-max">
+        <div className="flex gap-4 sm:gap-5 md:gap-6 animate-marquee w-max">
           {duplicatedReviews.map((review, index) => (
             <ReviewCard key={index} review={review} />
           ))}
