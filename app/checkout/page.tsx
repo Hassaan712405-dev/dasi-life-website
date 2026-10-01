@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import CheckoutForm, { ShippingInfo } from '@/components/checkout/CheckoutForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import { useCart } from '@/contexts/CartContext';
@@ -11,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/contexts/SettingsContext';
 import { calculateShippingFee } from '@/services/settings/settingsService';
 import { createOrder } from '@/services/orders/orderService';
+import FadeIn from '@/components/motion/FadeIn';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -33,25 +35,20 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Pre-fill email if logged in
   useEffect(() => {
     if (user?.email && !formData.customerEmail) {
       setFormData((prev) => ({ ...prev, customerEmail: user.email || '' }));
     }
   }, [user]);
 
-  // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0 && !loading) {
       router.push('/cart');
     }
   }, [items.length, loading, router]);
 
-  // Calculate totals — Shipping from settings
   const subtotal = getSubtotal();
-  const shippingFee = settings
-    ? calculateShippingFee(subtotal, settings)
-    : 0;
+  const shippingFee = settings ? calculateShippingFee(subtotal, settings) : 0;
   const total = subtotal + shippingFee;
 
   const orderItems = items.map((item) => ({
@@ -107,9 +104,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Clear cart
     clearCart();
-
     router.push(`/order-success?order=${result.orderNumber}`);
   };
 
@@ -119,69 +114,79 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-brand-cream min-h-screen">
-      <div className="container-custom pt-6 md:pt-8 pb-12 md:pb-16">
+      <div className="container-custom pt-6 md:pt-8 pb-10 sm:pb-12 md:pb-16">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs md:text-sm text-brand-text-muted mb-4">
-          <Link href="/" className="hover:text-brand-green transition-colors">
-            Home
-          </Link>
-          <ChevronRight size={14} />
-          <Link href="/cart" className="hover:text-brand-green transition-colors">
-            Cart
-          </Link>
-          <ChevronRight size={14} />
-          <span className="text-brand-green font-medium">Checkout</span>
-        </div>
+        <FadeIn>
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs md:text-sm text-brand-text-muted mb-3 sm:mb-4 flex-wrap">
+            <Link href="/" className="hover:text-brand-green transition-colors">
+              Home
+            </Link>
+            <ChevronRight size={12} />
+            <Link href="/cart" className="hover:text-brand-green transition-colors">
+              Cart
+            </Link>
+            <ChevronRight size={12} />
+            <span className="text-brand-green font-medium">Checkout</span>
+          </div>
+        </FadeIn>
 
         {/* Heading */}
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-green mb-8">
-          Checkout
-        </h1>
+        <FadeIn delay={0.1}>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-green mb-6 sm:mb-8">
+            Checkout
+          </h1>
+        </FadeIn>
 
         {/* Progress Steps */}
-        <div className="flex items-center gap-3 md:gap-6 mb-10 md:mb-12">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-green text-white flex items-center justify-center text-sm font-semibold shrink-0">
-              1
+        <FadeIn delay={0.2}>
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-6 mb-6 sm:mb-8 md:mb-12">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-green text-white flex items-center justify-center text-xs sm:text-sm font-semibold shrink-0">
+                1
+              </div>
+              <span className="text-xs sm:text-sm md:text-base font-medium text-brand-green">
+                Shipping
+              </span>
             </div>
-            <span className="text-sm md:text-base font-medium text-brand-green">
-              Shipping
-            </span>
-          </div>
 
-          <div className="flex-1 h-px bg-gray-300" />
+            <div className="flex-1 h-px bg-gray-300" />
 
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-gold text-white flex items-center justify-center text-sm font-semibold shrink-0">
-              2
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-gold text-white flex items-center justify-center text-xs sm:text-sm font-semibold shrink-0">
+                2
+              </div>
+              <span className="text-xs sm:text-sm md:text-base text-brand-text-muted">
+                Payment
+              </span>
             </div>
-            <span className="text-sm md:text-base text-brand-text-muted">
-              Payment
-            </span>
-          </div>
 
-          <div className="flex-1 h-px bg-gray-300" />
+            <div className="flex-1 h-px bg-gray-300" />
 
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center text-sm font-semibold shrink-0">
-              3
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-300 text-white flex items-center justify-center text-xs sm:text-sm font-semibold shrink-0">
+                3
+              </div>
+              <span className="text-xs sm:text-sm md:text-base text-brand-text-muted">
+                Review
+              </span>
             </div>
-            <span className="text-sm md:text-base text-brand-text-muted">
-              Review
-            </span>
           </div>
-        </div>
+        </FadeIn>
 
         {/* Error */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3 max-w-3xl">
-            <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 sm:mb-6 bg-red-50 border border-red-200 rounded-md p-3 sm:p-4 flex items-start gap-2 sm:gap-3 max-w-3xl"
+          >
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <p className="text-xs sm:text-sm text-red-600">{error}</p>
+          </motion.div>
         )}
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 sm:gap-8">
           <CheckoutForm
             data={formData}
             onChange={setFormData}
