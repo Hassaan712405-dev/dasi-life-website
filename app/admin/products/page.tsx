@@ -1,0 +1,288 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Plus, Search, Pencil, Trash2, Loader2, AlertCircle, X } from 'lucide-react';
+import {
+  getAllProducts,
+  getAllCategories,
+  deleteProduct,
+} from '@/services/admin/productAdmin';
+import { getProductImageUrl } from '@/lib/utils/productImage';
+import type { Product } from '@/types/database';
+
+export default function AdminProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function loadData() {
+    setLoading(true);
+    const [productsData, categoriesData] = await Promise.all([
+      getAllProducts(),
+      getAllCategories(),
+    ]);
+    setProducts(productsData);
+    setCategories(categoriesData);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    setDeleting(true);
+    const result = await deleteProduct(id);
+    if (result.success) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setDeleteConfirm(null);
+    }
+    setDeleting(false);
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      searchQuery === '' ||
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === 'All Categories' ||
+      categories.find((c) => c.slug === selectedCategory)?.id === product.category_id;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
+            Products
+          </h1>
+          <p className="text-sm text-brand-text-muted">
+            Manage your Unani formulations, stock levels, and pricing.
+          </p>
+        </div>
+        <Link
+          href="/admin/products/new"
+          className="btn-primary inline-flex items-center gap-2"
+        >
+          <Plus size={16} />
+          Add New Product
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col md:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-muted"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by product name or SKU..."
+            className="w-full bg-white border border-gray-300 rounded-md pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+          />
+        </div>
+
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="bg-white border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green cursor-pointer"
+        >
+          <option>All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.slug}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center">
+            <Loader2 size={32} className="animate-spin text-brand-green mx-auto mb-3" />
+            <p className="text-sm text-brand-text-muted">Loading products...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="p-12 text-center">
+            <AlertCircle size={48} className="text-brand-text-muted mx-auto mb-4" />
+            <p className="text-brand-text-muted mb-4">
+              No products found. Try a different search or category.
+            </p>
+            <Link href="/admin/products/new" className="btn-primary inline-flex">
+              Add First Product
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead>
+                <tr className="bg-gray-50 text-xs font-semibold text-brand-text-muted uppercase tracking-wide border-b border-gray-200">
+                  <th className="text-left px-4 py-3">Product</th>
+                  <th className="text-left px-4 py-3">SKU</th>
+                  <th className="text-left px-4 py-3">Category</th>
+                  <th className="text-left px-4 py-3">Price</th>
+                  <th className="text-left px-4 py-3">Stock</th>
+                  <th className="text-left px-4 py-3">Status</th>
+                  <th className="text-right px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.map((product) => {
+                  const categoryName =
+                    categories.find((c) => c.id === product.category_id)?.name ||
+                    '—';
+
+                  return (
+                    <tr
+                      key={product.id}
+                      className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-brand-cream rounded-md overflow-hidden shrink-0">
+                            <img
+                              src={getProductImageUrl(product)}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <p className="text-sm font-medium text-brand-text-dark line-clamp-2 max-w-xs">
+                            {product.name}
+                          </p>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-brand-text-muted font-mono">
+                        {product.sku || '—'}
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-brand-text-muted">
+                        {categoryName}
+                      </td>
+
+                      <td className="px-4 py-3 text-sm font-semibold text-brand-text-dark">
+                        Rs {product.price.toLocaleString()}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-sm font-medium ${
+                            product.stock < 10
+                              ? 'text-red-600'
+                              : product.stock < 30
+                              ? 'text-orange-600'
+                              : 'text-brand-text-dark'
+                          }`}
+                        >
+                          {product.stock}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            product.is_active
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {product.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/products/${product.id}`}
+                            className="w-8 h-8 rounded-md border border-gray-300 hover:border-brand-green hover:bg-brand-green hover:text-white text-brand-text-dark flex items-center justify-center transition-colors"
+                          >
+                            <Pencil size={14} />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirm(product.id)}
+                            className="w-8 h-8 rounded-md border border-gray-300 hover:border-red-500 hover:bg-red-500 hover:text-white text-brand-text-dark flex items-center justify-center transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs text-brand-text-muted text-center">
+        Showing {filteredProducts.length} of {products.length} products
+      </p>
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <AlertCircle size={20} className="text-red-500" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-semibold text-lg text-brand-text-dark mb-1">
+                    Delete Product?
+                  </h3>
+                  <p className="text-sm text-brand-text-muted">
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                className="text-brand-text-muted hover:text-brand-text-dark transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 border-2 border-gray-300 text-brand-text-dark font-medium py-2.5 rounded-md hover:bg-gray-50 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteConfirm)}
+                disabled={deleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 rounded-md transition-colors text-sm disabled:opacity-60 inline-flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Product'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

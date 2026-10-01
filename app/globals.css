@@ -1,0 +1,215 @@
+/* ---------- Fonts (must be first) ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- Variables ---------- */
+:root {
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --color-primary: #1B5E20;
+  --color-gold: #C9A961;
+  --color-black: #0D0D0D;
+  --color-cream: #F5F0E8;
+  --color-white: #FFFFFF;
+}
+
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: #F5F0E8;
+  color: #1A1A1A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #1B5E20;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #EBE4D6;
+}
+::-webkit-scrollbar-thumb {
+  background: #1B5E20;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E7D32;
+}
+
+/* ---------- Utility ---------- */
+.container-custom {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ============================================
+   BUTTON SYSTEM — Black Fill on Hover
+   ============================================ */
+
+/* Primary Button — Green → Black on hover */
+.btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  background-color: #1B5E20;
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #1B5E20;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  z-index: 0;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #0D0D0D;
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-primary:hover {
+  color: #FFFFFF;
+  border-color: #0D0D0D;
+}
+
+.btn-primary:hover::before {
+  width: 100%;
+}
+
+/* Secondary Button — White → Black on hover */
+.btn-secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  background-color: #FFFFFF;
+  color: #1B5E20;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #1B5E20;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  z-index: 0;
+}
+
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #0D0D0D;
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-secondary:hover {
+  color: #FFFFFF;
+  border-color: #0D0D0D;
+}
+
+.btn-secondary:hover::before {
+  width: 100%;
+}
+
+/* Small Button — for Cart / Product Cards */
+.btn-small {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  background-color: #1B5E20;
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.625rem 1rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #1B5E20;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  z-index: 0;
+  width: 100%;
+}
+
+.btn-small::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #0D0D0D;
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-small:hover {
+  color: #FFFFFF;
+  border-color: #0D0D0D;
+}
+
+.btn-small:hover::before {
+  width: 100%;
+}
+
+/* ============================================
+   MARQUEE — Infinite Right-to-Left Scroll
+   ============================================ */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+.marquee-container:hover .animate-marquee {
+  animation-play-state: paused;
+}
