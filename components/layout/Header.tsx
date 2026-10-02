@@ -49,23 +49,23 @@ export default function Header() {
   const cartCount = getTotalItems();
   const wishlistCount = getWishlistCount();
 
-  // Scroll detection — navbar shadow on scroll
+  // ✅ FIX: Scroll detection — shadow only, NO layout shift
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Focus input when opened
+  // ✅ FIX: Focus input when opened
   useEffect(() => {
     if (searchOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 300);
+      setTimeout(() => inputRef.current?.focus(), 350);
     }
   }, [searchOpen]);
 
-  // Reset query when closed
+  // ✅ FIX: Reset query when closed
   useEffect(() => {
     if (!searchOpen) {
       const timer = setTimeout(() => {
@@ -76,15 +76,28 @@ export default function Header() {
     }
   }, [searchOpen]);
 
-  // Lock body scroll when mobile menu or search is open
+  // ✅ FIX: Lock body scroll — NO LAYOUT SHIFT
   useEffect(() => {
     if (mobileMenuOpen || searchOpen) {
-      document.body.style.overflow = 'hidden';
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
     } else {
-      document.body.style.overflow = 'unset';
+      // Restore scroll position
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
     };
   }, [mobileMenuOpen, searchOpen]);
 
@@ -188,51 +201,52 @@ export default function Header() {
   return (
     <>
       <header
-        className={`bg-white sticky top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? 'shadow-md border-b border-gray-100'
-            : 'border-b border-transparent'
+        className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${
+          scrolled ? 'shadow-md' : 'shadow-sm'
         }`}
+        style={{ borderBottom: '1px solid #EBE4D6' }}
       >
-        <div className="container-custom flex items-center justify-between py-2.5 sm:py-3 md:py-4 gap-2 sm:gap-4">
-
-          {/* ============ HAMBURGER (Mobile Only) ============ */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center shrink-0"
-            aria-label="Open menu"
+        <div className="container-custom">
+          {/* ============================================ */}
+          {/* MAIN ROW — Always visible                        */}
+          {/* ============================================ */}
+          <div
+            className={`flex items-center justify-between gap-2 sm:gap-4 transition-all duration-300 ${
+              searchOpen
+                ? 'py-2 sm:py-2.5 opacity-0 pointer-events-none absolute inset-0 -z-10'
+                : 'py-3 sm:py-3.5 md:py-4 opacity-100'
+            }`}
           >
-            <Menu size={22} className="text-brand-text-dark" />
-          </button>
-
-          {/* ============ LOGO ============ */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 shrink-0 z-20 group"
-            aria-label="Desi Life Home"
-          >
-            <div className="relative h-9 w-24 sm:h-11 sm:w-32 md:h-12 md:w-36 lg:h-14 lg:w-44 transition-transform duration-300 group-hover:scale-[1.03]">
-              <Image
-                src="/images/logo.png"
-                alt="Desi Life"
-                fill
-                className="object-contain object-left"
-                priority
-                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 176px"
-              />
-            </div>
-          </Link>
-
-          {/* ============ CENTER NAV (Desktop) ============ */}
-          <div className="hidden lg:flex flex-1 h-10 items-center justify-center relative">
-            <nav
-              className={`absolute inset-0 flex items-center justify-center gap-6 xl:gap-8 text-sm font-medium text-brand-text-dark transition-all duration-300 ${
-                searchOpen
-                  ? 'opacity-0 -translate-y-2 pointer-events-none'
-                  : 'opacity-100 translate-y-0'
-              }`}
+            {/* HAMBURGER (Mobile/Tablet) */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center shrink-0"
+              aria-label="Open menu"
             >
+              <Menu size={22} className="text-brand-text-dark" />
+            </button>
+
+            {/* LOGO */}
+            <Link
+              href="/"
+              className="flex items-center gap-2 shrink-0 group"
+              aria-label="Desi Life Home"
+            >
+              <div className="relative h-10 w-28 sm:h-11 sm:w-32 md:h-12 md:w-36 lg:h-14 lg:w-44 transition-transform duration-300 group-hover:scale-[1.02]">
+                <Image
+                  src="/images/logo.png"
+                  alt="Desi Life"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                  sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 176px"
+                />
+              </div>
+            </Link>
+
+            {/* DESKTOP NAV */}
+            <nav className="hidden lg:flex flex-1 items-center justify-center gap-6 xl:gap-8 text-sm font-medium text-brand-text-dark">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href}
@@ -245,275 +259,275 @@ export default function Header() {
               ))}
             </nav>
 
-            {/* Desktop Search Bar — inline */}
-            <div
-              className={`absolute inset-0 flex items-center transition-all duration-300 ${
-                searchOpen
-                  ? 'opacity-100 translate-y-0 pointer-events-auto'
-                  : 'opacity-0 -translate-y-2 pointer-events-none'
-              }`}
-            >
-              <div className="w-full max-w-2xl mx-auto relative">
-                <form onSubmit={handleSubmit} className="relative">
-                  <Search
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-muted pointer-events-none"
-                  />
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search for Unani products, oils, capsules..."
-                    className="w-full bg-brand-cream border border-gray-300 rounded-full pl-11 pr-11 py-2 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
-                  />
-                  {query && (
-                    <button
-                      type="button"
-                      onClick={() => setQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
-                      aria-label="Clear"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </form>
+            {/* RIGHT ICONS */}
+            <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
+              {/* Search Icon */}
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center"
+                aria-label="Search"
+              >
+                <Search size={20} className="text-brand-text-dark" />
+              </button>
 
-                {query.trim().length >= 2 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-2xl z-50 overflow-hidden">
-                    {loading ? (
-                      <div className="flex items-center justify-center py-6 text-brand-text-muted text-sm">
-                        <Loader2 size={18} className="animate-spin mr-2" />
-                        Searching...
-                      </div>
-                    ) : results.length === 0 ? (
-                      <div className="py-6 px-4 text-center text-sm text-brand-text-muted">
-                        No products found for "<strong>{query}</strong>"
-                      </div>
-                    ) : (
-                      <>
-                        <div className="max-h-[400px] overflow-y-auto">
-                          {results.map((product) => (
-                            <Link
-                              key={product.id}
-                              href={`/product/${product.slug}`}
-                              onClick={closeSearch}
-                              className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="w-10 h-10 bg-brand-cream rounded-lg overflow-hidden shrink-0">
-                                <img
-                                  src={
-                                    product.slug === 'sultani-herbal-majoon'
-                                      ? '/images/product-majoon.png'
-                                      : product.slug === 'sultani-herbal-hair-oil'
-                                      ? '/images/product-hair-oil.png'
-                                      : product.slug === 'sultani-herbal-capsule-joint-bone'
-                                      ? '/images/product-joint-bone.png'
-                                      : '/images/product-weight-loss.png'
-                                  }
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
-                                  {product.name}
-                                </p>
-                                <p className="text-xs text-brand-text-muted line-clamp-1">
-                                  {product.short_description}
-                                </p>
-                              </div>
-                              <p className="font-semibold text-brand-green text-sm shrink-0">
-                                Rs {product.price.toLocaleString()}
+              {/* User (Desktop/Tablet) */}
+              {!authLoading && (
+                <>
+                  {user ? (
+                    <div className="relative hidden sm:block" ref={userMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        className="flex items-center gap-1.5 pl-1 pr-1.5 py-1 hover:bg-brand-cream rounded-full transition-colors"
+                        aria-label="User menu"
+                      >
+                        <span className="w-8 h-8 rounded-full bg-brand-green text-white flex items-center justify-center text-xs font-semibold">
+                          {userInitials}
+                        </span>
+                        <ChevronDown
+                          size={14}
+                          className={`text-brand-text-dark transition-transform duration-200 ${
+                            userMenuOpen ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+
+                      <AnimatePresence>
+                        {userMenuOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden z-50"
+                          >
+                            <div className="px-4 py-3 border-b border-gray-100 bg-brand-cream">
+                              <p className="text-xs text-brand-text-muted mb-0.5">
+                                Signed in as
                               </p>
-                            </Link>
-                          ))}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleSubmit}
-                          className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-3 border-t border-gray-100 bg-white"
-                        >
-                          View all results for "{query}" →
-                        </button>
-                      </>
-                    )}
-                  </div>
+                              <p className="text-sm font-medium text-brand-text-dark truncate">
+                                {user.email}
+                              </p>
+                            </div>
+
+                            <div className="py-2">
+                              <Link
+                                href="/account"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
+                              >
+                                <User size={16} className="text-brand-green" />
+                                My Account
+                              </Link>
+                              <Link
+                                href="/account/orders"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
+                              >
+                                <ShoppingCart size={16} className="text-brand-green" />
+                                My Orders
+                              </Link>
+                              <Link
+                                href="/wishlist"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
+                              >
+                                <Heart size={16} className="text-brand-green" />
+                                My Wishlist
+                              </Link>
+                            </div>
+
+                            <div className="border-t border-gray-100 py-2">
+                              <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                <LogOut size={16} />
+                                Logout
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <Link
+                      href="/login"
+                      className="hidden sm:flex p-2 hover:bg-brand-cream rounded-full transition-colors"
+                      aria-label="Login"
+                    >
+                      <User size={20} className="text-brand-text-dark" />
+                    </Link>
+                  )}
+                </>
+              )}
+
+              {/* Wishlist */}
+              <Link
+                href="/wishlist"
+                className="relative p-2 hover:bg-brand-cream rounded-full transition-colors hidden sm:flex"
+                aria-label="Wishlist"
+              >
+                <Heart size={20} className="text-brand-text-dark" />
+                {wishlistCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                  >
+                    {wishlistCount}
+                  </motion.span>
                 )}
-              </div>
+              </Link>
+
+              {/* Cart */}
+              <Link
+                href="/cart"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 bg-brand-cream hover:bg-brand-cream-dark rounded-full transition-all duration-300 hover:scale-[1.02]"
+                aria-label="Cart"
+              >
+                <ShoppingCart size={18} className="text-brand-text-dark" />
+                <span className="text-sm font-medium text-brand-text-dark hidden sm:inline">
+                  Cart
+                </span>
+                <span
+                  className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center transition-all duration-300 ${
+                    cartCount > 0
+                      ? 'bg-brand-gold text-white scale-100'
+                      : 'bg-brand-gold/60 text-white scale-95'
+                  }`}
+                >
+                  {cartCount}
+                </span>
+              </Link>
             </div>
           </div>
 
-          {/* ============ RIGHT ICONS ============ */}
-          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0 z-20">
+          {/* ============================================ */}
+          {/* SEARCH ROW — Slides in below on search click  */}
+          {/* ============================================ */}
+          <AnimatePresence>
+            {searchOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="py-3 sm:py-4">
+                  <div className="flex items-center gap-2 sm:gap-3 max-w-3xl mx-auto">
+                    {/* Search Input */}
+                    <div className="flex-1 relative">
+                      <Search
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-muted pointer-events-none"
+                      />
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSubmit(e as any);
+                          }
+                        }}
+                        placeholder="Search for Unani products, oils, capsules..."
+                        className="w-full bg-brand-cream border border-gray-300 rounded-full pl-11 pr-11 py-2.5 sm:py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green focus:bg-white transition-colors"
+                      />
+                      {query && (
+                        <button
+                          type="button"
+                          onClick={() => setQuery('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                          aria-label="Clear"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
 
-            {/* Search Icon (Desktop) */}
-            <button
-              type="button"
-              onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
-              className="hidden lg:flex relative w-10 h-10 hover:bg-brand-cream rounded-full transition-colors items-center justify-center"
-              aria-label={searchOpen ? 'Close search' : 'Search'}
-            >
-              <Search
-                size={20}
-                className={`absolute text-brand-text-dark transition-all duration-300 ${
-                  searchOpen
-                    ? 'opacity-0 rotate-90 scale-50'
-                    : 'opacity-100 rotate-0 scale-100'
-                }`}
-              />
-              <X
-                size={20}
-                className={`absolute text-brand-text-dark transition-all duration-300 ${
-                  searchOpen
-                    ? 'opacity-100 rotate-0 scale-100'
-                    : 'opacity-0 -rotate-90 scale-50'
-                }`}
-              />
-            </button>
-
-            {/* Search Icon (Mobile) */}
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              className="lg:hidden w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center"
-              aria-label="Search"
-            >
-              <Search size={20} className="text-brand-text-dark" />
-            </button>
-
-            {/* User — Auth State (Desktop) */}
-            {!authLoading && (
-              <>
-                {user ? (
-                  <div className="relative hidden sm:block" ref={userMenuRef}>
+                    {/* Cancel Button */}
                     <button
                       type="button"
-                      onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-1.5 pl-1 pr-1.5 py-1 hover:bg-brand-cream rounded-full transition-colors"
-                      aria-label="User menu"
+                      onClick={closeSearch}
+                      className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm font-medium text-brand-text-dark hover:text-brand-green transition-colors shrink-0"
                     >
-                      <span className="w-8 h-8 rounded-full bg-brand-green text-white flex items-center justify-center text-xs font-semibold">
-                        {userInitials}
-                      </span>
-                      <ChevronDown
-                        size={14}
-                        className={`text-brand-text-dark transition-transform duration-200 ${
-                          userMenuOpen ? 'rotate-180' : ''
-                        }`}
-                      />
+                      Cancel
                     </button>
+                  </div>
 
-                    <AnimatePresence>
-                      {userMenuOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden z-50"
-                        >
-                          <div className="px-4 py-3 border-b border-gray-100 bg-brand-cream">
-                            <p className="text-xs text-brand-text-muted mb-0.5">
-                              Signed in as
-                            </p>
-                            <p className="text-sm font-medium text-brand-text-dark truncate">
-                              {user.email}
-                            </p>
+                  {/* Search Results — Dropdown below */}
+                  {query.trim().length >= 2 && (
+                    <div className="mt-3 max-w-3xl mx-auto">
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden">
+                        {loading ? (
+                          <div className="flex items-center justify-center py-6 text-brand-text-muted text-sm">
+                            <Loader2 size={18} className="animate-spin mr-2" />
+                            Searching...
                           </div>
-
-                          <div className="py-2">
-                            <Link
-                              href="/account"
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
-                            >
-                              <User size={16} className="text-brand-green" />
-                              My Account
-                            </Link>
-                            <Link
-                              href="/account/orders"
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
-                            >
-                              <ShoppingCart size={16} className="text-brand-green" />
-                              My Orders
-                            </Link>
-                            <Link
-                              href="/wishlist"
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
-                            >
-                              <Heart size={16} className="text-brand-green" />
-                              My Wishlist
-                            </Link>
+                        ) : results.length === 0 ? (
+                          <div className="py-6 px-4 text-center text-sm text-brand-text-muted">
+                            No products found for "<strong>{query}</strong>"
                           </div>
-
-                          <div className="border-t border-gray-100 py-2">
+                        ) : (
+                          <>
+                            <div className="max-h-[400px] overflow-y-auto">
+                              {results.map((product) => (
+                                <Link
+                                  key={product.id}
+                                  href={`/product/${product.slug}`}
+                                  onClick={closeSearch}
+                                  className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100 last:border-b-0"
+                                >
+                                  <div className="w-10 h-10 bg-brand-cream rounded-lg overflow-hidden shrink-0">
+                                    <img
+                                      src={
+                                        product.slug === 'sultani-herbal-majoon'
+                                          ? '/images/product-majoon.png'
+                                          : product.slug === 'sultani-herbal-hair-oil'
+                                          ? '/images/product-hair-oil.png'
+                                          : product.slug === 'sultani-herbal-capsule-joint-bone'
+                                          ? '/images/product-joint-bone.png'
+                                          : '/images/product-weight-loss.png'
+                                      }
+                                      alt={product.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
+                                      {product.name}
+                                    </p>
+                                    <p className="text-xs text-brand-text-muted line-clamp-1">
+                                      {product.short_description}
+                                    </p>
+                                  </div>
+                                  <p className="font-semibold text-brand-green text-sm shrink-0">
+                                    Rs {product.price.toLocaleString()}
+                                  </p>
+                                </Link>
+                              ))}
+                            </div>
                             <button
                               type="button"
-                              onClick={handleLogout}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                              onClick={handleSubmit}
+                              className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-3 border-t border-gray-100 bg-white"
                             >
-                              <LogOut size={16} />
-                              Logout
+                              View all results for "{query}" →
                             </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="hidden sm:flex p-2 hover:bg-brand-cream rounded-full transition-colors"
-                    aria-label="Login"
-                  >
-                    <User size={20} className="text-brand-text-dark" />
-                  </Link>
-                )}
-              </>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             )}
-
-            {/* Wishlist Icon (Desktop + Tablet) */}
-            <Link
-              href="/wishlist"
-              className="relative p-2 hover:bg-brand-cream rounded-full transition-colors hidden sm:flex"
-              aria-label="Wishlist"
-            >
-              <Heart size={20} className="text-brand-text-dark" />
-              {wishlistCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                >
-                  {wishlistCount}
-                </motion.span>
-              )}
-            </Link>
-
-            {/* Cart — Always Visible */}
-            <Link
-              href="/cart"
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 bg-brand-cream hover:bg-brand-cream-dark rounded-full transition-all duration-300 hover:scale-[1.02]"
-              aria-label="Cart"
-            >
-              <ShoppingCart size={18} className="text-brand-text-dark" />
-              <span className="text-sm font-medium text-brand-text-dark hidden sm:inline">
-                Cart
-              </span>
-              <span
-                className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center transition-all duration-300 ${
-                  cartCount > 0
-                    ? 'bg-brand-gold text-white scale-100'
-                    : 'bg-brand-gold/60 text-white scale-95'
-                }`}
-              >
-                {cartCount}
-              </span>
-            </Link>
-          </div>
+          </AnimatePresence>
         </div>
       </header>
 
@@ -689,108 +703,6 @@ export default function Header() {
               </nav>
             </motion.aside>
           </>
-        )}
-      </AnimatePresence>
-
-      {/* ============================================ */}
-      {/* FULL-SCREEN SEARCH OVERLAY (Mobile + Tablet) */}
-      {/* ============================================ */}
-      <AnimatePresence>
-        {searchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 bg-white z-[70] flex flex-col"
-          >
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
-              <button
-                type="button"
-                onClick={closeSearch}
-                className="w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center shrink-0"
-                aria-label="Close search"
-              >
-                <X size={20} className="text-brand-text-dark" />
-              </button>
-              <form onSubmit={handleSubmit} className="flex-1 relative">
-                <Search
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-muted pointer-events-none"
-                />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search products..."
-                  autoFocus
-                  className="w-full bg-brand-cream border border-gray-300 rounded-full pl-11 pr-4 py-2.5 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green"
-                />
-              </form>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {query.trim().length < 2 ? (
-                <div className="p-6 text-center text-sm text-brand-text-muted">
-                  Type at least 2 characters to search
-                </div>
-              ) : loading ? (
-                <div className="flex items-center justify-center py-12 text-brand-text-muted text-sm">
-                  <Loader2 size={18} className="animate-spin mr-2" />
-                  Searching...
-                </div>
-              ) : results.length === 0 ? (
-                <div className="py-12 px-4 text-center text-sm text-brand-text-muted">
-                  No products found for "<strong>{query}</strong>"
-                </div>
-              ) : (
-                <>
-                  {results.map((product) => (
-                    <Link
-                      key={product.id}
-                      href={`/product/${product.slug}`}
-                      onClick={closeSearch}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100"
-                    >
-                      <div className="w-12 h-12 bg-brand-cream rounded-lg overflow-hidden shrink-0">
-                        <img
-                          src={
-                            product.slug === 'sultani-herbal-majoon'
-                              ? '/images/product-majoon.png'
-                              : product.slug === 'sultani-herbal-hair-oil'
-                              ? '/images/product-hair-oil.png'
-                              : product.slug === 'sultani-herbal-capsule-joint-bone'
-                              ? '/images/product-joint-bone.png'
-                              : '/images/product-weight-loss.png'
-                          }
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
-                          {product.name}
-                        </p>
-                        <p className="text-xs text-brand-text-muted line-clamp-1">
-                          {product.short_description}
-                        </p>
-                      </div>
-                      <p className="font-semibold text-brand-green text-sm shrink-0">
-                        Rs {product.price.toLocaleString()}
-                      </p>
-                    </Link>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-4 border-t border-gray-100"
-                  >
-                    View all results for "{query}" →
-                  </button>
-                </>
-              )}
-            </div>
-          </motion.div>
         )}
       </AnimatePresence>
     </>
