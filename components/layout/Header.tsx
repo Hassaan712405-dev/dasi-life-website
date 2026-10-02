@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Search,
   ShoppingCart,
-  Leaf,
   X,
   Loader2,
   User,
@@ -38,6 +38,7 @@ export default function Header() {
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -47,6 +48,15 @@ export default function Header() {
 
   const cartCount = getTotalItems();
   const wishlistCount = getWishlistCount();
+
+  // Scroll detection — navbar shadow on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Focus input when opened
   useEffect(() => {
@@ -177,8 +187,14 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="container-custom flex items-center justify-between py-3 md:py-4 gap-2 sm:gap-4">
+      <header
+        className={`bg-white sticky top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? 'shadow-md border-b border-gray-100'
+            : 'border-b border-transparent'
+        }`}
+      >
+        <div className="container-custom flex items-center justify-between py-2.5 sm:py-3 md:py-4 gap-2 sm:gap-4">
 
           {/* ============ HAMBURGER (Mobile Only) ============ */}
           <button
@@ -191,14 +207,21 @@ export default function Header() {
           </button>
 
           {/* ============ LOGO ============ */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 z-20">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-brand-green rounded-full flex items-center justify-center">
-              <Leaf className="text-white" size={18} strokeWidth={2.5} />
+          <Link
+            href="/"
+            className="flex items-center gap-2 shrink-0 z-20 group"
+            aria-label="Desi Life Home"
+          >
+            <div className="relative h-9 w-24 sm:h-11 sm:w-32 md:h-12 md:w-36 lg:h-14 lg:w-44 transition-transform duration-300 group-hover:scale-[1.03]">
+              <Image
+                src="/images/logo.png"
+                alt="Desi Life"
+                fill
+                className="object-contain object-left"
+                priority
+                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 176px"
+              />
             </div>
-            <span className="text-lg sm:text-xl md:text-2xl font-heading font-bold tracking-tight">
-              <span className="text-brand-green">DESÍ</span>
-              <span className="text-brand-gold">LIFE</span>
-            </span>
           </Link>
 
           {/* ============ CENTER NAV (Desktop) ============ */}
@@ -322,9 +345,9 @@ export default function Header() {
           </div>
 
           {/* ============ RIGHT ICONS ============ */}
-          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 z-20">
+          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0 z-20">
 
-            {/* Search Icon (Desktop only — mobile uses bottom search) */}
+            {/* Search Icon (Desktop) */}
             <button
               type="button"
               onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
@@ -349,7 +372,7 @@ export default function Header() {
               />
             </button>
 
-            {/* Search Icon (Mobile — opens overlay) */}
+            {/* Search Icon (Mobile) */}
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
@@ -359,7 +382,7 @@ export default function Header() {
               <Search size={20} className="text-brand-text-dark" />
             </button>
 
-            {/* User — Auth State (Desktop only) */}
+            {/* User — Auth State (Desktop) */}
             {!authLoading && (
               <>
                 {user ? (
@@ -367,7 +390,7 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-1.5 pl-1.5 pr-2 py-1.5 hover:bg-brand-cream rounded-full transition-colors"
+                      className="flex items-center gap-1.5 pl-1 pr-1.5 py-1 hover:bg-brand-cream rounded-full transition-colors"
                       aria-label="User menu"
                     >
                       <span className="w-8 h-8 rounded-full bg-brand-green text-white flex items-center justify-center text-xs font-semibold">
@@ -452,7 +475,7 @@ export default function Header() {
               </>
             )}
 
-            {/* Wishlist Icon (Desktop only — mobile in menu) */}
+            {/* Wishlist Icon (Desktop + Tablet) */}
             <Link
               href="/wishlist"
               className="relative p-2 hover:bg-brand-cream rounded-full transition-colors hidden sm:flex"
@@ -460,16 +483,20 @@ export default function Header() {
             >
               <Heart size={20} className="text-brand-text-dark" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                >
                   {wishlistCount}
-                </span>
+                </motion.span>
               )}
             </Link>
 
             {/* Cart — Always Visible */}
             <Link
               href="/cart"
-              className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-2 bg-brand-cream hover:bg-brand-cream-dark rounded-full transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 bg-brand-cream hover:bg-brand-cream-dark rounded-full transition-all duration-300 hover:scale-[1.02]"
               aria-label="Cart"
             >
               <ShoppingCart size={18} className="text-brand-text-dark" />
@@ -496,7 +523,6 @@ export default function Header() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -505,7 +531,6 @@ export default function Header() {
               className="lg:hidden fixed inset-0 bg-black/50 z-[60]"
             />
 
-            {/* Drawer — slides from left */}
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
@@ -518,15 +543,17 @@ export default function Header() {
                 <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2"
+                  className="flex items-center"
                 >
-                  <div className="w-8 h-8 bg-brand-green rounded-full flex items-center justify-center">
-                    <Leaf className="text-white" size={16} strokeWidth={2.5} />
+                  <div className="relative h-9 w-28">
+                    <Image
+                      src="/images/logo.png"
+                      alt="Desi Life"
+                      fill
+                      className="object-contain object-left"
+                      sizes="112px"
+                    />
                   </div>
-                  <span className="text-lg font-heading font-bold tracking-tight">
-                    <span className="text-brand-green">DESÍ</span>
-                    <span className="text-brand-gold">LIFE</span>
-                  </span>
                 </Link>
                 <button
                   type="button"
@@ -538,7 +565,7 @@ export default function Header() {
                 </button>
               </div>
 
-              {/* User Info (if logged in) */}
+              {/* User Info */}
               {user && (
                 <div className="px-5 py-4 bg-brand-cream border-b border-gray-100">
                   <div className="flex items-center gap-3">
@@ -576,10 +603,8 @@ export default function Header() {
                   ))}
                 </ul>
 
-                {/* Divider */}
                 <div className="my-4 border-t border-gray-100" />
 
-                {/* Quick Actions */}
                 <div className="space-y-1">
                   <Link
                     href="/wishlist"
@@ -614,7 +639,6 @@ export default function Header() {
                   </Link>
                 </div>
 
-                {/* Account Section */}
                 <div className="my-4 border-t border-gray-100" />
 
                 {user ? (
@@ -679,7 +703,6 @@ export default function Header() {
             exit={{ opacity: 0 }}
             className="lg:hidden fixed inset-0 bg-white z-[70] flex flex-col"
           >
-            {/* Search Header */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
               <button
                 type="button"
@@ -706,7 +729,6 @@ export default function Header() {
               </form>
             </div>
 
-            {/* Results */}
             <div className="flex-1 overflow-y-auto">
               {query.trim().length < 2 ? (
                 <div className="p-6 text-center text-sm text-brand-text-muted">
