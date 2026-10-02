@@ -17,22 +17,21 @@ export default function OrderPrintLabel({
   order,
   storeInfo,
 }: OrderPrintLabelProps) {
-  // ✅ LIVE DATE — Aaj ki date (print ke din ki)
+  // Live date (print ke din ki)
   const orderDate = new Date().toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 
-  // ✅ AUTO PDF FILENAME — Print ke waqt page title change hoga
+  // Auto PDF filename
   useEffect(() => {
     const originalTitle = document.title;
 
     const handleBeforePrint = () => {
-      // Customer name + order number se safe filename banao
       const safeName = order.customer_name
-        .replace(/[^a-zA-Z0-9\s]/g, '') // Special characters hatao
-        .replace(/\s+/g, '_'); // Spaces ko underscore karo
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_');
       document.title = `${safeName}_${order.order_number}`;
     };
 
@@ -49,11 +48,17 @@ export default function OrderPrintLabel({
     };
   }, [order.customer_name, order.order_number]);
 
+  // Store info
   const storeName = storeInfo?.store_name || 'Desi Life';
   const storeAddress =
     storeInfo?.store_address ||
     'Rehman Town College Road, Mailsi, Vehari Pakistan, 61200';
   const storePhone = storeInfo?.store_phone || '0342-2544495';
+
+  // Urdu values with fallback (agar Urdu field khali ho to English use karo)
+  const customerNameUrdu = order.customer_name_urdu || order.customer_name;
+  const cityUrdu = order.shipping_city_urdu || order.shipping_city;
+  const stateUrdu = order.shipping_state_urdu || order.shipping_state;
 
   return (
     <div
@@ -76,9 +81,6 @@ export default function OrderPrintLabel({
         <tbody>
           {/* ============================================================ */}
           {/* ROW 1: TOP SECTION (3 Columns)                                */}
-          {/* Col 1 (Left)  = Pakistan Post (English + Urdu)                */}
-          {/* Col 2 (Middle)= To (Customer — English)                       */}
-          {/* Col 3 (Right) = From (Store — English)                        */}
           {/* ============================================================ */}
           <tr>
             {/* ---------- LEFT: Pakistan Post ---------- */}
@@ -102,7 +104,6 @@ export default function OrderPrintLabel({
                     marginBottom: '4px',
                   }}
                 >
-                  {/* Red Arrow Logo */}
                   <div
                     style={{
                       color: '#C8102E',
@@ -139,7 +140,7 @@ export default function OrderPrintLabel({
                   </div>
                 </div>
 
-                {/* Date — LIVE */}
+                {/* Date */}
                 <div
                   style={{
                     fontSize: '11px',
@@ -157,10 +158,22 @@ export default function OrderPrintLabel({
                     fontSize: '12px',
                     fontWeight: 'bold',
                     textAlign: 'left',
-                    marginTop: '12px',
+                    marginTop: '10px',
                   }}
                 >
                   P
+                </div>
+
+                {/* Track ID — Order Number */}
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    textAlign: 'left',
+                    marginTop: '8px',
+                  }}
+                >
+                  Track ID: {order.order_number}
                 </div>
               </div>
             </td>
@@ -194,10 +207,8 @@ export default function OrderPrintLabel({
                   textDecoration: 'underline',
                 }}
               >
-                Address: {order.shipping_address}, {order.shipping_city},
-                <br />
-                {order.shipping_state}, {order.shipping_postal_code},
-                <br />
+                Address: {order.shipping_address}, {order.shipping_city},{' '}
+                {order.shipping_state}, {order.shipping_postal_code},{' '}
                 {order.shipping_country}.
               </div>
               <div
@@ -208,7 +219,6 @@ export default function OrderPrintLabel({
                 }}
               >
                 Phone: {order.customer_phone}
-                {order.customer_email ? `, ${order.customer_email}` : ''}
               </div>
             </td>
 
@@ -245,25 +255,16 @@ export default function OrderPrintLabel({
                 <br />
                 61200
               </div>
-              <div
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 'bold',
-                  marginTop: '6px',
-                }}
-              >
-                Phone: {storePhone}
-              </div>
             </td>
           </tr>
 
           {/* ============================================================ */}
-          {/* ROW 2: COD + Alternate Phones                                 */}
+          {/* ROW 2: COD ONLY                                               */}
           {/* ============================================================ */}
           <tr>
             <td
+              colSpan={3}
               style={{
-                borderRight: '1px solid #000',
                 borderBottom: '1px solid #000',
                 padding: '6px 8px',
                 fontSize: '15px',
@@ -273,25 +274,10 @@ export default function OrderPrintLabel({
             >
               COD PKR ={order.total.toLocaleString()}
             </td>
-            <td
-              colSpan={2}
-              style={{
-                borderBottom: '1px solid #000',
-                padding: '6px 8px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                verticalAlign: 'middle',
-              }}
-            >
-              Phone: 0344-5063248, 0340-2119230
-            </td>
           </tr>
 
           {/* ============================================================ */}
           {/* ROW 3: BOTTOM SECTION (3 Columns)                             */}
-          {/* Col 1 (Left)  = Urdu Instruction (Postman ke liye)            */}
-          {/* Col 2 (Middle)= Urdu Name + Address (Center, Bold)            */}
-          {/* Col 3 (Right) = Brand Logo + Urdu Name + Website              */}
           {/* ============================================================ */}
           <tr>
             {/* ---------- LEFT: Urdu Instruction ---------- */}
@@ -324,7 +310,7 @@ export default function OrderPrintLabel({
               </div>
             </td>
 
-            {/* ---------- MIDDLE: Urdu Name + Address (BIG & BOLD) ---------- */}
+            {/* ---------- MIDDLE: Urdu Name + Address ---------- */}
             <td
               style={{
                 borderRight: '1px solid #000',
@@ -342,14 +328,15 @@ export default function OrderPrintLabel({
                   fontWeight: 'bold',
                 }}
               >
-                نام: {order.customer_name}
+                نام: {customerNameUrdu}
                 <br />
-                پتہ: ڈاکخانہ {order.shipping_city} جی پی او، {order.shipping_city}،
-                تحصیل و ضلع {order.shipping_state}، {order.shipping_country}۔
+                پتہ: ڈاکخانہ {cityUrdu} جی پی او، {cityUrdu}،
+                <br />
+                تحصیل و ضلع {stateUrdu}، پاکستان۔
               </div>
             </td>
 
-            {/* ---------- RIGHT: Brand Logo + Urdu Name + Website ---------- */}
+            {/* ---------- RIGHT: Logo + Brand + Website + Phone ---------- */}
             <td
               style={{
                 width: '25%',
@@ -368,7 +355,6 @@ export default function OrderPrintLabel({
                   marginBottom: '6px',
                 }}
               >
-                {/* Green Circle Logo */}
                 <div
                   style={{
                     width: '38px',
@@ -434,9 +420,21 @@ export default function OrderPrintLabel({
                   color: '#1F4A2C',
                   fontWeight: 'bold',
                   textDecoration: 'underline',
+                  marginBottom: '6px',
                 }}
               >
                 www.desilife.store
+              </div>
+
+              {/* Store Phone — Website ke NEECHE */}
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  color: '#000',
+                }}
+              >
+                Phone: {storePhone}
               </div>
             </td>
           </tr>

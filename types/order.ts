@@ -16,11 +16,15 @@ export interface OrderItemInput {
 
 export interface CreateOrderInput {
   customerName: string;
+  customerNameUrdu?: string;
   customerPhone: string;
   customerEmail: string;
   shippingAddress: string;
+  shippingAddressUrdu?: string;
   shippingCity: string;
+  shippingCityUrdu?: string;
   shippingState: string;
+  shippingStateUrdu?: string;
   shippingPostalCode: string;
   shippingCountry: string;
   subtotal: number;
@@ -37,11 +41,15 @@ export interface OrderRecord {
   order_number: string;
   user_id: string | null;
   customer_name: string;
+  customer_name_urdu: string | null;
   customer_phone: string;
   customer_email: string | null;
   shipping_address: string;
+  shipping_address_urdu: string | null;
   shipping_city: string;
+  shipping_city_urdu: string | null;
   shipping_state: string;
+  shipping_state_urdu: string | null;
   shipping_postal_code: string;
   shipping_country: string;
   subtotal: number;

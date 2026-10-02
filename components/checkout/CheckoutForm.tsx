@@ -5,11 +5,15 @@ import { CreditCard } from 'lucide-react';
 
 export interface ShippingInfo {
   customerName: string;
+  customerNameUrdu: string;
   customerPhone: string;
   customerEmail: string;
   shippingAddress: string;
+  shippingAddressUrdu: string;
   shippingCity: string;
+  shippingCityUrdu: string;
   shippingState: string;
+  shippingStateUrdu: string;
   shippingPostalCode: string;
   shippingCountry: string;
   notes: string;
@@ -44,20 +48,39 @@ export default function CheckoutForm({
         </h2>
 
         <div className="space-y-3 sm:space-y-5">
-          {/* Full Name */}
+          {/* Full Name (English) */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-              Full Name <span className="text-red-500">*</span>
+              Full Name (English) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={data.customerName}
               onChange={(e) => update('customerName', e.target.value)}
-              placeholder="Zainab Khan"
+              placeholder="M. Sadiq"
               required
               disabled={disabled}
               className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
             />
+          </div>
+
+          {/* Full Name (Urdu) */}
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
+              پورا نام (اردو میں)
+            </label>
+            <input
+              type="text"
+              value={data.customerNameUrdu}
+              onChange={(e) => update('customerNameUrdu', e.target.value)}
+              placeholder="ایم صادق"
+              dir="rtl"
+              disabled={disabled}
+              className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+            />
+            <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
+              Print label par Urdu mein naam aayega.
+            </p>
           </div>
 
           {/* Phone + Email */}
@@ -70,7 +93,7 @@ export default function CheckoutForm({
                 type="tel"
                 value={data.customerPhone}
                 onChange={(e) => update('customerPhone', e.target.value)}
-                placeholder="+92 300 1234567"
+                placeholder="0344-5063248"
                 required
                 disabled={disabled}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
@@ -92,50 +115,98 @@ export default function CheckoutForm({
             </div>
           </div>
 
-          {/* Street */}
+          {/* Street Address (English) */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-              Street Address <span className="text-red-500">*</span>
+              Street Address (English) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={data.shippingAddress}
               onChange={(e) => update('shippingAddress', e.target.value)}
-              placeholder="House 42, Block C, Gulberg III"
+              placeholder="Post Office Saidu Sharif GPO, Saidu Sharif"
               required
               disabled={disabled}
               className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
             />
           </div>
 
-          {/* City + State */}
+          {/* Street Address (Urdu) */}
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
+              مکمل پتہ (اردو میں)
+            </label>
+            <input
+              type="text"
+              value={data.shippingAddressUrdu}
+              onChange={(e) => update('shippingAddressUrdu', e.target.value)}
+              placeholder="پوسٹ آفس سیدو شریف جی پی او، سیدو شریف"
+              dir="rtl"
+              disabled={disabled}
+              className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+            />
+          </div>
+
+          {/* City (English) + City (Urdu) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                City <span className="text-red-500">*</span>
+                City (English) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={data.shippingCity}
                 onChange={(e) => update('shippingCity', e.target.value)}
-                placeholder="Lahore"
+                placeholder="Saidu Sharif"
                 required
                 disabled={disabled}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
             </div>
             <div>
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
+                شہر (اردو میں)
+              </label>
+              <input
+                type="text"
+                value={data.shippingCityUrdu}
+                onChange={(e) => update('shippingCityUrdu', e.target.value)}
+                placeholder="سیدو شریف"
+                dir="rtl"
+                disabled={disabled}
+                className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+              />
+            </div>
+          </div>
+
+          {/* State (English) + State (Urdu) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+            <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                State / Province <span className="text-red-500">*</span>
+                State / Province (English) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={data.shippingState}
                 onChange={(e) => update('shippingState', e.target.value)}
-                placeholder="Punjab"
+                placeholder="Khyber Pakhtunkhwa"
                 required
                 disabled={disabled}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+              />
+            </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
+                صوبہ (اردو میں)
+              </label>
+              <input
+                type="text"
+                value={data.shippingStateUrdu}
+                onChange={(e) => update('shippingStateUrdu', e.target.value)}
+                placeholder="خیبر پختونخوا"
+                dir="rtl"
+                disabled={disabled}
+                className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
             </div>
           </div>
@@ -150,7 +221,7 @@ export default function CheckoutForm({
                 type="text"
                 value={data.shippingPostalCode}
                 onChange={(e) => update('shippingPostalCode', e.target.value)}
-                placeholder="54660"
+                placeholder="19200"
                 required
                 disabled={disabled}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"

@@ -39,11 +39,15 @@ export async function createOrder(
       order_number: orderNumber,
       user_id: user?.id || null,
       customer_name: input.customerName,
+      customer_name_urdu: input.customerNameUrdu || null,
       customer_phone: input.customerPhone,
       customer_email: input.customerEmail,
       shipping_address: input.shippingAddress,
+      shipping_address_urdu: input.shippingAddressUrdu || null,
       shipping_city: input.shippingCity,
+      shipping_city_urdu: input.shippingCityUrdu || null,
       shipping_state: input.shippingState,
+      shipping_state_urdu: input.shippingStateUrdu || null,
       shipping_postal_code: input.shippingPostalCode,
       shipping_country: input.shippingCountry,
       subtotal: input.subtotal,
@@ -58,37 +62,38 @@ export async function createOrder(
     .select('id, order_number')
     .single();
 
-if (orderError || !orderData) {
-  // Full detailed error — using console.log instead of console.error
-  // Next.js intercepts console.error and doesn't show all args
-  console.log('=== ORDER INSERT ERROR ===');
-  console.log('Code:', orderError?.code);
-  console.log('Message:', orderError?.message);
-  console.log('Details:', orderError?.details);
-  console.log('Hint:', orderError?.hint);
-  console.log('Full object:', JSON.stringify(orderError, null, 2));
-  console.log('Order payload:', JSON.stringify({
-    order_number: orderNumber,
-    user_id: user?.id || null,
-    customer_name: input.customerName,
-    total: input.total,
-    status: 'pending',
-  }, null, 2));
-  console.log('=== END ERROR ===');
+  if (orderError || !orderData) {
+    // Full detailed error — using console.log instead of console.error
+    // Next.js intercepts console.error and doesn't show all args
+    console.log('=== ORDER INSERT ERROR ===');
+    console.log('Code:', orderError?.code);
+    console.log('Message:', orderError?.message);
+    console.log('Details:', orderError?.details);
+    console.log('Hint:', orderError?.hint);
+    console.log('Full object:', JSON.stringify(orderError, null, 2));
+    console.log('Order payload:', JSON.stringify({
+      order_number: orderNumber,
+      user_id: user?.id || null,
+      customer_name: input.customerName,
+      customer_name_urdu: input.customerNameUrdu || null,
+      total: input.total,
+      status: 'pending',
+    }, null, 2));
+    console.log('=== END ERROR ===');
 
-  // Build user-friendly message
-  let errorMsg = 'Failed to create order';
-  if (orderError?.message) {
-    errorMsg = orderError.message;
-  } else if (orderError?.code) {
-    errorMsg = `Database error: ${orderError.code}`;
+    // Build user-friendly message
+    let errorMsg = 'Failed to create order';
+    if (orderError?.message) {
+      errorMsg = orderError.message;
+    } else if (orderError?.code) {
+      errorMsg = `Database error: ${orderError.code}`;
+    }
+
+    return {
+      success: false,
+      error: errorMsg,
+    };
   }
-
-  return {
-    success: false,
-    error: errorMsg,
-  };
-}
 
   // 2. Insert order items
   const orderItems = input.items.map((item) => ({
