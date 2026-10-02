@@ -47,13 +47,6 @@ export default function CartSummary() {
         </span>
       </div>
 
-      {/* Free Shipping Hint */}
-      {subtotal > 0 && shippingFee > 0 && (
-        <p className="text-[10px] sm:text-xs text-brand-gold mt-2 mb-1">
-          Add Rs {(freeThreshold - subtotal).toLocaleString()} more for FREE delivery
-        </p>
-      )}
-
       {/* Total */}
       <div className="flex items-center justify-between py-3 sm:py-4">
         <span className="font-heading font-semibold text-base sm:text-lg md:text-xl text-brand-green">

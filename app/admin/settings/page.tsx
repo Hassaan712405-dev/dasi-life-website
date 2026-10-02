@@ -81,7 +81,6 @@ export default function AdminSettingsPage() {
 
     const supabase = createClient();
 
-    // Sign in with current password to verify
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: user?.email || '',
       password: currentPassword,
@@ -93,7 +92,6 @@ export default function AdminSettingsPage() {
       return;
     }
 
-    // Update password
     const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
     });
@@ -276,46 +274,104 @@ export default function AdminSettingsPage() {
         </div>
 
         <div className="space-y-3 sm:space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                Free Shipping Threshold (Rs)
-              </label>
-              <input
-                type="number"
-                value={settings.free_shipping_threshold}
-                onChange={(e) =>
+          {/* ✅ SHIPPING ENABLED TOGGLE */}
+          <div className="bg-brand-cream rounded-lg p-3 sm:p-4 border border-gray-200">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-semibold text-brand-text-dark">
+                  Shipping Charges
+                </p>
+                <p className="text-[10px] sm:text-xs text-brand-text-muted mt-0.5">
+                  {settings.shipping_enabled
+                    ? 'Shipping fee will be applied to orders below the free threshold.'
+                    : 'All orders will get FREE shipping.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
                   setSettings({
                     ...settings,
-                    free_shipping_threshold: Number(e.target.value),
+                    shipping_enabled: !settings.shipping_enabled,
                   })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-              />
-              <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
-                Orders above this amount get FREE delivery.
-              </p>
+                className={`relative w-14 h-7 rounded-full transition-colors shrink-0 ${
+                  settings.shipping_enabled ? 'bg-brand-green' : 'bg-gray-300'
+                }`}
+              >
+                <motion.span
+                  animate={{ x: settings.shipping_enabled ? 30 : 2 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className="absolute top-1 left-0 w-5 h-5 bg-white rounded-full shadow"
+                />
+              </button>
             </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                Standard Shipping Fee (Rs)
-              </label>
-              <input
-                type="number"
-                value={settings.shipping_fee}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    shipping_fee: Number(e.target.value),
-                  })
-                }
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-              />
-              <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
-                Applied to orders below the free threshold.
-              </p>
+            <div className="mt-2">
+              <span
+                className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  settings.shipping_enabled
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                {settings.shipping_enabled ? 'Shipping ON' : 'FREE Shipping'}
+              </span>
             </div>
           </div>
+
+          {/* Free Threshold + Shipping Fee — sirf tab dikhayein jab shipping ON ho */}
+          <AnimatePresence>
+            {settings.shipping_enabled && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-2">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                      Free Shipping Threshold (Rs)
+                    </label>
+                    <input
+                      type="number"
+                      value={settings.free_shipping_threshold}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          free_shipping_threshold: Number(e.target.value),
+                        })
+                      }
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                    />
+                    <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
+                      Orders above this amount get FREE delivery.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                      Standard Shipping Fee (Rs)
+                    </label>
+                    <input
+                      type="number"
+                      value={settings.shipping_fee}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          shipping_fee: Number(e.target.value),
+                        })
+                      }
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                    />
+                    <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
+                      Applied to orders below the free threshold.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
             <motion.button
@@ -323,6 +379,7 @@ export default function AdminSettingsPage() {
               whileTap={{ scale: 0.97 }}
               onClick={() =>
                 handleSave('shipping', {
+                  shipping_enabled: settings.shipping_enabled,
                   shipping_fee: settings.shipping_fee,
                   free_shipping_threshold: settings.free_shipping_threshold,
                 })
@@ -617,7 +674,6 @@ export default function AdminSettingsPage() {
             )}
           </AnimatePresence>
 
-          {/* Current Password */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               Current Password
@@ -639,7 +695,6 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* New Password */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               New Password
@@ -664,7 +719,6 @@ export default function AdminSettingsPage() {
             </p>
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               Confirm New Password
