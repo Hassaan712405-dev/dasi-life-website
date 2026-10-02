@@ -38,6 +38,17 @@ interface CheckoutFormData {
   notes: string;
 }
 
+// Pakistani Provinces List
+const PROVINCES = [
+  'Punjab',
+  'Sindh',
+  'Khyber Pakhtunkhwa',
+  'Balochistan',
+  'Islamabad Capital Territory',
+  'Gilgit-Baltistan',
+  'Azad Jammu & Kashmir',
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -48,6 +59,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+
+  // Track touched fields for validation
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   // Site settings (shipping fee, free threshold)
   const [shippingFee, setShippingFee] = useState(0);
@@ -112,13 +126,43 @@ export default function CheckoutPage() {
     setError('');
   };
 
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  // Validation helper — returns true if field has error
+  const hasError = (field: keyof CheckoutFormData, required: boolean = true) => {
+    if (!required) return false;
+    if (!touched[field]) return false;
+    return !formData[field]?.trim();
+  };
+
+  // Input classes with red border if error
+  const inputClass = (field: keyof CheckoutFormData, required: boolean = true) => {
+    const baseClass =
+      'w-full bg-white border rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 disabled:opacity-60 transition-colors';
+    const errorClass = hasError(field, required)
+      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+      : 'border-gray-300 focus:ring-brand-green focus:border-brand-green';
+    return `${baseClass} ${errorClass}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    // Mark all required fields as touched
+    setTouched({
+      customer_name: true,
+      customer_phone: true,
+      shipping_address: true,
+      shipping_city: true,
+      shipping_state: true,
+    });
+
     // Validation
     if (!formData.customer_name.trim()) {
-      setError('Please enter your full name in English.');
+      setError('Please enter your full name.');
       return;
     }
     if (!formData.customer_phone.trim()) {
@@ -137,6 +181,10 @@ export default function CheckoutPage() {
       setError('Please enter your city.');
       return;
     }
+    if (!formData.shipping_state.trim()) {
+      setError('Please select your state.');
+      return;
+    }
 
     setSubmitting(true);
 
@@ -144,15 +192,11 @@ export default function CheckoutPage() {
       // Create order via service — camelCase + single object argument
       const result = await createOrder({
         customerName: formData.customer_name.trim(),
-        customerNameUrdu: formData.customer_name_urdu.trim() || undefined,
         customerPhone: formData.customer_phone.trim(),
         customerEmail: formData.customer_email.trim(),
         shippingAddress: formData.shipping_address.trim(),
-        shippingAddressUrdu: formData.shipping_address_urdu.trim() || undefined,
         shippingCity: formData.shipping_city.trim(),
-        shippingCityUrdu: formData.shipping_city_urdu.trim() || undefined,
         shippingState: formData.shipping_state.trim(),
-        shippingStateUrdu: formData.shipping_state_urdu.trim() || undefined,
         shippingPostalCode: formData.shipping_postal_code.trim(),
         shippingCountry: formData.shipping_country.trim() || 'Pakistan',
         subtotal,
@@ -333,66 +377,65 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3 sm:space-y-4">
-                  {/* Full Name (English) */}
+                  {/* Full Name */}
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                      Full Name (English) <span className="text-red-500">*</span>
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={formData.customer_name}
                       onChange={(e) => update('customer_name', e.target.value)}
-                      placeholder="M. Sadiq"
+                      onBlur={() => handleBlur('customer_name')}
+                      placeholder="Enter your name"
                       required
-                      className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                      className={inputClass('customer_name')}
                     />
+                    {hasError('customer_name') && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <AlertCircle size={11} />
+                        Name is required
+                      </p>
+                    )}
                   </div>
 
-                  {/* Full Name (Urdu) */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-                      پورا نام (اردو میں)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.customer_name_urdu}
-                      onChange={(e) => update('customer_name_urdu', e.target.value)}
-                      placeholder="ایم صادق"
-                      dir="rtl"
-                      className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-brand-green"
-                    />
-                    <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
-                      Print label par Urdu mein naam aayega.
-                    </p>
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                      Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.customer_phone}
-                      onChange={(e) => update('customer_phone', e.target.value)}
-                      placeholder="0344-5063248"
-                      required
-                      className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                      Email Address (Optional)
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.customer_email}
-                      onChange={(e) => update('customer_email', e.target.value)}
-                      placeholder="you@example.com"
-                      className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                    />
+                  {/* Phone + Email */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.customer_phone}
+                        onChange={(e) => update('customer_phone', e.target.value)}
+                        onBlur={() => handleBlur('customer_phone')}
+                        placeholder="Enter your phone number"
+                        required
+                        className={inputClass('customer_phone')}
+                      />
+                      {hasError('customer_phone') && (
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                          <AlertCircle size={11} />
+                          Phone is required
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                        Email Address{' '}
+                        <span className="text-brand-text-muted text-[10px] sm:text-xs">
+                          (Optional)
+                        </span>
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.customer_email}
+                        onChange={(e) => update('customer_email', e.target.value)}
+                        placeholder="Enter your email"
+                        className={inputClass('customer_email', false)}
+                      />
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -419,121 +462,123 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3 sm:space-y-4">
-                  {/* Address (English) */}
+                  {/* Full Address */}
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                      Full Address (English) <span className="text-red-500">*</span>
+                      Full Address <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       value={formData.shipping_address}
                       onChange={(e) => update('shipping_address', e.target.value)}
-                      placeholder="Post Office Saidu Sharif GPO, Saidu Sharif"
+                      onBlur={() => handleBlur('shipping_address')}
+                      placeholder="Enter your address"
                       required
                       rows={3}
-                      className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
+                      className={`${inputClass('shipping_address')} resize-none`}
                     />
+                    {hasError('shipping_address') && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <AlertCircle size={11} />
+                        Address is required
+                      </p>
+                    )}
                   </div>
 
-                  {/* Address (Urdu) */}
+                  {/* City */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-                      مکمل پتہ (اردو میں)
+                    <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                      City <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      value={formData.shipping_address_urdu}
-                      onChange={(e) => update('shipping_address_urdu', e.target.value)}
-                      placeholder="پوسٹ آفس سیدو شریف جی پی او، سیدو شریف"
-                      dir="rtl"
-                      rows={3}
-                      className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
+                    <input
+                      type="text"
+                      value={formData.shipping_city}
+                      onChange={(e) => update('shipping_city', e.target.value)}
+                      onBlur={() => handleBlur('shipping_city')}
+                      placeholder="Enter your city"
+                      required
+                      className={inputClass('shipping_city')}
                     />
+                    {hasError('shipping_city') && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <AlertCircle size={11} />
+                        City is required
+                      </p>
+                    )}
                   </div>
 
-                  {/* City + City Urdu */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* State (Dropdown) + Postal Code */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+                    {/* State — Beautiful Dropdown */}
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                        City (English) <span className="text-red-500">*</span>
+                        State / Province <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={formData.shipping_city}
-                        onChange={(e) => update('shipping_city', e.target.value)}
-                        placeholder="Saidu Sharif"
-                        required
-                        className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                      />
+                      <div className="relative">
+                        <select
+                          value={formData.shipping_state}
+                          onChange={(e) => update('shipping_state', e.target.value)}
+                          onBlur={() => handleBlur('shipping_state')}
+                          required
+                          className={`${inputClass('shipping_state')} appearance-none pr-10 cursor-pointer`}
+                        >
+                          <option value="">Select your state</option>
+                          {PROVINCES.map((province) => (
+                            <option key={province} value={province}>
+                              {province}
+                            </option>
+                          ))}
+                        </select>
+                        {/* Custom Dropdown Arrow */}
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M2 4L6 8L10 4"
+                              stroke="#1F4A2C"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      {hasError('shipping_state') && (
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                          <AlertCircle size={11} />
+                          Please select a state
+                        </p>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-                        شہر (اردو میں)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shipping_city_urdu}
-                        onChange={(e) => update('shipping_city_urdu', e.target.value)}
-                        placeholder="سیدو شریف"
-                        dir="rtl"
-                        className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-brand-green"
-                      />
-                    </div>
-                  </div>
 
-                  {/* State + State Urdu */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    {/* Postal Code (Optional) */}
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                        Province / State (English)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shipping_state}
-                        onChange={(e) => update('shipping_state', e.target.value)}
-                        placeholder="Khyber Pakhtunkhwa"
-                        className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-                        صوبہ (اردو میں)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shipping_state_urdu}
-                        onChange={(e) => update('shipping_state_urdu', e.target.value)}
-                        placeholder="خیبر پختونخوا"
-                        dir="rtl"
-                        className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-brand-green"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Postal Code + Country */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                        Postal Code
+                        Postal Code{' '}
+                        <span className="text-brand-text-muted text-[10px] sm:text-xs">
+                          (Optional)
+                        </span>
                       </label>
                       <input
                         type="text"
                         value={formData.shipping_postal_code}
                         onChange={(e) => update('shipping_postal_code', e.target.value)}
-                        placeholder="19200"
-                        className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                        Country
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.shipping_country}
-                        onChange={(e) => update('shipping_country', e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                        placeholder="Enter your postal code"
+                        className={inputClass('shipping_postal_code', false)}
                       />
                     </div>
                   </div>
+
+                  {/* Country — Hidden (always Pakistan) */}
+                  <input
+                    type="hidden"
+                    value={formData.shipping_country}
+                    readOnly
+                  />
                 </div>
               </motion.div>
 
@@ -623,7 +668,10 @@ export default function CheckoutPage() {
                 className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6"
               >
                 <h2 className="font-heading font-semibold text-base sm:text-lg text-brand-text-dark mb-3">
-                  Order Notes (Optional)
+                  Order Notes{' '}
+                  <span className="text-brand-text-muted text-[10px] sm:text-xs">
+                    (Optional)
+                  </span>
                 </h2>
                 <textarea
                   value={formData.notes}

@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, AlertCircle } from 'lucide-react';
 
 export interface ShippingInfo {
   customerName: string;
@@ -25,13 +26,48 @@ interface CheckoutFormProps {
   disabled?: boolean;
 }
 
+// Pakistani Provinces List
+const PROVINCES = [
+  'Punjab',
+  'Sindh',
+  'Khyber Pakhtunkhwa',
+  'Balochistan',
+  'Islamabad Capital Territory',
+  'Gilgit-Baltistan',
+  'Azad Jammu & Kashmir',
+];
+
 export default function CheckoutForm({
   data,
   onChange,
   disabled,
 }: CheckoutFormProps) {
+  // Track which fields have been touched (validation ke liye)
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const update = (field: keyof ShippingInfo, value: string) => {
     onChange({ ...data, [field]: value });
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  // Validation helper — returns true if field has error
+  const hasError = (field: keyof ShippingInfo, required: boolean = true) => {
+    if (!required) return false;
+    if (!touched[field]) return false;
+    return !data[field]?.trim();
+  };
+
+  // Input classes with red border if error
+  const inputClass = (field: keyof ShippingInfo, required: boolean = true) => {
+    const baseClass =
+      'w-full bg-white border rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 disabled:opacity-60 transition-colors';
+    const errorClass = hasError(field, required)
+      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+      : 'border-gray-300 focus:ring-brand-green focus:border-brand-green';
+    return `${baseClass} ${errorClass}`;
   };
 
   return (
@@ -48,43 +84,32 @@ export default function CheckoutForm({
         </h2>
 
         <div className="space-y-3 sm:space-y-5">
-          {/* Full Name (English) */}
+          {/* ============ Full Name ============ */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-              Full Name (English) <span className="text-red-500">*</span>
+              Full Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={data.customerName}
               onChange={(e) => update('customerName', e.target.value)}
-              placeholder="M. Sadiq"
+              onBlur={() => handleBlur('customerName')}
+              placeholder="Enter your name"
               required
               disabled={disabled}
-              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+              className={inputClass('customerName')}
             />
+            {hasError('customerName') && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle size={11} />
+                Name is required
+              </p>
+            )}
           </div>
 
-          {/* Full Name (Urdu) */}
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-              پورا نام (اردو میں)
-            </label>
-            <input
-              type="text"
-              value={data.customerNameUrdu}
-              onChange={(e) => update('customerNameUrdu', e.target.value)}
-              placeholder="ایم صادق"
-              dir="rtl"
-              disabled={disabled}
-              className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
-            />
-            <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
-              Print label par Urdu mein naam aayega.
-            </p>
-          </div>
-
-          {/* Phone + Email */}
+          {/* ============ Phone + Email ============ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+            {/* Phone */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Phone Number <span className="text-red-500">*</span>
@@ -93,159 +118,164 @@ export default function CheckoutForm({
                 type="tel"
                 value={data.customerPhone}
                 onChange={(e) => update('customerPhone', e.target.value)}
-                placeholder="0344-5063248"
+                onBlur={() => handleBlur('customerPhone')}
+                placeholder="Enter your phone number"
                 required
                 disabled={disabled}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                className={inputClass('customerPhone')}
               />
+              {hasError('customerPhone') && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <AlertCircle size={11} />
+                  Phone is required
+                </p>
+              )}
             </div>
+
+            {/* Email (Optional) */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                Email Address <span className="text-red-500">*</span>
+                Email Address{' '}
+                <span className="text-brand-text-muted text-[10px] sm:text-xs">
+                  (Optional)
+                </span>
               </label>
               <input
                 type="email"
                 value={data.customerEmail}
                 onChange={(e) => update('customerEmail', e.target.value)}
-                placeholder="zainab@example.com"
-                required
+                placeholder="Enter your email"
                 disabled={disabled}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                className={inputClass('customerEmail', false)}
               />
             </div>
           </div>
 
-          {/* Street Address (English) */}
+          {/* ============ Full Address ============ */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-              Street Address (English) <span className="text-red-500">*</span>
+              Full Address <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <textarea
               value={data.shippingAddress}
               onChange={(e) => update('shippingAddress', e.target.value)}
-              placeholder="Post Office Saidu Sharif GPO, Saidu Sharif"
+              onBlur={() => handleBlur('shippingAddress')}
+              placeholder="Enter your address"
               required
+              rows={3}
               disabled={disabled}
-              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+              className={`${inputClass('shippingAddress')} resize-none`}
             />
+            {hasError('shippingAddress') && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle size={11} />
+                Address is required
+              </p>
+            )}
           </div>
 
-          {/* Street Address (Urdu) */}
+          {/* ============ City ============ */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-              مکمل پتہ (اردو میں)
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+              City <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              value={data.shippingAddressUrdu}
-              onChange={(e) => update('shippingAddressUrdu', e.target.value)}
-              placeholder="پوسٹ آفس سیدو شریف جی پی او، سیدو شریف"
-              dir="rtl"
+              value={data.shippingCity}
+              onChange={(e) => update('shippingCity', e.target.value)}
+              onBlur={() => handleBlur('shippingCity')}
+              placeholder="Enter your city"
+              required
               disabled={disabled}
-              className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+              className={inputClass('shippingCity')}
             />
+            {hasError('shippingCity') && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle size={11} />
+                City is required
+              </p>
+            )}
           </div>
 
-          {/* City (English) + City (Urdu) */}
+          {/* ============ State (Dropdown) + Postal Code ============ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+            {/* State — Beautiful Dropdown */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                City (English) <span className="text-red-500">*</span>
+                State / Province <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={data.shippingCity}
-                onChange={(e) => update('shippingCity', e.target.value)}
-                placeholder="Saidu Sharif"
-                required
-                disabled={disabled}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
-              />
+              <div className="relative">
+                <select
+                  value={data.shippingState}
+                  onChange={(e) => update('shippingState', e.target.value)}
+                  onBlur={() => handleBlur('shippingState')}
+                  required
+                  disabled={disabled}
+                  className={`${inputClass('shippingState')} appearance-none pr-10 cursor-pointer`}
+                >
+                  <option value="">Select your state</option>
+                  {PROVINCES.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+                {/* Custom Dropdown Arrow */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 4L6 8L10 4"
+                      stroke="#1F4A2C"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              {hasError('shippingState') && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <AlertCircle size={11} />
+                  Please select a state
+                </p>
+              )}
             </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-                شہر (اردو میں)
-              </label>
-              <input
-                type="text"
-                value={data.shippingCityUrdu}
-                onChange={(e) => update('shippingCityUrdu', e.target.value)}
-                placeholder="سیدو شریف"
-                dir="rtl"
-                disabled={disabled}
-                className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
-              />
-            </div>
-          </div>
 
-          {/* State (English) + State (Urdu) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+            {/* Postal Code (Optional) */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                State / Province (English) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={data.shippingState}
-                onChange={(e) => update('shippingState', e.target.value)}
-                placeholder="Khyber Pakhtunkhwa"
-                required
-                disabled={disabled}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2 urdu-text">
-                صوبہ (اردو میں)
-              </label>
-              <input
-                type="text"
-                value={data.shippingStateUrdu}
-                onChange={(e) => update('shippingStateUrdu', e.target.value)}
-                placeholder="خیبر پختونخوا"
-                dir="rtl"
-                disabled={disabled}
-                className="urdu-text w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
-              />
-            </div>
-          </div>
-
-          {/* Postal + Country */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                Postal Code <span className="text-red-500">*</span>
+                Postal Code{' '}
+                <span className="text-brand-text-muted text-[10px] sm:text-xs">
+                  (Optional)
+                </span>
               </label>
               <input
                 type="text"
                 value={data.shippingPostalCode}
                 onChange={(e) => update('shippingPostalCode', e.target.value)}
-                placeholder="19200"
-                required
+                placeholder="Enter your postal code"
                 disabled={disabled}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                Country <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={data.shippingCountry}
-                onChange={(e) => update('shippingCountry', e.target.value)}
-                required
-                disabled={disabled}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                className={inputClass('shippingPostalCode', false)}
               />
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Hidden Country Field — Always Pakistan */}
+          <input type="hidden" value="Pakistan" readOnly />
+
+          {/* ============ Notes (Optional) ============ */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-              Order Notes (Optional)
+              Order Notes{' '}
+              <span className="text-brand-text-muted text-[10px] sm:text-xs">
+                (Optional)
+              </span>
             </label>
             <textarea
               value={data.notes}
@@ -253,13 +283,13 @@ export default function CheckoutForm({
               placeholder="Any special instructions for your order..."
               rows={3}
               disabled={disabled}
-              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60 resize-none"
+              className={`${inputClass('notes', false)} resize-none`}
             />
           </div>
         </div>
       </div>
 
-      {/* Payment Method */}
+      {/* ============ Payment Method ============ */}
       <div className="bg-brand-cream rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8">
         <h2 className="font-heading font-semibold text-xl sm:text-2xl text-brand-green mb-4 sm:mb-6">
           Select Payment Method
