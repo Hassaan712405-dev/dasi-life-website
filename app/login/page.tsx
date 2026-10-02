@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { signIn } from '@/services/auth/authService';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/account';
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +31,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/account');
+    // 🔐 Redirect to the page they came from (checkout)
+    router.push(redirectTo);
     router.refresh();
   };
 
@@ -53,6 +57,20 @@ export default function LoginPage() {
               Sign in to manage orders and checkout faster.
             </p>
           </div>
+
+          {/* Redirect Notice (if coming from checkout) */}
+          {redirectTo === '/checkout' && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 sm:mb-5 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start gap-2"
+            >
+              <AlertCircle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-amber-700">
+                Please sign in to complete your order.
+              </p>
+            </motion.div>
+          )}
 
           {/* Error */}
           {error && (
@@ -180,7 +198,7 @@ export default function LoginPage() {
           <p className="text-center text-xs sm:text-sm text-brand-text-muted mt-6 sm:mt-8">
             Don't have an account?{' '}
             <Link
-              href="/register"
+              href={`/register${redirectTo === '/checkout' ? '?redirect=/checkout' : ''}`}
               className="text-brand-gold hover:text-brand-green transition-colors font-semibold"
             >
               Register Now
@@ -189,5 +207,17 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-brand-cream flex items-center justify-center">
+        <Loader2 size={40} className="animate-spin text-brand-green" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

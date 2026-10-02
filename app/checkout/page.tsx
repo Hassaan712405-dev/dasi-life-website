@@ -13,6 +13,7 @@ import {
   CreditCard,
   User,
   MapPin,
+  Lock,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
@@ -51,7 +52,7 @@ const PROVINCES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { items, getSubtotal, clearCart } = useCart();
 
   const [loading, setLoading] = useState(true);
@@ -85,6 +86,13 @@ export default function CheckoutPage() {
     payment_method: 'cod',
     notes: '',
   });
+
+  // 🔐 LOGIN CHECK — Agar user login nahi hai, to login page par bhejein
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/checkout');
+    }
+  }, [authLoading, user, router]);
 
   // Load settings
   useEffect(() => {
@@ -151,6 +159,12 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError('');
 
+    // 🔐 Double-check login
+    if (!user) {
+      router.push('/login?redirect=/checkout');
+      return;
+    }
+
     // Mark all required fields as touched
     setTouched({
       customer_name: true,
@@ -189,7 +203,7 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      // Create order via service — camelCase + single object argument
+      // Create order via service
       const result = await createOrder({
         customerName: formData.customer_name.trim(),
         customerPhone: formData.customer_phone.trim(),
@@ -233,6 +247,20 @@ export default function CheckoutPage() {
       setSubmitting(false);
     }
   };
+
+  // ============================================
+  // 🔐 AUTH LOADING STATE
+  // ============================================
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-brand-cream flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={40} className="animate-spin text-brand-green mx-auto mb-3" />
+          <p className="text-sm text-brand-text-muted">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
 
   // ============================================
   // LOADING STATE
@@ -337,6 +365,18 @@ export default function CheckoutPage() {
           </p>
         </motion.div>
 
+        {/* Logged in indicator */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2 mb-5"
+        >
+          <Lock size={14} className="text-green-600 shrink-0" />
+          <p className="text-xs sm:text-sm text-green-700">
+            You are logged in as <strong>{user.email}</strong>
+          </p>
+        </motion.div>
+
         {/* Error */}
         {error && (
           <motion.div
@@ -351,11 +391,9 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
-            {/* ============================================ */}
             {/* LEFT: FORM */}
-            {/* ============================================ */}
             <div className="lg:col-span-2 space-y-5 sm:space-y-6">
-              {/* ---------- Section 1: Contact Info ---------- */}
+              {/* Section 1: Contact Info */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -440,7 +478,7 @@ export default function CheckoutPage() {
                 </div>
               </motion.div>
 
-              {/* ---------- Section 2: Shipping Address ---------- */}
+              {/* Section 2: Shipping Address */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -506,9 +544,8 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  {/* State (Dropdown) + Postal Code */}
+                  {/* State + Postal Code */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
-                    {/* State — Beautiful Dropdown */}
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                         State / Province <span className="text-red-500">*</span>
@@ -528,15 +565,8 @@ export default function CheckoutPage() {
                             </option>
                           ))}
                         </select>
-                        {/* Custom Dropdown Arrow */}
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                             <path
                               d="M2 4L6 8L10 4"
                               stroke="#1F4A2C"
@@ -555,7 +585,6 @@ export default function CheckoutPage() {
                       )}
                     </div>
 
-                    {/* Postal Code (Optional) */}
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                         Postal Code{' '}
@@ -573,16 +602,11 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  {/* Country — Hidden (always Pakistan) */}
-                  <input
-                    type="hidden"
-                    value={formData.shipping_country}
-                    readOnly
-                  />
+                  <input type="hidden" value={formData.shipping_country} readOnly />
                 </div>
               </motion.div>
 
-              {/* ---------- Section 3: Payment Method ---------- */}
+              {/* Section 3: Payment Method */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -604,7 +628,6 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* COD */}
                   <label
                     className={`flex items-start gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                       formData.payment_method === 'cod'
@@ -630,7 +653,6 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  {/* Bank Transfer (agar enabled hai) */}
                   {bankTransferEnabled && (
                     <label
                       className={`flex items-start gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-colors ${
@@ -660,7 +682,7 @@ export default function CheckoutPage() {
                 </div>
               </motion.div>
 
-              {/* ---------- Section 4: Order Notes ---------- */}
+              {/* Section 4: Order Notes */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -683,9 +705,7 @@ export default function CheckoutPage() {
               </motion.div>
             </div>
 
-            {/* ============================================ */}
-            {/* RIGHT: ORDER SUMMARY (Sticky) */}
-            {/* ============================================ */}
+            {/* RIGHT: ORDER SUMMARY */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -697,7 +717,6 @@ export default function CheckoutPage() {
                   Order Summary
                 </h2>
 
-                {/* Items */}
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                   {items.map((item: CartItem) => (
                     <div key={item.id} className="flex items-start gap-3">
@@ -725,7 +744,6 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* Totals */}
                 <div className="border-t border-gray-100 pt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-brand-text-muted">Subtotal</span>
@@ -755,7 +773,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={submitting}
