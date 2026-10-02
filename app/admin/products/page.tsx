@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Pencil, Trash2, Loader2, AlertCircle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   getAllProducts,
   getAllCategories,
@@ -59,26 +60,38 @@ export default function AdminProductsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-wrap items-start justify-between gap-3"
+      >
         <div>
-          <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
             Products
           </h1>
-          <p className="text-sm text-brand-text-muted">
+          <p className="text-xs sm:text-sm text-brand-text-muted">
             Manage your Unani formulations, stock levels, and pricing.
           </p>
         </div>
         <Link
           href="/admin/products/new"
-          className="btn-primary inline-flex items-center gap-2"
+          className="inline-flex items-center gap-2 bg-brand-green hover:bg-black text-white font-medium px-4 sm:px-6 py-2.5 sm:py-3 rounded-md transition-colors text-xs sm:text-sm"
         >
-          <Plus size={16} />
+          <Plus size={14} />
           Add New Product
         </Link>
-      </div>
+      </motion.div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col md:flex-row gap-3">
+      {/* Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex flex-col md:flex-row gap-3"
+      >
         <div className="flex-1 relative">
           <Search
             size={16}
@@ -88,15 +101,14 @@ export default function AdminProductsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by product name or SKU..."
-            className="w-full bg-white border border-gray-300 rounded-md pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+            placeholder="Search by name or SKU..."
+            className="w-full bg-white border border-gray-300 rounded-md pl-9 pr-4 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
           />
         </div>
-
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="bg-white border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green cursor-pointer"
+          className="bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green cursor-pointer"
         >
           <option>All Categories</option>
           {categories.map((cat) => (
@@ -105,79 +117,82 @@ export default function AdminProductsPage() {
             </option>
           ))}
         </select>
-      </div>
+      </motion.div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+      >
         {loading ? (
           <div className="p-12 text-center">
-            <Loader2 size={32} className="animate-spin text-brand-green mx-auto mb-3" />
-            <p className="text-sm text-brand-text-muted">Loading products...</p>
+            <Loader2 size={28} className="animate-spin text-brand-green mx-auto mb-3" />
+            <p className="text-xs sm:text-sm text-brand-text-muted">Loading products...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center">
-            <AlertCircle size={48} className="text-brand-text-muted mx-auto mb-4" />
-            <p className="text-brand-text-muted mb-4">
-              No products found. Try a different search or category.
+          <div className="p-8 sm:p-12 text-center">
+            <AlertCircle size={40} className="text-brand-text-muted mx-auto mb-4" />
+            <p className="text-xs sm:text-sm text-brand-text-muted mb-4">
+              No products found.
             </p>
-            <Link href="/admin/products/new" className="btn-primary inline-flex">
+            <Link
+              href="/admin/products/new"
+              className="inline-block bg-brand-green hover:bg-black text-white font-medium px-5 py-2.5 rounded-md transition-colors text-xs sm:text-sm"
+            >
               Add First Product
             </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
+            <table className="w-full min-w-[700px]">
               <thead>
-                <tr className="bg-gray-50 text-xs font-semibold text-brand-text-muted uppercase tracking-wide border-b border-gray-200">
-                  <th className="text-left px-4 py-3">Product</th>
-                  <th className="text-left px-4 py-3">SKU</th>
-                  <th className="text-left px-4 py-3">Category</th>
-                  <th className="text-left px-4 py-3">Price</th>
-                  <th className="text-left px-4 py-3">Stock</th>
-                  <th className="text-left px-4 py-3">Status</th>
-                  <th className="text-right px-4 py-3">Actions</th>
+                <tr className="bg-gray-50 text-[10px] sm:text-xs font-semibold text-brand-text-muted uppercase tracking-wide border-b border-gray-200">
+                  <th className="text-left px-3 sm:px-4 py-3">Product</th>
+                  <th className="text-left px-3 sm:px-4 py-3">Category</th>
+                  <th className="text-left px-3 sm:px-4 py-3">Price</th>
+                  <th className="text-left px-3 sm:px-4 py-3">Stock</th>
+                  <th className="text-left px-3 sm:px-4 py-3">Status</th>
+                  <th className="text-right px-3 sm:px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((product) => {
+                {filteredProducts.map((product, index) => {
                   const categoryName =
-                    categories.find((c) => c.id === product.category_id)?.name ||
-                    '—';
+                    categories.find((c) => c.id === product.category_id)?.name || '—';
 
                   return (
-                    <tr
+                    <motion.tr
                       key={product.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.04 }}
                       className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-brand-cream rounded-md overflow-hidden shrink-0">
+                      <td className="px-3 sm:px-4 py-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-cream rounded-md overflow-hidden shrink-0">
                             <img
                               src={getProductImageUrl(product)}
                               alt={product.name}
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <p className="text-sm font-medium text-brand-text-dark line-clamp-2 max-w-xs">
+                          <p className="text-xs sm:text-sm font-medium text-brand-text-dark line-clamp-2 max-w-[150px] sm:max-w-xs">
                             {product.name}
                           </p>
                         </div>
                       </td>
-
-                      <td className="px-4 py-3 text-sm text-brand-text-muted font-mono">
-                        {product.sku || '—'}
-                      </td>
-
-                      <td className="px-4 py-3 text-sm text-brand-text-muted">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-muted">
                         {categoryName}
                       </td>
-
-                      <td className="px-4 py-3 text-sm font-semibold text-brand-text-dark">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-brand-text-dark whitespace-nowrap">
                         Rs {product.price.toLocaleString()}
                       </td>
-
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <span
-                          className={`text-sm font-medium ${
+                          className={`text-xs sm:text-sm font-medium ${
                             product.stock < 10
                               ? 'text-red-600'
                               : product.stock < 30
@@ -188,10 +203,9 @@ export default function AdminProductsPage() {
                           {product.stock}
                         </span>
                       </td>
-
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <span
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                          className={`text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${
                             product.is_active
                               ? 'bg-green-100 text-green-700'
                               : 'bg-gray-100 text-gray-700'
@@ -200,89 +214,101 @@ export default function AdminProductsPage() {
                           {product.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-3 sm:px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5 sm:gap-2">
                           <Link
                             href={`/admin/products/${product.id}`}
-                            className="w-8 h-8 rounded-md border border-gray-300 hover:border-brand-green hover:bg-brand-green hover:text-white text-brand-text-dark flex items-center justify-center transition-colors"
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-md border border-gray-300 hover:border-brand-green hover:bg-brand-green hover:text-white text-brand-text-dark flex items-center justify-center transition-colors"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={12} />
                           </Link>
                           <button
                             type="button"
                             onClick={() => setDeleteConfirm(product.id)}
-                            className="w-8 h-8 rounded-md border border-gray-300 hover:border-red-500 hover:bg-red-500 hover:text-white text-brand-text-dark flex items-center justify-center transition-colors"
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-md border border-gray-300 hover:border-red-500 hover:bg-red-500 hover:text-white text-brand-text-dark flex items-center justify-center transition-colors"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <p className="text-xs text-brand-text-muted text-center">
+      <p className="text-[10px] sm:text-xs text-brand-text-muted text-center">
         Showing {filteredProducts.length} of {products.length} products
       </p>
 
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                  <AlertCircle size={20} className="text-red-500" />
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-xl max-w-md w-full p-5 sm:p-6"
+            >
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                    <AlertCircle size={18} className="text-red-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-semibold text-base sm:text-lg text-brand-text-dark mb-1">
+                      Delete Product?
+                    </h3>
+                    <p className="text-xs sm:text-sm text-brand-text-muted">
+                      This action cannot be undone.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-heading font-semibold text-lg text-brand-text-dark mb-1">
-                    Delete Product?
-                  </h3>
-                  <p className="text-sm text-brand-text-muted">
-                    This action cannot be undone.
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(null)}
+                  className="text-brand-text-muted hover:text-brand-text-dark transition-colors"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setDeleteConfirm(null)}
-                className="text-brand-text-muted hover:text-brand-text-dark transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 border-2 border-gray-300 text-brand-text-dark font-medium py-2.5 rounded-md hover:bg-gray-50 transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(deleteConfirm)}
-                disabled={deleting}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 rounded-md transition-colors text-sm disabled:opacity-60 inline-flex items-center justify-center gap-2"
-              >
-                {deleting ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  'Delete Product'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 border-2 border-gray-300 text-brand-text-dark font-medium py-2.5 rounded-md hover:bg-gray-50 transition-colors text-xs sm:text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(deleteConfirm)}
+                  disabled={deleting}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 rounded-md transition-colors text-xs sm:text-sm disabled:opacity-60 inline-flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

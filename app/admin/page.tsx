@@ -10,8 +10,8 @@ import {
   TrendingUp,
   Calendar,
   Loader2,
-  AlertTriangle,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
   getDashboardStats,
   getRecentOrders,
@@ -71,7 +71,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // Stats cards
   const statCards = [
     {
       label: 'TOTAL REVENUE',
@@ -107,10 +106,7 @@ export default function AdminDashboard() {
     },
   ];
 
-  // Calculate max revenue for chart scaling
   const maxRevenue = Math.max(...monthlyRevenue.map((m) => m.revenue), 1);
-
-  // Generate chart points
   const chartPoints = monthlyRevenue
     .map((m, i) => {
       const x = (i / (monthlyRevenue.length - 1 || 1)) * 100;
@@ -120,79 +116,90 @@ export default function AdminDashboard() {
     .join(' ');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-wrap items-start justify-between gap-3"
+      >
         <div>
-          <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
             Dashboard Overview
           </h1>
-          <p className="text-sm text-brand-text-muted">
-            Real-time snapshot of your wildcrafted organic inventory and
-            nationwide Unani orders.
+          <p className="text-xs sm:text-sm text-brand-text-muted">
+            Real-time snapshot of your wildcrafted organic inventory and nationwide Unani orders.
           </p>
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 bg-white border border-gray-200 rounded-md px-4 py-2 text-sm font-medium text-brand-text-dark hover:border-brand-green transition-colors"
+          className="flex items-center gap-2 bg-white border border-gray-200 rounded-md px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-brand-text-dark hover:border-brand-green transition-colors"
         >
           <Calendar size={14} />
           This Month
         </button>
-      </div>
+      </motion.div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div
+            <motion.div
               key={index}
-              className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 md:p-5 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-brand-text-muted tracking-wide">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <p className="text-[10px] sm:text-xs font-semibold text-brand-text-muted tracking-wide">
                   {stat.label}
                 </p>
-                <Icon size={18} className="text-brand-text-muted" />
+                <Icon size={16} className="text-brand-text-muted" />
               </div>
-              <p className="text-2xl md:text-3xl font-bold text-brand-text-dark mb-2">
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-brand-text-dark mb-1 sm:mb-2 truncate">
                 {stat.value}
               </p>
               <p
-                className={`text-xs font-medium flex items-center gap-1 ${
+                className={`text-[10px] sm:text-xs font-medium flex items-center gap-1 ${
                   stat.positive ? 'text-green-600' : 'text-red-600'
                 }`}
               >
-                {stat.subtitle && <TrendingUp size={12} />}
-                {stat.change} {stat.subtitle}
+                {stat.subtitle && <TrendingUp size={10} />}
+                <span className="truncate">{stat.change} {stat.subtitle}</span>
               </p>
-            </div>
+            </motion.div>
           );
         })}
       </div>
 
       {/* Revenue Chart + Low Stock */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-start justify-between mb-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+        {/* Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 sm:p-6"
+        >
+          <div className="flex items-start justify-between mb-4 sm:mb-5">
             <div>
-              <h2 className="font-heading font-semibold text-lg text-brand-text-dark mb-1">
+              <h2 className="font-heading font-semibold text-base sm:text-lg text-brand-text-dark mb-1">
                 Monthly Revenue Trend
               </h2>
-              <p className="text-xs text-brand-text-muted">
-                Showing gross sales volume (Rs) across recent monthly periods.
+              <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                Gross sales volume (Rs) across recent months.
               </p>
             </div>
-            <div className="flex items-center gap-2 text-xs text-brand-text-muted">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-brand-text-muted">
               <span className="w-2 h-2 rounded-full bg-brand-green"></span>
               Revenue
             </div>
           </div>
 
-          {/* Simple Line Chart */}
-          <div className="relative h-48 border-l border-b border-gray-200">
+          <div className="relative h-40 sm:h-48 border-l border-b border-gray-200">
             {monthlyRevenue.length > 0 ? (
               <>
                 <svg
@@ -222,46 +229,46 @@ export default function AdminDashboard() {
                     );
                   })}
                 </svg>
-                {monthlyRevenue.length > 0 && (
-                  <div className="absolute top-2 right-2 bg-brand-green text-white text-xs px-2 py-1 rounded shadow-md">
-                    Rs{' '}
-                    {monthlyRevenue[
-                      monthlyRevenue.length - 1
-                    ].revenue.toLocaleString()}
-                  </div>
-                )}
+                <div className="absolute top-2 right-2 bg-brand-green text-white text-[10px] sm:text-xs px-2 py-1 rounded shadow-md">
+                  Rs {monthlyRevenue[monthlyRevenue.length - 1].revenue.toLocaleString()}
+                </div>
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-brand-text-muted">
+              <div className="absolute inset-0 flex items-center justify-center text-xs sm:text-sm text-brand-text-muted">
                 No revenue data yet
               </div>
             )}
           </div>
-          <div className="flex justify-between text-xs text-brand-text-muted mt-3">
+          <div className="flex justify-between text-[10px] sm:text-xs text-brand-text-muted mt-2 sm:mt-3">
             {monthlyRevenue.map((m, i) => (
               <span key={i}>{m.month}</span>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Low Stock Alerts */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-heading font-semibold text-lg text-brand-text-dark">
+        {/* Low Stock */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6"
+        >
+          <div className="flex items-center justify-between mb-4 sm:mb-5">
+            <h2 className="font-heading font-semibold text-base sm:text-lg text-brand-text-dark">
               Low Stock Alerts
             </h2>
             {lowStock.filter((p) => p.status !== 'Healthy').length > 0 && (
-              <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                {lowStock.filter((p) => p.status !== 'Healthy').length} Warnings
+              <span className="bg-red-100 text-red-700 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full">
+                {lowStock.filter((p) => p.status !== 'Healthy').length}
               </span>
             )}
           </div>
-          <p className="text-xs text-brand-text-muted mb-4">
+          <p className="text-[10px] sm:text-xs text-brand-text-muted mb-3 sm:mb-4">
             Below minimum threshold levels.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {lowStock.length === 0 ? (
-              <p className="text-sm text-brand-text-muted text-center py-4">
+              <p className="text-xs sm:text-sm text-brand-text-muted text-center py-4">
                 No products
               </p>
             ) : (
@@ -275,98 +282,92 @@ export default function AdminDashboard() {
                 return (
                   <div
                     key={item.id}
-                    className="pb-4 border-b border-gray-100 last:border-b-0 last:pb-0"
+                    className="pb-3 sm:pb-4 border-b border-gray-100 last:border-b-0 last:pb-0"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <p className="text-sm font-medium text-brand-text-dark line-clamp-1">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="text-xs sm:text-sm font-medium text-brand-text-dark line-clamp-1">
                         {item.name}
                       </p>
                       <span
-                        className={`${statusColor} text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap`}
+                        className={`${statusColor} text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap`}
                       >
                         {item.status}
                       </span>
                     </div>
-                    <p className="text-xs text-brand-text-muted">
-                      Current Stock:{' '}
-                      <strong className="text-brand-text-dark">
-                        {item.stock}
-                      </strong>{' '}
-                      / Min: {item.minStock}
+                    <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                      Stock: <strong className="text-brand-text-dark">{item.stock}</strong> / Min: {item.minStock}
                     </p>
                   </div>
                 );
               })
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Recent Orders + Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Recent Orders Table */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="font-heading font-semibold text-lg text-brand-text-dark mb-1">
-                Recent Orders
-              </h2>
-              <p className="text-xs text-brand-text-muted">
-                Latest customer orders from across Pakistan.
-              </p>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+        {/* Orders */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 sm:p-6"
+        >
+          <div className="flex items-center justify-between mb-4 sm:mb-5">
+            <h2 className="font-heading font-semibold text-base sm:text-lg text-brand-text-dark">
+              Recent Orders
+            </h2>
             <Link
               href="/admin/orders"
-              className="text-xs font-medium text-brand-gold hover:text-brand-green transition-colors"
+              className="text-[10px] sm:text-xs font-medium text-brand-gold hover:text-brand-green transition-colors"
             >
               View All →
             </Link>
           </div>
+
           <div className="overflow-x-auto">
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-brand-text-muted text-center py-8">
+              <p className="text-xs sm:text-sm text-brand-text-muted text-center py-6">
                 No orders yet
               </p>
             ) : (
-              <table className="w-full min-w-[600px]">
+              <table className="w-full min-w-[550px]">
                 <thead>
-                  <tr className="bg-gray-50 text-xs font-semibold text-brand-text-muted uppercase tracking-wide">
-                    <th className="text-left px-3 py-2.5 rounded-l-md">
-                      Order ID
-                    </th>
-                    <th className="text-left px-3 py-2.5">Customer</th>
-                    <th className="text-left px-3 py-2.5">Total</th>
-                    <th className="text-left px-3 py-2.5">Status</th>
-                    <th className="text-left px-3 py-2.5 rounded-r-md">Date</th>
+                  <tr className="bg-gray-50 text-[10px] sm:text-xs font-semibold text-brand-text-muted uppercase tracking-wide">
+                    <th className="text-left px-2 sm:px-3 py-2 rounded-l-md">Order</th>
+                    <th className="text-left px-2 sm:px-3 py-2">Customer</th>
+                    <th className="text-left px-2 sm:px-3 py-2">Total</th>
+                    <th className="text-left px-2 sm:px-3 py-2">Status</th>
+                    <th className="text-left px-2 sm:px-3 py-2 rounded-r-md">Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className="border-b border-gray-100 last:border-b-0 text-sm hover:bg-gray-50 transition-colors"
+                      className="border-b border-gray-100 last:border-b-0 text-xs sm:text-sm hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-3 py-3.5 font-medium text-brand-text-dark">
+                      <td className="px-2 sm:px-3 py-2.5 sm:py-3.5 font-medium text-brand-text-dark">
                         #{order.order_number}
                       </td>
-                      <td className="px-3 py-3.5 text-brand-text-muted">
+                      <td className="px-2 sm:px-3 py-2.5 sm:py-3.5 text-brand-text-muted truncate">
                         {order.customer_name}
                       </td>
-                      <td className="px-3 py-3.5 font-semibold text-brand-text-dark">
+                      <td className="px-2 sm:px-3 py-2.5 sm:py-3.5 font-semibold text-brand-text-dark">
                         Rs {order.total.toLocaleString()}
                       </td>
-                      <td className="px-3 py-3.5">
+                      <td className="px-2 sm:px-3 py-2.5 sm:py-3.5">
                         <span
-                          className={`${getStatusColor(order.status)} text-xs font-semibold px-2.5 py-1 rounded-full`}
+                          className={`${getStatusColor(order.status)} text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full`}
                         >
                           {capitalize(order.status)}
                         </span>
                       </td>
-                      <td className="px-3 py-3.5 text-brand-text-muted">
+                      <td className="px-2 sm:px-3 py-2.5 sm:py-3.5 text-brand-text-muted whitespace-nowrap">
                         {new Date(order.created_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
-                          year: 'numeric',
                         })}
                       </td>
                     </tr>
@@ -375,60 +376,63 @@ export default function AdminDashboard() {
               </table>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
-          <h2 className="font-heading font-semibold text-lg text-brand-text-dark">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4 sm:space-y-5"
+        >
+          <h2 className="font-heading font-semibold text-base sm:text-lg text-brand-text-dark">
             Quick Actions
           </h2>
 
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-start gap-3 mb-3">
+          <div className="border border-gray-200 rounded-lg p-3 sm:p-4">
+            <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
-                <span className="text-brand-green font-bold text-lg leading-none">
-                  +
-                </span>
+                <span className="text-brand-green font-bold text-base leading-none">+</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-brand-text-dark mb-0.5">
+                <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5">
                   Add New Product
                 </p>
-                <p className="text-xs text-brand-text-muted">
-                  List a new Unani formulation or premium wildcrafted oil
+                <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                  List a new Unani formulation
                 </p>
               </div>
             </div>
             <Link
               href="/admin/products/new"
-              className="block w-full text-center bg-brand-green hover:bg-black text-white text-sm font-medium py-2.5 rounded-md transition-colors"
+              className="block w-full text-center bg-brand-green hover:bg-black text-white text-xs sm:text-sm font-medium py-2 sm:py-2.5 rounded-md transition-colors"
             >
               Launch Product Form
             </Link>
           </div>
 
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-start gap-3 mb-3">
+          <div className="border border-gray-200 rounded-lg p-3 sm:p-4">
+            <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
-                <span className="text-brand-green text-lg leading-none">%</span>
+                <span className="text-brand-green text-base leading-none">%</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-brand-text-dark mb-0.5">
+                <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5">
                   Create Promo Coupon
                 </p>
-                <p className="text-xs text-brand-text-muted">
-                  Setup a discount campaign for active seasonal buyers
+                <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                  Setup a discount campaign
                 </p>
               </div>
             </div>
             <Link
               href="/admin/coupons"
-              className="block w-full text-center bg-brand-green hover:bg-black text-white text-sm font-medium py-2.5 rounded-md transition-colors"
+              className="block w-full text-center bg-brand-green hover:bg-black text-white text-xs sm:text-sm font-medium py-2 sm:py-2.5 rounded-md transition-colors"
             >
               Generate Coupon Code
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 /* ---------- Fonts (must be first) ---------- */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -212,4 +214,49 @@ h1, h2, h3, h4, h5, h6 {
 
 .marquee-container:hover .animate-marquee {
   animation-play-state: paused;
+}
+
+/* ============================================ */
+/* PRINT STYLES — Pakistan Post COD Label       */
+/* ============================================ */
+
+@media print {
+  /* Sab kuch hide karo */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Sirf print label dikhao */
+  #print-label,
+  #print-label * {
+    visibility: visible;
+  }
+
+  #print-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  /* Colors print mein bhi aayein */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Urdu Font */
+.urdu-text {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+  direction: rtl;
+  line-height: 2;
 }

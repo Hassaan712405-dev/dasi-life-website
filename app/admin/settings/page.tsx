@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   getSiteSettings,
   updateSiteSettings,
@@ -119,40 +120,49 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-brand-green mb-2">
           Settings
         </h1>
-        <p className="text-sm text-brand-text-muted">
+        <p className="text-xs sm:text-sm text-brand-text-muted">
           Configure your store's information, shipping rules, social links, and
           admin account.
         </p>
-      </div>
+      </motion.div>
 
       {/* ============================================ */}
       {/* SECTION 1: Store Information */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center">
-            <Store size={20} className="text-brand-green" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+      >
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0">
+            <Store size={18} className="text-brand-green" />
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-xl text-brand-green">
+            <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green">
               Store Information
             </h2>
-            <p className="text-xs text-brand-text-muted">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted">
               Basic business details displayed across the store.
             </p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Store Name
               </label>
               <input
@@ -161,11 +171,11 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, store_name: e.target.value })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Support Email
               </label>
               <input
@@ -174,14 +184,14 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, store_email: e.target.value })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Phone Number
               </label>
               <input
@@ -190,11 +200,11 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, store_phone: e.target.value })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Physical Address
               </label>
               <input
@@ -203,14 +213,15 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, store_address: e.target.value })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-4 pt-2">
-            <button
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() =>
                 handleSave('store', {
                   store_name: settings.store_name,
@@ -219,43 +230,55 @@ export default function AdminSettingsPage() {
                   store_address: settings.store_address,
                 })
               }
-              className="btn-primary inline-flex items-center gap-2"
+              className="btn-primary inline-flex items-center gap-2 text-xs sm:text-sm"
             >
               <Save size={14} />
               Save Store Info
-            </button>
-            {savedSection === 'store' && (
-              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <Check size={16} />
-                Saved!
-              </span>
-            )}
+            </motion.button>
+            <AnimatePresence>
+              {savedSection === 'store' && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-xs sm:text-sm text-green-600 font-medium flex items-center gap-1"
+                >
+                  <Check size={16} />
+                  Saved!
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ============================================ */}
       {/* SECTION 2: Shipping Settings */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center">
-            <Truck size={20} className="text-brand-green" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+      >
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0">
+            <Truck size={18} className="text-brand-green" />
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-xl text-brand-green">
+            <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green">
               Shipping Settings
             </h2>
-            <p className="text-xs text-brand-text-muted">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted">
               Configure delivery fees and free shipping thresholds.
             </p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Free Shipping Threshold (Rs)
               </label>
               <input
@@ -267,14 +290,14 @@ export default function AdminSettingsPage() {
                     free_shipping_threshold: Number(e.target.value),
                   })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
-              <p className="text-xs text-brand-text-muted mt-1">
+              <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
                 Orders above this amount get FREE delivery.
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Standard Shipping Fee (Rs)
               </label>
               <input
@@ -286,60 +309,73 @@ export default function AdminSettingsPage() {
                     shipping_fee: Number(e.target.value),
                   })
                 }
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
-              <p className="text-xs text-brand-text-muted mt-1">
+              <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
                 Applied to orders below the free threshold.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 pt-2">
-            <button
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() =>
                 handleSave('shipping', {
                   shipping_fee: settings.shipping_fee,
                   free_shipping_threshold: settings.free_shipping_threshold,
                 })
               }
-              className="btn-primary inline-flex items-center gap-2"
+              className="btn-primary inline-flex items-center gap-2 text-xs sm:text-sm"
             >
               <Save size={14} />
               Save Shipping Settings
-            </button>
-            {savedSection === 'shipping' && (
-              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <Check size={16} />
-                Saved!
-              </span>
-            )}
+            </motion.button>
+            <AnimatePresence>
+              {savedSection === 'shipping' && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-xs sm:text-sm text-green-600 font-medium flex items-center gap-1"
+                >
+                  <Check size={16} />
+                  Saved!
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ============================================ */}
       {/* SECTION 3: Social Media & Contact */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center">
-            <Share2 size={20} className="text-brand-green" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+      >
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0">
+            <Share2 size={18} className="text-brand-green" />
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-xl text-brand-green">
+            <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green">
               Social Media & Contact
             </h2>
-            <p className="text-xs text-brand-text-muted">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted">
               Link your social media profiles and WhatsApp number.
             </p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Facebook URL
               </label>
               <input
@@ -349,11 +385,11 @@ export default function AdminSettingsPage() {
                   setSettings({ ...settings, facebook_url: e.target.value })
                 }
                 placeholder="https://facebook.com/yourpage"
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Instagram URL
               </label>
               <input
@@ -363,13 +399,13 @@ export default function AdminSettingsPage() {
                   setSettings({ ...settings, instagram_url: e.target.value })
                 }
                 placeholder="https://instagram.com/yourpage"
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-text-dark mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               WhatsApp Number
             </label>
             <input
@@ -379,16 +415,17 @@ export default function AdminSettingsPage() {
                 setSettings({ ...settings, whatsapp_number: e.target.value })
               }
               placeholder="923422544495"
-              className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
             />
-            <p className="text-xs text-brand-text-muted mt-1">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
               Format: Country code without "+" (e.g., 923422544495)
             </p>
           </div>
 
-          <div className="flex items-center gap-4 pt-2">
-            <button
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() =>
                 handleSave('social', {
                   facebook_url: settings.facebook_url,
@@ -396,43 +433,55 @@ export default function AdminSettingsPage() {
                   whatsapp_number: settings.whatsapp_number,
                 })
               }
-              className="btn-primary inline-flex items-center gap-2"
+              className="btn-primary inline-flex items-center gap-2 text-xs sm:text-sm"
             >
               <Save size={14} />
               Save Social Links
-            </button>
-            {savedSection === 'social' && (
-              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <Check size={16} />
-                Saved!
-              </span>
-            )}
+            </motion.button>
+            <AnimatePresence>
+              {savedSection === 'social' && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-xs sm:text-sm text-green-600 font-medium flex items-center gap-1"
+                >
+                  <Check size={16} />
+                  Saved!
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ============================================ */}
       {/* SECTION 4: Support Hours */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center">
-            <Clock size={20} className="text-brand-green" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+      >
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0">
+            <Clock size={18} className="text-brand-green" />
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-xl text-brand-green">
+            <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green">
               Support Hours
             </h2>
-            <p className="text-xs text-brand-text-muted">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted">
               When your customers can reach you.
             </p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Weekday Hours
               </label>
               <input
@@ -445,11 +494,11 @@ export default function AdminSettingsPage() {
                   })
                 }
                 placeholder="Mon–Sat, 9:00 AM – 8:00 PM"
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text-dark mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Weekend Hours
               </label>
               <input
@@ -462,13 +511,13 @@ export default function AdminSettingsPage() {
                   })
                 }
                 placeholder="Sunday, Closed"
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-text-dark mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               Response Time Message
             </label>
             <input
@@ -478,13 +527,14 @@ export default function AdminSettingsPage() {
                 setSettings({ ...settings, response_time: e.target.value })
               }
               placeholder="We reply to all messages within 24 hours."
-              className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
             />
           </div>
 
-          <div className="flex items-center gap-4 pt-2">
-            <button
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() =>
                 handleSave('support', {
                   support_hours_weekday: settings.support_hours_weekday,
@@ -492,58 +542,84 @@ export default function AdminSettingsPage() {
                   response_time: settings.response_time,
                 })
               }
-              className="btn-primary inline-flex items-center gap-2"
+              className="btn-primary inline-flex items-center gap-2 text-xs sm:text-sm"
             >
               <Save size={14} />
               Save Support Hours
-            </button>
-            {savedSection === 'support' && (
-              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <Check size={16} />
-                Saved!
-              </span>
-            )}
+            </motion.button>
+            <AnimatePresence>
+              {savedSection === 'support' && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-xs sm:text-sm text-green-600 font-medium flex items-center gap-1"
+                >
+                  <Check size={16} />
+                  Saved!
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ============================================ */}
       {/* SECTION 5: Admin Profile */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center">
-            <Lock size={20} className="text-brand-green" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
+      >
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0">
+            <Lock size={18} className="text-brand-green" />
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-xl text-brand-green">
+            <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green">
               Admin Account
             </h2>
-            <p className="text-xs text-brand-text-muted">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted">
               Change your admin password.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
-          {passwordError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-sm text-red-600">{passwordError}</p>
-            </div>
-          )}
+        <form onSubmit={handlePasswordChange} className="space-y-3 sm:space-y-4 max-w-md">
+          <AnimatePresence>
+            {passwordError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-red-50 border border-red-200 rounded-md p-3"
+              >
+                <p className="text-xs sm:text-sm text-red-600">{passwordError}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {passwordSuccess && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2">
-              <Check size={16} className="text-green-600" />
-              <p className="text-sm text-green-700">
-                Password changed successfully!
-              </p>
-            </div>
-          )}
+          <AnimatePresence>
+            {passwordSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2"
+              >
+                <Check size={16} className="text-green-600" />
+                <p className="text-xs sm:text-sm text-green-700">
+                  Password changed successfully!
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Current Password */}
           <div>
-            <label className="block text-sm font-medium text-brand-text-dark mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               Current Password
             </label>
             <div className="relative">
@@ -551,7 +627,7 @@ export default function AdminSettingsPage() {
                 type={showCurrent ? 'text' : 'password'}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
               <button
                 type="button"
@@ -565,7 +641,7 @@ export default function AdminSettingsPage() {
 
           {/* New Password */}
           <div>
-            <label className="block text-sm font-medium text-brand-text-dark mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               New Password
             </label>
             <div className="relative">
@@ -573,7 +649,7 @@ export default function AdminSettingsPage() {
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
               <button
                 type="button"
@@ -583,14 +659,14 @@ export default function AdminSettingsPage() {
                 {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            <p className="text-xs text-brand-text-muted mt-1">
+            <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
               Minimum 6 characters
             </p>
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-brand-text-dark mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
               Confirm New Password
             </label>
             <div className="relative">
@@ -598,7 +674,7 @@ export default function AdminSettingsPage() {
                 type={showConfirm ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
               <button
                 type="button"
@@ -610,10 +686,11 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <button
+          <motion.button
             type="submit"
             disabled={changingPassword}
-            className="btn-primary py-3 inline-flex items-center gap-2 disabled:opacity-60"
+            whileTap={{ scale: 0.97 }}
+            className="btn-primary py-2.5 sm:py-3 inline-flex items-center gap-2 disabled:opacity-60 text-xs sm:text-sm"
           >
             {changingPassword ? (
               <>
@@ -626,34 +703,40 @@ export default function AdminSettingsPage() {
                 Change Password
               </>
             )}
-          </button>
+          </motion.button>
         </form>
-      </div>
+      </motion.div>
 
       {/* ============================================ */}
       {/* SECTION 6: Danger Zone */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl border-2 border-red-200 p-6 md:p-8">
-        <h2 className="font-heading font-semibold text-xl text-red-600 mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="bg-white rounded-xl border-2 border-red-200 p-4 sm:p-6 md:p-8"
+      >
+        <h2 className="font-heading font-semibold text-base sm:text-xl text-red-600 mb-2">
           Danger Zone
         </h2>
-        <p className="text-sm text-brand-text-muted mb-5">
+        <p className="text-xs sm:text-sm text-brand-text-muted mb-4 sm:mb-5">
           Log out from the admin console. You will need to sign in again to
           access admin features.
         </p>
-        <button
+        <motion.button
           type="button"
+          whileTap={{ scale: 0.97 }}
           onClick={async () => {
             const supabase = createClient();
             await supabase.auth.signOut();
             window.location.href = '/';
           }}
-          className="inline-flex items-center gap-2 bg-red-600 hover:bg-black text-white font-medium px-6 py-3 rounded-md transition-colors text-sm"
+          className="inline-flex items-center gap-2 bg-red-600 hover:bg-black text-white font-medium px-4 sm:px-6 py-2.5 sm:py-3 rounded-md transition-colors text-xs sm:text-sm"
         >
           <LogOut size={14} />
           Log Out from Admin
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
