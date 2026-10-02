@@ -8,6 +8,9 @@ import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import type { OrderWithItems } from '@/types/order';
 
+// ✅ YEH LINE ZAROORI HAI — page ko static prerender hone se rokegi
+export const dynamic = 'force-dynamic';
+
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
