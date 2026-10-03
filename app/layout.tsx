@@ -7,6 +7,7 @@ import ScrollProgress from '@/components/motion/ScrollProgress';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: {
