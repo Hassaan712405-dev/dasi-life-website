@@ -8,6 +8,7 @@ import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -78,6 +79,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
      <body className="min-h-screen flex flex-col">
+      <Analytics />
   <SpeedInsights />
 
   <SettingsProvider>
