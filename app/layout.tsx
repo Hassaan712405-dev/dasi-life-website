@@ -77,20 +77,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className="min-h-screen flex flex-col">
-        <SettingsProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <ScrollProgress />
-              <Header />
-              <main className="flex-1">
-                <PageTransition>{children}</PageTransition>
-              </main>
-              <Footer />
-            </WishlistProvider>
-          </CartProvider>
-        </SettingsProvider>
-      </body>
+     <body className="min-h-screen flex flex-col">
+  <SpeedInsights />
+
+  <SettingsProvider>
+    <CartProvider>
+      <WishlistProvider>
+        <ScrollProgress />
+        <Header />
+
+        <main className="flex-1">
+          <PageTransition>{children}</PageTransition>
+        </main>
+
+        <Footer />
+      </WishlistProvider>
+    </CartProvider>
+  </SettingsProvider>
+</body>
     </html>
   );
 }
