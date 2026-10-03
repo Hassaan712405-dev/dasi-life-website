@@ -29,16 +29,28 @@ export default function ProductCard({
 }: ProductCardProps) {
   const discount =
     compareAtPrice > 0
-      ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+      ? Math.round(
+          ((compareAtPrice - price) /
+            compareAtPrice) *
+            100
+        )
       : 0;
 
   const { addToCart, isInCart } = useCart();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const [justAdded, setJustAdded] = useState(false);
+  const {
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist,
+  } = useWishlist();
+
+  const [justAdded, setJustAdded] =
+    useState(false);
 
   const id = productId || slug;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = (
+    e: React.MouseEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -51,10 +63,15 @@ export default function ProductCard({
     });
 
     setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1500);
+
+    setTimeout(() => {
+      setJustAdded(false);
+    }, 1500);
   };
 
-  const handleWishlistToggle = async (e: React.MouseEvent) => {
+  const handleWishlistToggle = async (
+    e: React.MouseEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -71,17 +88,24 @@ export default function ProductCard({
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: 0.3,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       className="group relative bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-brand-green/30 transition-shadow duration-500 flex flex-col h-full"
     >
-      {/* Image */}
+      {/* IMAGE */}
+
       <Link
         href={`/product/${slug}`}
         className="block relative overflow-hidden bg-brand-cream"
       >
         <motion.div
           whileHover={{ scale: 1.08 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{
+            duration: 0.6,
+            ease: 'easeOut',
+          }}
           className="relative w-full aspect-square"
         >
           <Image
@@ -93,26 +117,39 @@ export default function ProductCard({
           />
         </motion.div>
 
+        {/* DISCOUNT */}
+
         {discount > 0 && (
           <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-brand-gold text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md shadow-md">
             {discount}% OFF
           </span>
         )}
 
+        {/* IN CART */}
+
         {inCart && (
           <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-brand-green text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-md flex items-center gap-1">
-            <Check size={10} strokeWidth={3} />
-            <span className="hidden sm:inline">In Cart</span>
+            <Check
+              size={10}
+              strokeWidth={3}
+            />
+
+            <span className="hidden sm:inline">
+              In Cart
+            </span>
           </span>
         )}
       </Link>
 
-      {/* Wishlist Heart */}
+      {/* WISHLIST HEART */}
+
       <motion.button
         type="button"
         onClick={handleWishlistToggle}
         aria-label={
-          inWishlist ? 'Remove from wishlist' : 'Add to wishlist'
+          inWishlist
+            ? 'Remove from wishlist'
+            : 'Add to wishlist'
         }
         whileHover={{ scale: 1.15 }}
         whileTap={{ scale: 0.9 }}
@@ -137,7 +174,8 @@ export default function ProductCard({
         />
       </motion.button>
 
-      {/* Info */}
+      {/* INFO */}
+
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         <Link href={`/product/${slug}`}>
           <h3 className="font-heading font-semibold text-sm sm:text-base md:text-lg text-brand-green hover:text-brand-green-light transition-colors line-clamp-2 mb-1.5 sm:mb-2">
@@ -150,15 +188,20 @@ export default function ProductCard({
         </p>
 
         <div className="mt-auto">
+          {/* PRICE */}
+
           <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 sm:mb-3">
             <span className="text-sm sm:text-base md:text-lg font-bold text-brand-green">
               Rs {price.toLocaleString()}
             </span>
 
             <span className="text-[10px] sm:text-xs md:text-sm text-brand-text-muted line-through">
-              Rs {compareAtPrice.toLocaleString()}
+              Rs{' '}
+              {compareAtPrice.toLocaleString()}
             </span>
           </div>
+
+          {/* ADD TO CART */}
 
           <motion.button
             type="button"
@@ -172,7 +215,10 @@ export default function ProductCard({
           >
             {justAdded ? (
               <>
-                <Check size={14} strokeWidth={3} />
+                <Check
+                  size={14}
+                  strokeWidth={3}
+                />
                 Added!
               </>
             ) : (

@@ -98,37 +98,33 @@ export default function Header() {
   }, [searchOpen]);
 
   // ============================================
-  // LOCK BODY SCROLL
+  // LOCK BODY SCROLL ONLY FOR MOBILE MENU
   // ============================================
 
   useEffect(() => {
-    if (mobileMenuOpen || searchOpen) {
-      const scrollY = window.scrollY;
+    if (!mobileMenuOpen) return;
 
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-    } else {
-      const scrollY = document.body.style.top;
+    const scrollY = window.scrollY;
 
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-
-      if (scrollY) {
-        window.scrollTo(
-          0,
-          parseInt(scrollY || '0', 10) * -1
-        );
-      }
-    }
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
 
     return () => {
+      const top = document.body.style.top;
+
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
+
+      if (top) {
+        window.scrollTo(
+          0,
+          parseInt(top, 10) * -1
+        );
+      }
     };
-  }, [mobileMenuOpen, searchOpen]);
+  }, [mobileMenuOpen]);
 
   // ============================================
   // CLOSE USER MENU ON OUTSIDE CLICK
@@ -378,9 +374,7 @@ export default function Header() {
                 initial={false}
               >
 
-                {/* ============================================ */}
                 {/* NORMAL NAVIGATION LINKS */}
-                {/* ============================================ */}
 
                 {!searchOpen ? (
                   <motion.nav
@@ -414,9 +408,7 @@ export default function Header() {
                   </motion.nav>
                 ) : (
 
-                  /* ============================================ */
                   /* SEARCH INPUT */
-                  /* ============================================ */
 
                   <motion.form
                     key="search"
@@ -642,9 +634,7 @@ export default function Header() {
 
             <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
 
-              {/* ============================================ */}
-              {/* SEARCH BUTTON */}
-              {/* ============================================ */}
+              {/* SEARCH */}
 
               <button
                 type="button"
@@ -660,9 +650,7 @@ export default function Header() {
                 />
               </button>
 
-              {/* ============================================ */}
               {/* USER */}
-              {/* ============================================ */}
 
               {!authLoading && (
                 <>
@@ -695,8 +683,6 @@ export default function Header() {
                         />
                       </button>
 
-                      {/* USER DROPDOWN */}
-
                       <AnimatePresence>
                         {userMenuOpen && (
                           <motion.div
@@ -726,7 +712,6 @@ export default function Header() {
                             }}
                             className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden z-50"
                           >
-
                             <div className="px-4 py-3 border-b border-gray-100 bg-brand-cream">
                               <p className="text-xs text-brand-text-muted mb-0.5">
                                 Signed in as
@@ -738,7 +723,6 @@ export default function Header() {
                             </div>
 
                             <div className="py-2">
-
                               <Link
                                 href="/account"
                                 onClick={() =>
@@ -786,11 +770,9 @@ export default function Header() {
                                 />
                                 My Wishlist
                               </Link>
-
                             </div>
 
                             <div className="border-t border-gray-100 py-2">
-
                               <button
                                 type="button"
                                 onClick={
@@ -803,9 +785,7 @@ export default function Header() {
                                 />
                                 Logout
                               </button>
-
                             </div>
-
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -825,9 +805,7 @@ export default function Header() {
                 </>
               )}
 
-              {/* ============================================ */}
               {/* WISHLIST */}
-              {/* ============================================ */}
 
               <Link
                 href="/wishlist"
@@ -854,9 +832,7 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* ============================================ */}
               {/* CART */}
-              {/* ============================================ */}
 
               <Link
                 href="/cart"
@@ -882,7 +858,6 @@ export default function Header() {
                   {cartCount}
                 </span>
               </Link>
-
             </div>
           </div>
         </div>
@@ -935,12 +910,9 @@ export default function Header() {
               className="lg:hidden fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-[70] flex flex-col shadow-2xl"
             >
 
-              {/* ============================================ */}
               {/* MOBILE HEADER */}
-              {/* ============================================ */}
 
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-
                 <Link
                   href="/"
                   onClick={() =>
@@ -972,24 +944,18 @@ export default function Header() {
                     className="text-brand-text-dark"
                   />
                 </button>
-
               </div>
 
-              {/* ============================================ */}
               {/* MOBILE USER INFO */}
-              {/* ============================================ */}
 
               {user && (
                 <div className="px-5 py-4 bg-brand-cream border-b border-gray-100">
-
                   <div className="flex items-center gap-3">
-
                     <span className="w-10 h-10 rounded-full bg-brand-green text-white flex items-center justify-center text-sm font-semibold">
                       {userInitials}
                     </span>
 
                     <div className="min-w-0 flex-1">
-
                       <p className="text-xs text-brand-text-muted">
                         Signed in as
                       </p>
@@ -997,22 +963,15 @@ export default function Header() {
                       <p className="text-sm font-medium text-brand-text-dark truncate">
                         {user.email}
                       </p>
-
                     </div>
-
                   </div>
-
                 </div>
               )}
 
-              {/* ============================================ */}
               {/* MOBILE NAVIGATION */}
-              {/* ============================================ */}
 
               <nav className="flex-1 overflow-y-auto px-5 py-4">
-
                 <ul className="space-y-1">
-
                   {NAV_LINKS.map(
                     (link, index) => (
                       <motion.li
@@ -1045,7 +1004,6 @@ export default function Header() {
                       </motion.li>
                     )
                   )}
-
                 </ul>
 
                 <div className="my-4 border-t border-gray-100" />
@@ -1053,7 +1011,6 @@ export default function Header() {
                 {/* WISHLIST + CART */}
 
                 <div className="space-y-1">
-
                   <Link
                     href="/wishlist"
                     onClick={() =>
@@ -1101,18 +1058,14 @@ export default function Header() {
                       </span>
                     )}
                   </Link>
-
                 </div>
 
                 <div className="my-4 border-t border-gray-100" />
 
-                {/* ============================================ */}
                 {/* ACCOUNT */}
-                {/* ============================================ */}
 
                 {user ? (
                   <div className="space-y-1">
-
                     <Link
                       href="/account"
                       onClick={() =>
@@ -1152,19 +1105,12 @@ export default function Header() {
                       }
                       className="w-full flex items-center gap-3 py-3 px-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
                     >
-                      <LogOut
-                        size={18}
-                      />
+                      <LogOut size={18} />
                       Logout
                     </button>
-
                   </div>
                 ) : (
-
-                  /* LOGIN / REGISTER */
-
                   <div className="space-y-2">
-
                     <Link
                       href="/login"
                       onClick={() =>
@@ -1188,10 +1134,8 @@ export default function Header() {
                     >
                       Register
                     </Link>
-
                   </div>
                 )}
-
               </nav>
             </motion.aside>
           </>

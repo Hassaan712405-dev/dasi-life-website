@@ -16,7 +16,11 @@ export default function HeroSection() {
         delay={0}
         className="absolute top-10 left-5 sm:left-10 opacity-20 pointer-events-none"
       >
-        <Leaf size={40} className="text-brand-green" strokeWidth={1} />
+        <Leaf
+          size={40}
+          className="text-brand-green"
+          strokeWidth={1}
+        />
       </FloatingElement>
 
       <FloatingElement
@@ -25,7 +29,11 @@ export default function HeroSection() {
         delay={1}
         className="absolute bottom-10 right-5 sm:right-10 opacity-20 pointer-events-none rotate-45"
       >
-        <Leaf size={60} className="text-brand-green" strokeWidth={1} />
+        <Leaf
+          size={60}
+          className="text-brand-green"
+          strokeWidth={1}
+        />
       </FloatingElement>
 
       <div className="container-custom relative z-10">
@@ -35,7 +43,10 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             className="order-2 lg:order-1 text-center lg:text-left"
           >
             <p className="text-brand-gold font-semibold text-[10px] sm:text-xs tracking-widest uppercase mb-3 sm:mb-4">
@@ -59,6 +70,7 @@ export default function HeroSection() {
               >
                 Shop Bestsellers
               </Link>
+
               <Link
                 href="/about"
                 className="bg-white border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-medium px-6 sm:px-8 py-3 sm:py-3.5 rounded-md transition-colors text-center text-sm sm:text-base"
@@ -72,16 +84,20 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: 0.8,
+              delay: 0.2,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             className="order-1 lg:order-2 flex justify-center lg:justify-end"
           >
-            {/* ✅ FIX: w-full, wider max-width, better aspect ratio */}
-            <div className="relative w-full max-w-[340px] xs:max-w-[380px] sm:max-w-md md:max-w-lg lg:max-w-lg mx-auto rounded-2xl shadow-xl overflow-hidden">
+            {/* Fixed aspect ratio reserves image space and helps reduce CLS */}
+            <div className="relative w-full max-w-[340px] xs:max-w-[380px] sm:max-w-md md:max-w-lg lg:max-w-lg mx-auto rounded-2xl shadow-xl overflow-hidden aspect-[4/5] sm:aspect-square">
               <ParallaxImage
                 src="/images/hero-majoon.png"
                 alt="Sultani Herbal Majoon — Dasi Life premium Unani elixir"
                 intensity={20}
-                className="w-full aspect-[4/5] sm:aspect-square"
+                className="w-full h-full"
               />
             </div>
           </motion.div>
