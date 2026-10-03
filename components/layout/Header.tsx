@@ -52,40 +52,29 @@ export default function Header() {
   const cartCount = getTotalItems();
   const wishlistCount = getWishlistCount();
 
-  // ============================================
-  // SCROLL DETECTION
-  // ============================================
-
+  // Scroll detection — shadow only, no layout shift
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
 
-    window.addEventListener('scroll', handleScroll, {
-      passive: true,
-    });
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ============================================
-  // FOCUS SEARCH INPUT
-  // ============================================
-
+  // Smoothly focus search input after animation starts
   useEffect(() => {
     if (!searchOpen) return;
 
-    requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
+
+    return () => cancelAnimationFrame(frame);
   }, [searchOpen]);
 
-  // ============================================
-  // RESET SEARCH WHEN CLOSED
-  // ============================================
-
+  // Reset search after close animation
   useEffect(() => {
     if (!searchOpen) {
       const timer = setTimeout(() => {
@@ -97,10 +86,7 @@ export default function Header() {
     }
   }, [searchOpen]);
 
-  // ============================================
-  // LOCK BODY SCROLL ONLY FOR MOBILE MENU
-  // ============================================
-
+  // Lock body scroll only for mobile drawer
   useEffect(() => {
     if (!mobileMenuOpen) return;
 
@@ -118,18 +104,12 @@ export default function Header() {
       document.body.style.width = '';
 
       if (top) {
-        window.scrollTo(
-          0,
-          parseInt(top, 10) * -1
-        );
+        window.scrollTo(0, parseInt(top, 10) * -1);
       }
     };
   }, [mobileMenuOpen]);
 
-  // ============================================
-  // CLOSE USER MENU ON OUTSIDE CLICK
-  // ============================================
-
+  // Close user menu on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -140,23 +120,13 @@ export default function Header() {
       }
     };
 
-    document.addEventListener(
-      'mousedown',
-      handleClickOutside
-    );
+    document.addEventListener('mousedown', handleClickOutside);
 
-    return () => {
-      document.removeEventListener(
-        'mousedown',
-        handleClickOutside
-      );
-    };
+    return () =>
+      document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ============================================
-  // KEYBOARD SHORTCUTS
-  // ============================================
-
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -169,13 +139,11 @@ export default function Header() {
         return;
       }
 
-      // "/" opens search
       if (e.key === '/') {
         e.preventDefault();
         setSearchOpen(true);
       }
 
-      // Escape closes menus/search
       if (e.key === 'Escape') {
         setSearchOpen(false);
         setUserMenuOpen(false);
@@ -183,23 +151,12 @@ export default function Header() {
       }
     };
 
-    window.addEventListener(
-      'keydown',
-      handleKeyDown
-    );
+    window.addEventListener('keydown', handleKeyDown);
 
-    return () => {
-      window.removeEventListener(
-        'keydown',
-        handleKeyDown
-      );
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // ============================================
-  // DEBOUNCED SEARCH
-  // ============================================
-
+  // Debounced search
   useEffect(() => {
     if (query.trim().length < 2) {
       setResults([]);
@@ -234,37 +191,19 @@ export default function Header() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // ============================================
-  // SEARCH SUBMIT
-  // ============================================
-
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (query.trim()) {
-      router.push(
-        `/search?q=${encodeURIComponent(
-          query.trim()
-        )}`
-      );
-
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
       setSearchOpen(false);
       setMobileMenuOpen(false);
     }
   };
 
-  // ============================================
-  // CLOSE SEARCH
-  // ============================================
-
   const closeSearch = () => {
     setSearchOpen(false);
-    setQuery('');
   };
-
-  // ============================================
-  // LOGOUT
-  // ============================================
 
   const handleLogout = async () => {
     await signOut();
@@ -276,76 +215,34 @@ export default function Header() {
     router.refresh();
   };
 
-  // ============================================
-  // USER INITIALS
-  // ============================================
-
   const userInitials = user?.email
     ? user.email.slice(0, 2).toUpperCase()
     : 'U';
-
-  // ============================================
-  // PRODUCT IMAGE HELPER
-  // ============================================
-
-  const getProductImage = (slug: string) => {
-    switch (slug) {
-      case 'sultani-herbal-majoon':
-        return '/images/product-majoon.png';
-
-      case 'sultani-herbal-hair-oil':
-        return '/images/product-hair-oil.png';
-
-      case 'sultani-herbal-capsule-joint-bone':
-        return '/images/product-joint-bone.png';
-
-      default:
-        return '/images/product-weight-loss.png';
-    }
-  };
 
   return (
     <>
       <header
         className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${
-          scrolled
-            ? 'shadow-md'
-            : 'shadow-sm'
+          scrolled ? 'shadow-md' : 'shadow-sm'
         }`}
-        style={{
-          borderBottom: '1px solid #EBE4D6',
-        }}
+        style={{ borderBottom: '1px solid #EBE4D6' }}
       >
         <div className="container-custom">
-
-          {/* ============================================ */}
-          {/* MAIN NAVIGATION */}
-          {/* ============================================ */}
-
+          {/* ================================================= */}
+          {/* MAIN NAVBAR — FIXED HEIGHT / NO LAYOUT SHIFT     */}
+          {/* ================================================= */}
           <div className="flex items-center justify-between gap-2 sm:gap-4 py-3 sm:py-3.5 md:py-4">
-
-            {/* ============================================ */}
             {/* HAMBURGER */}
-            {/* ============================================ */}
-
             <button
               type="button"
-              onClick={() =>
-                setMobileMenuOpen(true)
-              }
+              onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center shrink-0"
               aria-label="Open menu"
             >
-              <Menu
-                size={22}
-                className="text-brand-text-dark"
-              />
+              <Menu size={22} className="text-brand-text-dark" />
             </button>
 
-            {/* ============================================ */}
             {/* LOGO */}
-            {/* ============================================ */}
-
             <Link
               href="/"
               className="flex items-center gap-2 shrink-0 group"
@@ -356,38 +253,25 @@ export default function Header() {
                   src="/images/logo.png"
                   alt="Desi Life"
                   fill
-                  priority
                   className="object-contain object-left"
+                  priority
                   sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 176px"
                 />
               </div>
             </Link>
 
-            {/* ============================================ */}
-            {/* DESKTOP NAV / SEARCH AREA */}
-            {/* ============================================ */}
-
+            {/* ================================================= */}
+            {/* DESKTOP CENTER AREA                              */}
+            {/* NAV LINKS <-> SEARCH — SAME EXACT SPACE          */}
+            {/* ================================================= */}
             <div className="hidden lg:flex flex-1 justify-center relative mx-4 xl:mx-8">
-
-              <AnimatePresence
-                mode="wait"
-                initial={false}
-              >
-
-                {/* NORMAL NAVIGATION LINKS */}
-
+              <AnimatePresence mode="wait" initial={false}>
                 {!searchOpen ? (
                   <motion.nav
                     key="navigation"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{
                       duration: 0.18,
                       ease: 'easeOut',
@@ -407,23 +291,23 @@ export default function Header() {
                     ))}
                   </motion.nav>
                 ) : (
-
-                  /* SEARCH INPUT */
-
                   <motion.form
                     key="search"
                     onSubmit={handleSubmit}
                     initial={{
                       opacity: 0,
-                      scaleX: 0.94,
+                      scaleX: 0.92,
+                      filter: 'blur(4px)',
                     }}
                     animate={{
                       opacity: 1,
                       scaleX: 1,
+                      filter: 'blur(0px)',
                     }}
                     exit={{
                       opacity: 0,
-                      scaleX: 0.94,
+                      scaleX: 0.92,
+                      filter: 'blur(4px)',
                     }}
                     transition={{
                       duration: 0.28,
@@ -432,54 +316,46 @@ export default function Header() {
                     className="w-full max-w-2xl origin-center"
                   >
                     <div className="relative flex items-center">
-
-                      {/* SEARCH ICON */}
-
+                      {/* Search Icon */}
                       <Search
                         size={18}
-                        className="absolute left-4 text-brand-text-muted pointer-events-none"
+                        className="absolute left-4 text-brand-text-muted pointer-events-none z-10"
                       />
 
-                      {/* INPUT */}
-
+                      {/* Search Input */}
                       <input
                         ref={inputRef}
                         type="text"
                         value={query}
-                        onChange={(e) =>
-                          setQuery(e.target.value)
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            e.preventDefault();
-                            closeSearch();
-                          }
-                        }}
+                        onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search for Unani products, oils, capsules..."
-                        className="w-full h-10 sm:h-11 bg-brand-cream border border-gray-300 rounded-full pl-11 pr-20 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green focus:bg-white transition-colors"
+                        autoComplete="off"
+                        className="w-full h-10 sm:h-11 bg-brand-cream border border-gray-300 rounded-full pl-11 pr-24 text-sm text-brand-text-dark placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green focus:bg-white transition-all duration-200"
                       />
 
-                      {/* CLEAR */}
+                      {/* Clear */}
+                      <AnimatePresence>
+                        {query && (
+                          <motion.button
+                            type="button"
+                            initial={{ opacity: 0, scale: 0.7 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.7 }}
+                            transition={{ duration: 0.15 }}
+                            onClick={() => setQuery('')}
+                            className="absolute right-12 w-7 h-7 rounded-full flex items-center justify-center text-brand-text-muted hover:text-brand-green hover:bg-brand-cream-dark transition-colors"
+                            aria-label="Clear search"
+                          >
+                            <X size={15} />
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
 
-                      {query && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setQuery('')
-                          }
-                          className="absolute right-12 w-7 h-7 flex items-center justify-center text-brand-text-muted hover:text-brand-green transition-colors"
-                          aria-label="Clear search"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
-
-                      {/* CLOSE */}
-
+                      {/* Close */}
                       <button
                         type="button"
                         onClick={closeSearch}
-                        className="absolute right-2 w-8 h-8 rounded-full flex items-center justify-center hover:bg-brand-cream-dark text-brand-text-muted hover:text-brand-text-dark transition-colors"
+                        className="absolute right-2 w-8 h-8 rounded-full flex items-center justify-center text-brand-text-muted hover:text-brand-green hover:bg-brand-cream-dark transition-colors"
                         aria-label="Close search"
                       >
                         <X size={17} />
@@ -489,183 +365,134 @@ export default function Header() {
                 )}
               </AnimatePresence>
 
-              {/* ============================================ */}
-              {/* SEARCH RESULTS DROPDOWN */}
-              {/* ============================================ */}
-
+              {/* ================================================= */}
+              {/* SEARCH RESULTS DROPDOWN                           */}
+              {/* ================================================= */}
               <AnimatePresence>
-                {searchOpen &&
-                  query.trim().length >= 2 && (
-                    <motion.div
-                      initial={{
-                        opacity: 0,
-                        y: -6,
-                        scale: 0.98,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                      }}
-                      exit={{
-                        opacity: 0,
-                        y: -4,
-                        scale: 0.98,
-                      }}
-                      transition={{
-                        duration: 0.2,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-full max-w-2xl z-[80]"
-                    >
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden">
-
-                        {/* LOADING */}
-
-                        {loading ? (
-                          <div className="flex items-center justify-center py-5 text-brand-text-muted text-sm">
-                            <Loader2
-                              size={18}
-                              className="animate-spin mr-2"
-                            />
-                            Searching...
-                          </div>
-                        ) : results.length ===
-                          0 ? (
-
-                          /* NO RESULTS */
-
-                          <div className="py-5 px-4 text-center text-sm text-brand-text-muted">
-                            No products found for{' '}
-                            <strong>
-                              "{query}"
-                            </strong>
-                          </div>
-
-                        ) : (
-
-                          /* RESULTS */
-
-                          <>
-                            <div className="max-h-[360px] overflow-y-auto">
-
-                              {results.map(
-                                (product) => (
-                                  <Link
-                                    key={
-                                      product.id
+                {searchOpen && query.trim().length >= 2 && (
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: -6,
+                      scaleY: 0.96,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scaleY: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -6,
+                      scaleY: 0.96,
+                    }}
+                    transition={{
+                      duration: 0.2,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    style={{ transformOrigin: 'top center' }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-full max-w-2xl z-[80]"
+                  >
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden">
+                      {loading ? (
+                        <div className="flex items-center justify-center py-6 text-brand-text-muted text-sm">
+                          <Loader2
+                            size={18}
+                            className="animate-spin mr-2"
+                          />
+                          Searching...
+                        </div>
+                      ) : results.length === 0 ? (
+                        <div className="py-6 px-4 text-center text-sm text-brand-text-muted">
+                          No products found for{' '}
+                          <strong>"{query}"</strong>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="max-h-[400px] overflow-y-auto">
+                            {results.map((product) => (
+                              <Link
+                                key={product.id}
+                                href={`/product/${product.slug}`}
+                                onClick={closeSearch}
+                                className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="w-10 h-10 bg-brand-cream rounded-lg overflow-hidden shrink-0">
+                                  <Image
+                                    src={
+                                      product.slug ===
+                                      'sultani-herbal-majoon'
+                                        ? '/images/product-majoon.png'
+                                        : product.slug ===
+                                          'sultani-herbal-hair-oil'
+                                        ? '/images/product-hair-oil.png'
+                                        : product.slug ===
+                                          'sultani-herbal-capsule-joint-bone'
+                                        ? '/images/product-joint-bone.png'
+                                        : '/images/product-weight-loss.png'
                                     }
-                                    href={`/product/${product.slug}`}
-                                    onClick={
-                                      closeSearch
-                                    }
-                                    className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100 last:border-b-0"
-                                  >
+                                    alt={product.name}
+                                    width={40}
+                                    height={40}
+                                    sizes="40px"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
 
-                                    {/* PRODUCT IMAGE */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
+                                    {product.name}
+                                  </p>
 
-                                    <div className="relative w-10 h-10 bg-brand-cream rounded-lg overflow-hidden shrink-0">
-                                      <Image
-                                        src={getProductImage(
-                                          product.slug
-                                        )}
-                                        alt={
-                                          product.name
-                                        }
-                                        fill
-                                        sizes="40px"
-                                        className="object-cover"
-                                      />
-                                    </div>
+                                  <p className="text-xs text-brand-text-muted line-clamp-1">
+                                    {product.short_description}
+                                  </p>
+                                </div>
 
-                                    {/* PRODUCT INFO */}
+                                <p className="font-semibold text-brand-green text-sm shrink-0">
+                                  Rs {product.price.toLocaleString()}
+                                </p>
+                              </Link>
+                            ))}
+                          </div>
 
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
-                                        {
-                                          product.name
-                                        }
-                                      </p>
-
-                                      <p className="text-xs text-brand-text-muted line-clamp-1">
-                                        {
-                                          product.short_description
-                                        }
-                                      </p>
-                                    </div>
-
-                                    {/* PRICE */}
-
-                                    <p className="font-semibold text-brand-green text-sm shrink-0">
-                                      Rs{' '}
-                                      {product.price.toLocaleString()}
-                                    </p>
-
-                                  </Link>
-                                )
-                              )}
-
-                            </div>
-
-                            {/* VIEW ALL */}
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSubmit()
-                              }
-                              className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-3 border-t border-gray-100 bg-white"
-                            >
-                              View all results for "
-                              {query}" →
-                            </button>
-                          </>
-                        )}
-
-                      </div>
-                    </motion.div>
-                  )}
+                          <button
+                            type="button"
+                            onClick={handleSubmit}
+                            className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-3 border-t border-gray-100 bg-white"
+                          >
+                            View all results for "{query}" →
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
 
-            {/* ============================================ */}
-            {/* RIGHT ICONS */}
-            {/* ============================================ */}
-
+            {/* ================================================= */}
+            {/* RIGHT ICONS                                      */}
+            {/* ================================================= */}
             <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
-
-              {/* SEARCH */}
-
+              {/* Search Icon */}
               <button
                 type="button"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
+                onClick={() => setSearchOpen(true)}
                 className="w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center"
                 aria-label="Search"
               >
-                <Search
-                  size={20}
-                  className="text-brand-text-dark"
-                />
+                <Search size={20} className="text-brand-text-dark" />
               </button>
 
-              {/* USER */}
-
+              {/* User */}
               {!authLoading && (
                 <>
                   {user ? (
-                    <div
-                      className="relative hidden sm:block"
-                      ref={userMenuRef}
-                    >
+                    <div className="relative hidden sm:block" ref={userMenuRef}>
                       <button
                         type="button"
-                        onClick={() =>
-                          setUserMenuOpen(
-                            !userMenuOpen
-                          )
-                        }
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
                         className="flex items-center gap-1.5 pl-1 pr-1.5 py-1 hover:bg-brand-cream rounded-full transition-colors"
                         aria-label="User menu"
                       >
@@ -676,9 +503,7 @@ export default function Header() {
                         <ChevronDown
                           size={14}
                           className={`text-brand-text-dark transition-transform duration-200 ${
-                            userMenuOpen
-                              ? 'rotate-180'
-                              : ''
+                            userMenuOpen ? 'rotate-180' : ''
                           }`}
                         />
                       </button>
@@ -686,30 +511,10 @@ export default function Header() {
                       <AnimatePresence>
                         {userMenuOpen && (
                           <motion.div
-                            initial={{
-                              opacity: 0,
-                              y: -10,
-                              scale: 0.98,
-                            }}
-                            animate={{
-                              opacity: 1,
-                              y: 0,
-                              scale: 1,
-                            }}
-                            exit={{
-                              opacity: 0,
-                              y: -10,
-                              scale: 0.98,
-                            }}
-                            transition={{
-                              duration: 0.18,
-                              ease: [
-                                0.22,
-                                1,
-                                0.36,
-                                1,
-                              ],
-                            }}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.15 }}
                             className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden z-50"
                           >
                             <div className="px-4 py-3 border-b border-gray-100 bg-brand-cream">
@@ -725,11 +530,7 @@ export default function Header() {
                             <div className="py-2">
                               <Link
                                 href="/account"
-                                onClick={() =>
-                                  setUserMenuOpen(
-                                    false
-                                  )
-                                }
+                                onClick={() => setUserMenuOpen(false)}
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
                               >
                                 <User
@@ -741,11 +542,7 @@ export default function Header() {
 
                               <Link
                                 href="/account/orders"
-                                onClick={() =>
-                                  setUserMenuOpen(
-                                    false
-                                  )
-                                }
+                                onClick={() => setUserMenuOpen(false)}
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
                               >
                                 <ShoppingCart
@@ -757,11 +554,7 @@ export default function Header() {
 
                               <Link
                                 href="/wishlist"
-                                onClick={() =>
-                                  setUserMenuOpen(
-                                    false
-                                  )
-                                }
+                                onClick={() => setUserMenuOpen(false)}
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
                               >
                                 <Heart
@@ -775,14 +568,10 @@ export default function Header() {
                             <div className="border-t border-gray-100 py-2">
                               <button
                                 type="button"
-                                onClick={
-                                  handleLogout
-                                }
+                                onClick={handleLogout}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                               >
-                                <LogOut
-                                  size={16}
-                                />
+                                <LogOut size={16} />
                                 Logout
                               </button>
                             </div>
@@ -796,35 +585,24 @@ export default function Header() {
                       className="hidden sm:flex p-2 hover:bg-brand-cream rounded-full transition-colors"
                       aria-label="Login"
                     >
-                      <User
-                        size={20}
-                        className="text-brand-text-dark"
-                      />
+                      <User size={20} className="text-brand-text-dark" />
                     </Link>
                   )}
                 </>
               )}
 
-              {/* WISHLIST */}
-
+              {/* Wishlist */}
               <Link
                 href="/wishlist"
                 className="relative p-2 hover:bg-brand-cream rounded-full transition-colors hidden sm:flex"
                 aria-label="Wishlist"
               >
-                <Heart
-                  size={20}
-                  className="text-brand-text-dark"
-                />
+                <Heart size={20} className="text-brand-text-dark" />
 
                 {wishlistCount > 0 && (
                   <motion.span
-                    initial={{
-                      scale: 0,
-                    }}
-                    animate={{
-                      scale: 1,
-                    }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
                     className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
                   >
                     {wishlistCount}
@@ -832,8 +610,7 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* CART */}
-
+              {/* Cart */}
               <Link
                 href="/cart"
                 className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 bg-brand-cream hover:bg-brand-cream-dark rounded-full transition-all duration-300 hover:scale-[1.02]"
@@ -863,61 +640,35 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ============================================ */}
-      {/* MOBILE MENU DRAWER */}
-      {/* ============================================ */}
-
+      {/* ===================================================== */}
+      {/* MOBILE MENU DRAWER                                    */}
+      {/* ===================================================== */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            {/* OVERLAY */}
-
             <motion.div
-              initial={{
-                opacity: 0,
-              }}
-              animate={{
-                opacity: 1,
-              }}
-              exit={{
-                opacity: 0,
-              }}
-              transition={{
-                duration: 0.25,
-              }}
-              onClick={() =>
-                setMobileMenuOpen(false)
-              }
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
               className="lg:hidden fixed inset-0 bg-black/50 z-[60]"
             />
 
-            {/* DRAWER */}
-
             <motion.aside
-              initial={{
-                x: '-100%',
-              }}
-              animate={{
-                x: 0,
-              }}
-              exit={{
-                x: '-100%',
-              }}
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
               transition={{
                 duration: 0.3,
                 ease: [0.22, 1, 0.36, 1],
               }}
               className="lg:hidden fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-[70] flex flex-col shadow-2xl"
             >
-
-              {/* MOBILE HEADER */}
-
+              {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <Link
                   href="/"
-                  onClick={() =>
-                    setMobileMenuOpen(false)
-                  }
+                  onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center"
                 >
                   <div className="relative h-9 w-28">
@@ -933,9 +684,7 @@ export default function Header() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setMobileMenuOpen(false)
-                  }
+                  onClick={() => setMobileMenuOpen(false)}
                   className="w-9 h-9 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center"
                   aria-label="Close menu"
                 >
@@ -946,8 +695,7 @@ export default function Header() {
                 </button>
               </div>
 
-              {/* MOBILE USER INFO */}
-
+              {/* User Info */}
               {user && (
                 <div className="px-5 py-4 bg-brand-cream border-b border-gray-100">
                   <div className="flex items-center gap-3">
@@ -968,56 +716,36 @@ export default function Header() {
                 </div>
               )}
 
-              {/* MOBILE NAVIGATION */}
-
+              {/* Navigation Links */}
               <nav className="flex-1 overflow-y-auto px-5 py-4">
                 <ul className="space-y-1">
-                  {NAV_LINKS.map(
-                    (link, index) => (
-                      <motion.li
-                        key={link.href}
-                        initial={{
-                          opacity: 0,
-                          x: -20,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          x: 0,
-                        }}
-                        transition={{
-                          duration: 0.3,
-                          delay:
-                            index * 0.05,
-                        }}
+                  {NAV_LINKS.map((link, index) => (
+                    <motion.li
+                      key={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: index * 0.05,
+                      }}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block py-3 px-3 text-base font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                       >
-                        <Link
-                          href={link.href}
-                          onClick={() =>
-                            setMobileMenuOpen(
-                              false
-                            )
-                          }
-                          className="block py-3 px-3 text-base font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
-                        >
-                          {link.label}
-                        </Link>
-                      </motion.li>
-                    )
-                  )}
+                        {link.label}
+                      </Link>
+                    </motion.li>
+                  ))}
                 </ul>
 
                 <div className="my-4 border-t border-gray-100" />
 
-                {/* WISHLIST + CART */}
-
                 <div className="space-y-1">
                   <Link
                     href="/wishlist"
-                    onClick={() =>
-                      setMobileMenuOpen(
-                        false
-                      )
-                    }
+                    onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                   >
                     <span className="flex items-center gap-3">
@@ -1037,11 +765,7 @@ export default function Header() {
 
                   <Link
                     href="/cart"
-                    onClick={() =>
-                      setMobileMenuOpen(
-                        false
-                      )
-                    }
+                    onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                   >
                     <span className="flex items-center gap-3">
@@ -1062,17 +786,11 @@ export default function Header() {
 
                 <div className="my-4 border-t border-gray-100" />
 
-                {/* ACCOUNT */}
-
                 {user ? (
                   <div className="space-y-1">
                     <Link
                       href="/account"
-                      onClick={() =>
-                        setMobileMenuOpen(
-                          false
-                        )
-                      }
+                      onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                     >
                       <User
@@ -1084,11 +802,7 @@ export default function Header() {
 
                     <Link
                       href="/account/orders"
-                      onClick={() =>
-                        setMobileMenuOpen(
-                          false
-                        )
-                      }
+                      onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                     >
                       <ShoppingCart
@@ -1100,9 +814,7 @@ export default function Header() {
 
                     <button
                       type="button"
-                      onClick={
-                        handleLogout
-                      }
+                      onClick={handleLogout}
                       className="w-full flex items-center gap-3 py-3 px-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
                     >
                       <LogOut size={18} />
@@ -1113,11 +825,7 @@ export default function Header() {
                   <div className="space-y-2">
                     <Link
                       href="/login"
-                      onClick={() =>
-                        setMobileMenuOpen(
-                          false
-                        )
-                      }
+                      onClick={() => setMobileMenuOpen(false)}
                       className="block w-full text-center bg-brand-green hover:bg-black text-white font-medium py-3 rounded-md transition-colors text-sm"
                     >
                       Login
@@ -1125,11 +833,7 @@ export default function Header() {
 
                     <Link
                       href="/register"
-                      onClick={() =>
-                        setMobileMenuOpen(
-                          false
-                        )
-                      }
+                      onClick={() => setMobileMenuOpen(false)}
                       className="block w-full text-center bg-white border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-medium py-3 rounded-md transition-colors text-sm"
                     >
                       Register
