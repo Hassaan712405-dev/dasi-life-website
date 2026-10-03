@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Check, Heart } from 'lucide-react';
 import { useState } from 'react';
@@ -26,7 +27,11 @@ export default function ProductCard({
   imageUrl,
   productId,
 }: ProductCardProps) {
-  const discount = Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
+  const discount =
+    compareAtPrice > 0
+      ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+      : 0;
+
   const { addToCart, isInCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [justAdded, setJustAdded] = useState(false);
@@ -74,13 +79,20 @@ export default function ProductCard({
         href={`/product/${slug}`}
         className="block relative overflow-hidden bg-brand-cream"
       >
-        <motion.img
-          src={imageUrl}
-          alt={name}
-          className="w-full aspect-square object-cover"
+        <motion.div
           whileHover={{ scale: 1.08 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
+          className="relative w-full aspect-square"
+        >
+          <Image
+            src={imageUrl}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+          />
+        </motion.div>
+
         {discount > 0 && (
           <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-brand-gold text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md shadow-md">
             {discount}% OFF
@@ -99,7 +111,9 @@ export default function ProductCard({
       <motion.button
         type="button"
         onClick={handleWishlistToggle}
-        aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+        aria-label={
+          inWishlist ? 'Remove from wishlist' : 'Add to wishlist'
+        }
         whileHover={{ scale: 1.15 }}
         whileTap={{ scale: 0.9 }}
         className="absolute top-2 right-2 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md flex items-center justify-center z-10"
@@ -112,6 +126,7 @@ export default function ProductCard({
               : 'text-brand-text-muted sm:hidden'
           }
         />
+
         <Heart
           size={16}
           className={
@@ -139,6 +154,7 @@ export default function ProductCard({
             <span className="text-sm sm:text-base md:text-lg font-bold text-brand-green">
               Rs {price.toLocaleString()}
             </span>
+
             <span className="text-[10px] sm:text-xs md:text-sm text-brand-text-muted line-through">
               Rs {compareAtPrice.toLocaleString()}
             </span>
