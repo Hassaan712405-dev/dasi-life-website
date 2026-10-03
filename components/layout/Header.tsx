@@ -39,9 +39,12 @@ export default function Header() {
   const [loading, setLoading] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
   const router = useRouter();
+
   const { getTotalItems } = useCart();
   const { getTotalItems: getWishlistCount } = useWishlist();
   const { user, loading: authLoading } = useAuth();
@@ -49,51 +52,70 @@ export default function Header() {
   const cartCount = getTotalItems();
   const wishlistCount = getWishlistCount();
 
-  // ✅ FIX: Scroll detection — shadow only, NO layout shift
+  // ============================================
+  // SCROLL DETECTION
+  // ============================================
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
-  // ✅ FIX: Focus input when opened
+  // ============================================
+  // FOCUS SEARCH INPUT
+  // ============================================
   useEffect(() => {
-    if (searchOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 350);
-    }
+    if (!searchOpen) return;
+
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [searchOpen]);
 
-  // ✅ FIX: Reset query when closed
+  // ============================================
+  // RESET SEARCH WHEN CLOSED
+  // ============================================
   useEffect(() => {
     if (!searchOpen) {
       const timer = setTimeout(() => {
         setQuery('');
         setResults([]);
       }, 300);
+
       return () => clearTimeout(timer);
     }
   }, [searchOpen]);
 
-  // ✅ FIX: Lock body scroll — NO LAYOUT SHIFT
+  // ============================================
+  // LOCK BODY SCROLL
+  // ============================================
   useEffect(() => {
     if (mobileMenuOpen || searchOpen) {
-      // Save current scroll position
       const scrollY = window.scrollY;
+
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
     } else {
-      // Restore scroll position
       const scrollY = document.body.style.top;
+
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
+
       if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
       }
     }
+
     return () => {
       document.body.style.position = '';
       document.body.style.top = '';
@@ -101,7 +123,9 @@ export default function Header() {
     };
   }, [mobileMenuOpen, searchOpen]);
 
-  // Close user menu on outside click
+  // ============================================
+  // CLOSE USER MENU ON OUTSIDE CLICK
+  // ============================================
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -111,14 +135,21 @@ export default function Header() {
         setUserMenuOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  // Keyboard shortcuts
+  // ============================================
+  // KEYBOARD SHORTCUTS
+  // ============================================
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
+
       if (
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
@@ -127,10 +158,13 @@ export default function Header() {
         return;
       }
 
+      // "/" opens search
       if (e.key === '/') {
         e.preventDefault();
         setSearchOpen(true);
       }
+
+      // Escape closes menus/search
       if (e.key === 'Escape') {
         setSearchOpen(false);
         setUserMenuOpen(false);
@@ -139,17 +173,24 @@ export default function Header() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
-  // Debounced search
+  // ============================================
+  // DEBOUNCED SEARCH
+  // ============================================
   useEffect(() => {
     if (query.trim().length < 2) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
+
     const timer = setTimeout(async () => {
       const supabase = createClient();
       const searchTerm = `%${query.trim()}%`;
@@ -165,38 +206,76 @@ export default function Header() {
 
       if (!error && data) {
         setResults(data as Product[]);
+      } else {
+        setResults([]);
       }
+
       setLoading(false);
     }, 300);
 
     return () => clearTimeout(timer);
   }, [query]);
 
+  // ============================================
+  // SEARCH SUBMIT
+  // ============================================
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (query.trim()) {
       router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+
       setSearchOpen(false);
       setMobileMenuOpen(false);
     }
   };
 
+  // ============================================
+  // CLOSE SEARCH
+  // ============================================
   const closeSearch = () => {
     setSearchOpen(false);
     setQuery('');
   };
 
+  // ============================================
+  // LOGOUT
+  // ============================================
   const handleLogout = async () => {
     await signOut();
+
     setUserMenuOpen(false);
     setMobileMenuOpen(false);
+
     router.push('/');
     router.refresh();
   };
 
+  // ============================================
+  // USER INITIALS
+  // ============================================
   const userInitials = user?.email
     ? user.email.slice(0, 2).toUpperCase()
     : 'U';
+
+  // ============================================
+  // PRODUCT IMAGE HELPER
+  // ============================================
+  const getProductImage = (slug: string) => {
+    switch (slug) {
+      case 'sultani-herbal-majoon':
+        return '/images/product-majoon.png';
+
+      case 'sultani-herbal-hair-oil':
+        return '/images/product-hair-oil.png';
+
+      case 'sultani-herbal-capsule-joint-bone':
+        return '/images/product-joint-bone.png';
+
+      default:
+        return '/images/product-weight-loss.png';
+    }
+  };
 
   return (
     <>
@@ -207,27 +286,45 @@ export default function Header() {
         style={{ borderBottom: '1px solid #EBE4D6' }}
       >
         <div className="container-custom">
+
           {/* ============================================ */}
-          {/* MAIN ROW — Always visible                        */}
+          {/* MAIN NAVIGATION ROW */}
           {/* ============================================ */}
-          <div
-            className={`flex items-center justify-between gap-2 sm:gap-4 transition-all duration-300 ${
-              searchOpen
-                ? 'py-2 sm:py-2.5 opacity-0 pointer-events-none absolute inset-0 -z-10'
-                : 'py-3 sm:py-3.5 md:py-4 opacity-100'
+
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: searchOpen ? 0 : 1,
+              y: searchOpen ? -8 : 0,
+            }}
+            transition={{
+              duration: 0.25,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className={`flex items-center justify-between gap-2 sm:gap-4 py-3 sm:py-3.5 md:py-4 ${
+              searchOpen ? 'pointer-events-none' : ''
             }`}
           >
-            {/* HAMBURGER (Mobile/Tablet) */}
+            {/* ============================================ */}
+            {/* HAMBURGER */}
+            {/* ============================================ */}
+
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center shrink-0"
               aria-label="Open menu"
             >
-              <Menu size={22} className="text-brand-text-dark" />
+              <Menu
+                size={22}
+                className="text-brand-text-dark"
+              />
             </button>
 
+            {/* ============================================ */}
             {/* LOGO */}
+            {/* ============================================ */}
+
             <Link
               href="/"
               className="flex items-center gap-2 shrink-0 group"
@@ -238,14 +335,17 @@ export default function Header() {
                   src="/images/logo.png"
                   alt="Desi Life"
                   fill
-                  className="object-contain object-left"
                   priority
+                  className="object-contain object-left"
                   sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 176px"
                 />
               </div>
             </Link>
 
+            {/* ============================================ */}
             {/* DESKTOP NAV */}
+            {/* ============================================ */}
+
             <nav className="hidden lg:flex flex-1 items-center justify-center gap-6 xl:gap-8 text-sm font-medium text-brand-text-dark">
               {NAV_LINKS.map((link) => (
                 <Link
@@ -254,37 +354,55 @@ export default function Header() {
                   className="hover:text-brand-green transition-colors relative group py-1.5"
                 >
                   {link.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-green transition-all duration-300 group-hover:w-full"></span>
+
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-green transition-all duration-300 group-hover:w-full" />
                 </Link>
               ))}
             </nav>
 
+            {/* ============================================ */}
             {/* RIGHT ICONS */}
+            {/* ============================================ */}
+
             <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
-              {/* Search Icon */}
+
+              {/* SEARCH BUTTON */}
+
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
                 className="w-10 h-10 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center"
                 aria-label="Search"
               >
-                <Search size={20} className="text-brand-text-dark" />
+                <Search
+                  size={20}
+                  className="text-brand-text-dark"
+                />
               </button>
 
-              {/* User (Desktop/Tablet) */}
+              {/* ============================================ */}
+              {/* USER */}
+              {/* ============================================ */}
+
               {!authLoading && (
                 <>
                   {user ? (
-                    <div className="relative hidden sm:block" ref={userMenuRef}>
+                    <div
+                      className="relative hidden sm:block"
+                      ref={userMenuRef}
+                    >
                       <button
                         type="button"
-                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        onClick={() =>
+                          setUserMenuOpen(!userMenuOpen)
+                        }
                         className="flex items-center gap-1.5 pl-1 pr-1.5 py-1 hover:bg-brand-cream rounded-full transition-colors"
                         aria-label="User menu"
                       >
                         <span className="w-8 h-8 rounded-full bg-brand-green text-white flex items-center justify-center text-xs font-semibold">
                           {userInitials}
                         </span>
+
                         <ChevronDown
                           size={14}
                           className={`text-brand-text-dark transition-transform duration-200 ${
@@ -293,19 +411,37 @@ export default function Header() {
                         />
                       </button>
 
+                      {/* USER DROPDOWN */}
+
                       <AnimatePresence>
                         {userMenuOpen && (
                           <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.15 }}
+                            initial={{
+                              opacity: 0,
+                              y: -10,
+                              scale: 0.98,
+                            }}
+                            animate={{
+                              opacity: 1,
+                              y: 0,
+                              scale: 1,
+                            }}
+                            exit={{
+                              opacity: 0,
+                              y: -10,
+                              scale: 0.98,
+                            }}
+                            transition={{
+                              duration: 0.18,
+                              ease: [0.22, 1, 0.36, 1],
+                            }}
                             className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden z-50"
                           >
                             <div className="px-4 py-3 border-b border-gray-100 bg-brand-cream">
                               <p className="text-xs text-brand-text-muted mb-0.5">
                                 Signed in as
                               </p>
+
                               <p className="text-sm font-medium text-brand-text-dark truncate">
                                 {user.email}
                               </p>
@@ -314,26 +450,43 @@ export default function Header() {
                             <div className="py-2">
                               <Link
                                 href="/account"
-                                onClick={() => setUserMenuOpen(false)}
+                                onClick={() =>
+                                  setUserMenuOpen(false)
+                                }
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
                               >
-                                <User size={16} className="text-brand-green" />
+                                <User
+                                  size={16}
+                                  className="text-brand-green"
+                                />
                                 My Account
                               </Link>
+
                               <Link
                                 href="/account/orders"
-                                onClick={() => setUserMenuOpen(false)}
+                                onClick={() =>
+                                  setUserMenuOpen(false)
+                                }
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
                               >
-                                <ShoppingCart size={16} className="text-brand-green" />
+                                <ShoppingCart
+                                  size={16}
+                                  className="text-brand-green"
+                                />
                                 My Orders
                               </Link>
+
                               <Link
                                 href="/wishlist"
-                                onClick={() => setUserMenuOpen(false)}
+                                onClick={() =>
+                                  setUserMenuOpen(false)
+                                }
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-text-dark hover:bg-brand-cream transition-colors"
                               >
-                                <Heart size={16} className="text-brand-green" />
+                                <Heart
+                                  size={16}
+                                  className="text-brand-green"
+                                />
                                 My Wishlist
                               </Link>
                             </div>
@@ -358,19 +511,29 @@ export default function Header() {
                       className="hidden sm:flex p-2 hover:bg-brand-cream rounded-full transition-colors"
                       aria-label="Login"
                     >
-                      <User size={20} className="text-brand-text-dark" />
+                      <User
+                        size={20}
+                        className="text-brand-text-dark"
+                      />
                     </Link>
                   )}
                 </>
               )}
 
-              {/* Wishlist */}
+              {/* ============================================ */}
+              {/* WISHLIST */}
+              {/* ============================================ */}
+
               <Link
                 href="/wishlist"
                 className="relative p-2 hover:bg-brand-cream rounded-full transition-colors hidden sm:flex"
                 aria-label="Wishlist"
               >
-                <Heart size={20} className="text-brand-text-dark" />
+                <Heart
+                  size={20}
+                  className="text-brand-text-dark"
+                />
+
                 {wishlistCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
@@ -382,16 +545,24 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* Cart */}
+              {/* ============================================ */}
+              {/* CART */}
+              {/* ============================================ */}
+
               <Link
                 href="/cart"
                 className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 bg-brand-cream hover:bg-brand-cream-dark rounded-full transition-all duration-300 hover:scale-[1.02]"
                 aria-label="Cart"
               >
-                <ShoppingCart size={18} className="text-brand-text-dark" />
+                <ShoppingCart
+                  size={18}
+                  className="text-brand-text-dark"
+                />
+
                 <span className="text-sm font-medium text-brand-text-dark hidden sm:inline">
                   Cart
                 </span>
+
                 <span
                   className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center transition-all duration-300 ${
                     cartCount > 0
@@ -403,54 +574,103 @@ export default function Header() {
                 </span>
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* ============================================ */}
-          {/* SEARCH ROW — Slides in below on search click  */}
+          {/* SEARCH ROW */}
           {/* ============================================ */}
-          <AnimatePresence>
+
+          <AnimatePresence initial={false}>
             {searchOpen && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden"
+                initial={{
+                  opacity: 0,
+                  y: -12,
+                  scale: 0.98,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                  y: -8,
+                  scale: 0.98,
+                }}
+                transition={{
+                  duration: 0.35,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="overflow-hidden origin-top"
               >
                 <div className="py-3 sm:py-4">
+
+                  {/* SEARCH INPUT ROW */}
+
                   <div className="flex items-center gap-2 sm:gap-3 max-w-3xl mx-auto">
-                    {/* Search Input */}
+
+                    {/* SEARCH INPUT */}
+
                     <div className="flex-1 relative">
                       <Search
                         size={18}
                         className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-muted pointer-events-none"
                       />
+
                       <input
                         ref={inputRef}
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) =>
+                          setQuery(e.target.value)
+                        }
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             handleSubmit(e as any);
+                          }
+
+                          if (e.key === 'Escape') {
+                            closeSearch();
                           }
                         }}
                         placeholder="Search for Unani products, oils, capsules..."
                         className="w-full bg-brand-cream border border-gray-300 rounded-full pl-11 pr-11 py-2.5 sm:py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green focus:bg-white transition-colors"
                       />
-                      {query && (
-                        <button
-                          type="button"
-                          onClick={() => setQuery('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
-                          aria-label="Clear"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
+
+                      {/* CLEAR SEARCH */}
+
+                      <AnimatePresence>
+                        {query && (
+                          <motion.button
+                            type="button"
+                            initial={{
+                              opacity: 0,
+                              scale: 0.7,
+                            }}
+                            animate={{
+                              opacity: 1,
+                              scale: 1,
+                            }}
+                            exit={{
+                              opacity: 0,
+                              scale: 0.7,
+                            }}
+                            transition={{
+                              duration: 0.15,
+                            }}
+                            onClick={() => setQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                            aria-label="Clear"
+                          >
+                            <X size={16} />
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
                     </div>
 
-                    {/* Cancel Button */}
+                    {/* CANCEL */}
+
                     <button
                       type="button"
                       onClick={closeSearch}
@@ -460,70 +680,119 @@ export default function Header() {
                     </button>
                   </div>
 
-                  {/* Search Results — Dropdown below */}
-                  {query.trim().length >= 2 && (
-                    <div className="mt-3 max-w-3xl mx-auto">
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden">
-                        {loading ? (
-                          <div className="flex items-center justify-center py-6 text-brand-text-muted text-sm">
-                            <Loader2 size={18} className="animate-spin mr-2" />
-                            Searching...
-                          </div>
-                        ) : results.length === 0 ? (
-                          <div className="py-6 px-4 text-center text-sm text-brand-text-muted">
-                            No products found for "<strong>{query}</strong>"
-                          </div>
-                        ) : (
-                          <>
-                            <div className="max-h-[400px] overflow-y-auto">
-                              {results.map((product) => (
-                                <Link
-                                  key={product.id}
-                                  href={`/product/${product.slug}`}
-                                  onClick={closeSearch}
-                                  className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100 last:border-b-0"
-                                >
-                                  <div className="w-10 h-10 bg-brand-cream rounded-lg overflow-hidden shrink-0">
-                                    <img
-                                      src={
-                                        product.slug === 'sultani-herbal-majoon'
-                                          ? '/images/product-majoon.png'
-                                          : product.slug === 'sultani-herbal-hair-oil'
-                                          ? '/images/product-hair-oil.png'
-                                          : product.slug === 'sultani-herbal-capsule-joint-bone'
-                                          ? '/images/product-joint-bone.png'
-                                          : '/images/product-weight-loss.png'
-                                      }
-                                      alt={product.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
-                                      {product.name}
-                                    </p>
-                                    <p className="text-xs text-brand-text-muted line-clamp-1">
-                                      {product.short_description}
-                                    </p>
-                                  </div>
-                                  <p className="font-semibold text-brand-green text-sm shrink-0">
-                                    Rs {product.price.toLocaleString()}
-                                  </p>
-                                </Link>
-                              ))}
+                  {/* ============================================ */}
+                  {/* SEARCH RESULTS */}
+                  {/* ============================================ */}
+
+                  <AnimatePresence initial={false}>
+                    {query.trim().length >= 2 && (
+                      <motion.div
+                        initial={{
+                          opacity: 0,
+                          y: -8,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                        }}
+                        exit={{
+                          opacity: 0,
+                          y: -5,
+                        }}
+                        transition={{
+                          duration: 0.22,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="mt-3 max-w-3xl mx-auto"
+                      >
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden">
+
+                          {/* LOADING */}
+
+                          {loading ? (
+                            <div className="flex items-center justify-center py-6 text-brand-text-muted text-sm">
+                              <Loader2
+                                size={18}
+                                className="animate-spin mr-2"
+                              />
+                              Searching...
                             </div>
-                            <button
-                              type="button"
-                              onClick={handleSubmit}
-                              className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-3 border-t border-gray-100 bg-white"
-                            >
-                              View all results for "{query}" →
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
+
+                          ) : results.length === 0 ? (
+
+                            /* NO RESULTS */
+
+                            <div className="py-6 px-4 text-center text-sm text-brand-text-muted">
+                              No products found for{' '}
+                              <strong>
+                                "{query}"
+                              </strong>
+                            </div>
+
+                          ) : (
+
+                            /* RESULTS */
+
+                            <>
+                              <div className="max-h-[400px] overflow-y-auto">
+                                {results.map((product) => (
+                                  <Link
+                                    key={product.id}
+                                    href={`/product/${product.slug}`}
+                                    onClick={closeSearch}
+                                    className="flex items-center gap-3 px-4 py-3 hover:bg-brand-cream transition-colors group border-b border-gray-100 last:border-b-0"
+                                  >
+                                    {/* PRODUCT IMAGE */}
+
+                                    <div className="relative w-10 h-10 bg-brand-cream rounded-lg overflow-hidden shrink-0">
+                                      <Image
+                                        src={getProductImage(
+                                          product.slug
+                                        )}
+                                        alt={product.name}
+                                        fill
+                                        sizes="40px"
+                                        className="object-cover"
+                                      />
+                                    </div>
+
+                                    {/* PRODUCT INFO */}
+
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-sm text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-1">
+                                        {product.name}
+                                      </p>
+
+                                      <p className="text-xs text-brand-text-muted line-clamp-1">
+                                        {product.short_description}
+                                      </p>
+                                    </div>
+
+                                    {/* PRICE */}
+
+                                    <p className="font-semibold text-brand-green text-sm shrink-0">
+                                      Rs{' '}
+                                      {product.price.toLocaleString()}
+                                    </p>
+                                  </Link>
+                                ))}
+                              </div>
+
+                              {/* VIEW ALL */}
+
+                              <button
+                                type="button"
+                                onClick={handleSubmit}
+                                className="w-full text-center text-sm font-medium text-brand-gold hover:text-brand-green transition-colors py-3 border-t border-gray-100 bg-white"
+                              >
+                                View all results for "{query}" →
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}
@@ -534,25 +803,40 @@ export default function Header() {
       {/* ============================================ */}
       {/* MOBILE MENU DRAWER */}
       {/* ============================================ */}
+
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
+            {/* OVERLAY */}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.25,
+              }}
               onClick={() => setMobileMenuOpen(false)}
               className="lg:hidden fixed inset-0 bg-black/50 z-[60]"
             />
+
+            {/* DRAWER */}
 
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.3,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="lg:hidden fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-[70] flex flex-col shadow-2xl"
             >
-              {/* Header */}
+
+              {/* ============================================ */}
+              {/* MOBILE HEADER */}
+              {/* ============================================ */}
+
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <Link
                   href="/"
@@ -569,25 +853,36 @@ export default function Header() {
                     />
                   </div>
                 </Link>
+
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-9 h-9 hover:bg-brand-cream rounded-full transition-colors flex items-center justify-center"
                   aria-label="Close menu"
                 >
-                  <X size={20} className="text-brand-text-dark" />
+                  <X
+                    size={20}
+                    className="text-brand-text-dark"
+                  />
                 </button>
               </div>
 
-              {/* User Info */}
+              {/* ============================================ */}
+              {/* MOBILE USER INFO */}
+              {/* ============================================ */}
+
               {user && (
                 <div className="px-5 py-4 bg-brand-cream border-b border-gray-100">
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-full bg-brand-green text-white flex items-center justify-center text-sm font-semibold">
                       {userInitials}
                     </span>
+
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-brand-text-muted">Signed in as</p>
+                      <p className="text-xs text-brand-text-muted">
+                        Signed in as
+                      </p>
+
                       <p className="text-sm font-medium text-brand-text-dark truncate">
                         {user.email}
                       </p>
@@ -596,19 +891,34 @@ export default function Header() {
                 </div>
               )}
 
-              {/* Navigation Links */}
+              {/* ============================================ */}
+              {/* MOBILE NAVIGATION */}
+              {/* ============================================ */}
+
               <nav className="flex-1 overflow-y-auto px-5 py-4">
+
                 <ul className="space-y-1">
                   {NAV_LINKS.map((link, index) => (
                     <motion.li
                       key={link.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      initial={{
+                        opacity: 0,
+                        x: -20,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        x: 0,
+                      }}
+                      transition={{
+                        duration: 0.3,
+                        delay: index * 0.05,
+                      }}
                     >
                       <Link
                         href={link.href}
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={() =>
+                          setMobileMenuOpen(false)
+                        }
                         className="block py-3 px-3 text-base font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                       >
                         {link.label}
@@ -619,16 +929,24 @@ export default function Header() {
 
                 <div className="my-4 border-t border-gray-100" />
 
+                {/* WISHLIST + CART */}
+
                 <div className="space-y-1">
                   <Link
                     href="/wishlist"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() =>
+                      setMobileMenuOpen(false)
+                    }
                     className="flex items-center justify-between py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                      <Heart size={18} className="text-brand-green" />
+                      <Heart
+                        size={18}
+                        className="text-brand-green"
+                      />
                       Wishlist
                     </span>
+
                     {wishlistCount > 0 && (
                       <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {wishlistCount}
@@ -638,13 +956,19 @@ export default function Header() {
 
                   <Link
                     href="/cart"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() =>
+                      setMobileMenuOpen(false)
+                    }
                     className="flex items-center justify-between py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                      <ShoppingCart size={18} className="text-brand-green" />
+                      <ShoppingCart
+                        size={18}
+                        className="text-brand-green"
+                      />
                       Cart
                     </span>
+
                     {cartCount > 0 && (
                       <span className="bg-brand-gold text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {cartCount}
@@ -655,24 +979,41 @@ export default function Header() {
 
                 <div className="my-4 border-t border-gray-100" />
 
+                {/* ============================================ */}
+                {/* ACCOUNT */}
+                {/* ============================================ */}
+
                 {user ? (
                   <div className="space-y-1">
+
                     <Link
                       href="/account"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() =>
+                        setMobileMenuOpen(false)
+                      }
                       className="flex items-center gap-3 py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                     >
-                      <User size={18} className="text-brand-green" />
+                      <User
+                        size={18}
+                        className="text-brand-green"
+                      />
                       My Account
                     </Link>
+
                     <Link
                       href="/account/orders"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() =>
+                        setMobileMenuOpen(false)
+                      }
                       className="flex items-center gap-3 py-3 px-3 text-sm font-medium text-brand-text-dark hover:bg-brand-cream hover:text-brand-green rounded-md transition-colors"
                     >
-                      <ShoppingCart size={18} className="text-brand-green" />
+                      <ShoppingCart
+                        size={18}
+                        className="text-brand-green"
+                      />
                       My Orders
                     </Link>
+
                     <button
                       type="button"
                       onClick={handleLogout}
@@ -681,23 +1022,34 @@ export default function Header() {
                       <LogOut size={18} />
                       Logout
                     </button>
+
                   </div>
                 ) : (
+
+                  /* LOGIN / REGISTER */
+
                   <div className="space-y-2">
+
                     <Link
                       href="/login"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() =>
+                        setMobileMenuOpen(false)
+                      }
                       className="block w-full text-center bg-brand-green hover:bg-black text-white font-medium py-3 rounded-md transition-colors text-sm"
                     >
                       Login
                     </Link>
+
                     <Link
                       href="/register"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() =>
+                        setMobileMenuOpen(false)
+                      }
                       className="block w-full text-center bg-white border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-medium py-3 rounded-md transition-colors text-sm"
                     >
                       Register
                     </Link>
+
                   </div>
                 )}
               </nav>
