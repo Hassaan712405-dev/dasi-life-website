@@ -21,12 +21,10 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
     .select('*, product_images(url, alt, sort_order)')
     .eq('is_active', true);
 
-  // Filter by featured
   if (options?.featuredOnly) {
     query = query.eq('is_featured', true);
   }
 
-  // Filter by category
   if (options?.categorySlug) {
     const { data: category } = await supabase
       .from('categories')
@@ -41,7 +39,6 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
     }
   }
 
-  // Filter by price range
   if (options?.minPrice !== undefined) {
     query = query.gte('price', options.minPrice);
   }
@@ -49,7 +46,6 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
     query = query.lte('price', options.maxPrice);
   }
 
-  // Sort
   switch (options?.sortBy) {
     case 'price-asc':
       query = query.order('price', { ascending: true });
@@ -66,7 +62,6 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
       break;
   }
 
-  // Limit
   if (options?.limit) {
     query = query.limit(options.limit);
   }

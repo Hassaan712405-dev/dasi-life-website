@@ -5,9 +5,12 @@ import ProductCard from '@/components/products/ProductCard';
 import ShopSidebar from '@/components/products/ShopSidebar';
 import { getProducts } from '@/services/products/getProducts';
 import { getProductImageUrl } from '@/lib/utils/productImage';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import FadeIn from '@/components/motion/FadeIn';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
+
+// ✅ 10 minutes cache
+export const revalidate = 600;
 
 export default async function CategoryPage({
   params,
@@ -23,25 +26,29 @@ export default async function CategoryPage({
   const { slug } = await params;
   const { minPrice, maxPrice, sortBy } = await searchParams;
 
-  const supabase = await createClient();
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name, slug')
-    .order('sort_order');
+  const supabase = createPublicClient();
 
-  const currentCategory = categories?.find((c) => c.slug === slug);
+  // ✅ Parallel queries
+  const [categoriesResult, products] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('id, name, slug')
+      .order('sort_order'),
+    getProducts({
+      categorySlug: slug,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      sortBy: (sortBy as any) || 'popularity',
+      limit: 100,
+    }),
+  ]);
+
+  const categories = categoriesResult.data || [];
+  const currentCategory = categories.find((c) => c.slug === slug);
 
   if (!currentCategory) {
     notFound();
   }
-
-  const products = await getProducts({
-    categorySlug: slug,
-    minPrice: minPrice ? Number(minPrice) : undefined,
-    maxPrice: maxPrice ? Number(maxPrice) : undefined,
-    sortBy: (sortBy as any) || 'popularity',
-    limit: 100,
-  });
 
   return (
     <div className="bg-brand-cream min-h-screen">
@@ -76,7 +83,7 @@ export default async function CategoryPage({
 
       <div className="container-custom pb-10 sm:pb-12 md:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-          <ShopSidebar categories={categories || []} activeCategory={slug} />
+          <ShopSidebar categories={categories} activeCategory={slug} />
 
           <div>
             {products.length === 0 ? (
@@ -95,7 +102,7 @@ export default async function CategoryPage({
               </FadeIn>
             ) : (
               <Stagger
-                staggerDelay={0.1}
+                staggerDelay={0.08}
                 className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6"
               >
                 {products.map((product) => (

@@ -1,15 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ✅ Fix Turbopack warning
   turbopack: {
     root: __dirname,
   },
-  // ✅ Production mein console.log remove karein
+
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? { exclude: ['error', 'warn'] }
+        : false,
   },
-  // ✅ Images configuration (aapki existing)
+
   images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
         protocol: 'https',
@@ -26,6 +32,19 @@ const nextConfig = {
       },
     ],
   },
+
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'framer-motion',
+      'date-fns',
+      'lodash',
+    ],
+  },
+
+  compress: true,
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
 };
 
 module.exports = nextConfig;

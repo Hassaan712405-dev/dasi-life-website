@@ -4,11 +4,12 @@ import ProductCard from '@/components/products/ProductCard';
 import ShopSidebar from '@/components/products/ShopSidebar';
 import { getProducts } from '@/services/products/getProducts';
 import { getProductImageUrl } from '@/lib/utils/productImage';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import FadeIn from '@/components/motion/FadeIn';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 
-export const revalidate = 600;  // 10 minutes cache
+// ✅ 10 minutes cache
+export const revalidate = 600;
 
 export default async function ShopPage({
   searchParams,
@@ -22,19 +23,25 @@ export default async function ShopPage({
 }) {
   const { category, minPrice, maxPrice, sortBy } = await searchParams;
 
-  const supabase = await createClient();
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name, slug')
-    .order('sort_order');
+  // ✅ Public client (cookies ke bina — static safe)
+  const supabase = createPublicClient();
 
-  const products = await getProducts({
-    categorySlug: category,
-    minPrice: minPrice ? Number(minPrice) : undefined,
-    maxPrice: maxPrice ? Number(maxPrice) : undefined,
-    sortBy: (sortBy as any) || 'popularity',
-    limit: 100,
-  });
+  // ✅ Dono queries parallel chalao
+  const [categoriesResult, products] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('id, name, slug')
+      .order('sort_order'),
+    getProducts({
+      categorySlug: category,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      sortBy: (sortBy as any) || 'popularity',
+      limit: 100,
+    }),
+  ]);
+
+  const categories = categoriesResult.data || [];
 
   return (
     <div className="bg-brand-cream min-h-screen">
@@ -55,7 +62,7 @@ export default async function ShopPage({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-5 sm:mb-6 md:mb-8">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-green">
               {category
-                ? categories?.find((c) => c.slug === category)?.name || 'Shop'
+                ? categories.find((c) => c.slug === category)?.name || 'Shop'
                 : 'Our Products'}
             </h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-brand-text-muted">
@@ -68,7 +75,7 @@ export default async function ShopPage({
       <div className="container-custom pb-10 sm:pb-12 md:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
           <ShopSidebar
-            categories={categories || []}
+            categories={categories}
             activeCategory={category}
           />
 
@@ -89,7 +96,7 @@ export default async function ShopPage({
               </FadeIn>
             ) : (
               <Stagger
-                staggerDelay={0.1}
+                staggerDelay={0.08}
                 className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6"
               >
                 {products.map((product) => (
