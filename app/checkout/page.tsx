@@ -39,7 +39,6 @@ interface CheckoutFormData {
   notes: string;
 }
 
-// Pakistani Provinces List
 const PROVINCES = [
   'Punjab',
   'Sindh',
@@ -60,16 +59,12 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
-
-  // Track touched fields for validation
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Site settings (shipping fee, free threshold)
   const [shippingFee, setShippingFee] = useState(0);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(0);
   const [bankTransferEnabled, setBankTransferEnabled] = useState(false);
 
-  // Form data
   const [formData, setFormData] = useState<CheckoutFormData>({
     customer_name: '',
     customer_name_urdu: '',
@@ -87,7 +82,7 @@ export default function CheckoutPage() {
     notes: '',
   });
 
-  // 🔐 LOGIN CHECK — Agar user login nahi hai, to login page par bhejein
+  // 🔐 LOGIN CHECK
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login?redirect=/checkout');
@@ -107,24 +102,53 @@ export default function CheckoutPage() {
     load();
   }, []);
 
-  // Auto-fill from user profile
+  // ✅ AUTO-FILL FROM PROFILE + ADDRESS
   useEffect(() => {
-    if (user) {
+    async function loadProfileAndAddress() {
+      if (!user) return;
+
+      const { getProfile, getDefaultAddress } = await import(
+        '@/services/profile/profileService'
+      );
+
+      const [profile, address] = await Promise.all([
+        getProfile(user.id),
+        getDefaultAddress(user.id),
+      ]);
+
       setFormData((prev) => ({
         ...prev,
         customer_email: prev.customer_email || user.email || '',
+        customer_name:
+          prev.customer_name ||
+          profile?.full_name ||
+          address?.full_name ||
+          '',
+        customer_phone:
+          prev.customer_phone ||
+          profile?.phone ||
+          address?.phone ||
+          '',
+        shipping_address: prev.shipping_address || address?.street || '',
+        shipping_city: prev.shipping_city || address?.city || '',
+        shipping_state: prev.shipping_state || address?.state || '',
+        shipping_postal_code:
+          prev.shipping_postal_code || address?.postal_code || '',
+        shipping_country:
+          prev.shipping_country || address?.country || 'Pakistan',
       }));
     }
+
+    loadProfileAndAddress();
   }, [user]);
 
-  // Redirect if cart empty (after loading)
+  // Redirect if cart empty
   useEffect(() => {
     if (!loading && items.length === 0 && !success) {
       router.push('/cart');
     }
   }, [loading, items.length, success, router]);
 
-  // Calculate totals
   const subtotal = getSubtotal();
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingFee;
   const total = subtotal + shipping;
@@ -138,14 +162,12 @@ export default function CheckoutPage() {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
-  // Validation helper — returns true if field has error
   const hasError = (field: keyof CheckoutFormData, required: boolean = true) => {
     if (!required) return false;
     if (!touched[field]) return false;
     return !formData[field]?.trim();
   };
 
-  // Input classes with red border if error
   const inputClass = (field: keyof CheckoutFormData, required: boolean = true) => {
     const baseClass =
       'w-full bg-white border rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 disabled:opacity-60 transition-colors';
@@ -159,13 +181,11 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError('');
 
-    // 🔐 Double-check login
     if (!user) {
       router.push('/login?redirect=/checkout');
       return;
     }
 
-    // Mark all required fields as touched
     setTouched({
       customer_name: true,
       customer_phone: true,
@@ -174,7 +194,6 @@ export default function CheckoutPage() {
       shipping_state: true,
     });
 
-    // Validation
     if (!formData.customer_name.trim()) {
       setError('Please enter your full name.');
       return;
@@ -203,7 +222,6 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      // Create order via service
       const result = await createOrder({
         customerName: formData.customer_name.trim(),
         customerPhone: formData.customer_phone.trim(),
@@ -237,7 +255,6 @@ export default function CheckoutPage() {
       setSuccess(true);
       clearCart();
 
-      // Redirect to success page after 2 seconds
       setTimeout(() => {
         router.push(`/order-success?order=${result.orderNumber}`);
       }, 2000);
@@ -248,9 +265,7 @@ export default function CheckoutPage() {
     }
   };
 
-  // ============================================
-  // 🔐 AUTH LOADING STATE
-  // ============================================
+  // 🔐 AUTH LOADING
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-brand-cream flex items-center justify-center">
@@ -262,9 +277,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // ============================================
-  // LOADING STATE
-  // ============================================
+  // LOADING
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-cream flex items-center justify-center">
@@ -276,9 +289,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // ============================================
-  // SUCCESS STATE
-  // ============================================
+  // SUCCESS
   if (success) {
     return (
       <div className="min-h-screen bg-brand-cream flex items-center justify-center p-4">
@@ -299,9 +310,7 @@ export default function CheckoutPage() {
           <h1 className="font-heading font-bold text-2xl text-brand-green mb-3">
             Order Placed Successfully!
           </h1>
-          <p className="text-sm text-brand-text-muted mb-2">
-            Your order number is:
-          </p>
+          <p className="text-sm text-brand-text-muted mb-2">Your order number is:</p>
           <p className="font-heading font-bold text-xl text-brand-green mb-5">
             #{orderNumber}
           </p>
@@ -315,9 +324,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // ============================================
   // EMPTY CART
-  // ============================================
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-brand-cream flex items-center justify-center p-4">
@@ -335,13 +342,10 @@ export default function CheckoutPage() {
     );
   }
 
-  // ============================================
   // MAIN CHECKOUT FORM
-  // ============================================
   return (
     <div className="min-h-screen bg-brand-cream py-6 sm:py-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        {/* Back button */}
         <Link
           href="/cart"
           className="inline-flex items-center gap-2 text-xs sm:text-sm text-brand-text-muted hover:text-brand-green transition-colors mb-5 sm:mb-6"
@@ -350,7 +354,6 @@ export default function CheckoutPage() {
           Back to Cart
         </Link>
 
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -365,7 +368,6 @@ export default function CheckoutPage() {
           </p>
         </motion.div>
 
-        {/* Logged in indicator */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -377,7 +379,6 @@ export default function CheckoutPage() {
           </p>
         </motion.div>
 
-        {/* Error */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -391,7 +392,6 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
-            {/* LEFT: FORM */}
             <div className="lg:col-span-2 space-y-5 sm:space-y-6">
               {/* Section 1: Contact Info */}
               <motion.div
@@ -415,7 +415,6 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3 sm:space-y-4">
-                  {/* Full Name */}
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                       Full Name <span className="text-red-500">*</span>
@@ -437,7 +436,6 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  {/* Phone + Email */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
@@ -500,7 +498,6 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3 sm:space-y-4">
-                  {/* Full Address */}
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                       Full Address <span className="text-red-500">*</span>
@@ -522,7 +519,6 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  {/* City */}
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                       City <span className="text-red-500">*</span>
@@ -544,7 +540,6 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  {/* State + Postal Code */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
