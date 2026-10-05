@@ -2,9 +2,19 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  const pathname = request.nextUrl.pathname;
+
+  // ✅ Sirf protected routes par Supabase call karein
+  const needsAuth =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/account') ||
+    pathname.startsWith('/wishlist');
+
+  if (!needsAuth) {
+    return NextResponse.next({ request });
+  }
+
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,9 +28,7 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -29,32 +37,22 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refresh session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
-
-  // ============================================
-  // PROTECT /admin routes (EXCEPT /admin-login)
-  // ============================================
+  // Admin protection
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin-login')) {
-    // 1. Not logged in → redirect to admin login
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = '/admin-login';
       return NextResponse.redirect(url);
     }
 
-    // 2. Check if user is admin
     const { data: adminData } = await supabase
       .from('admin_users')
       .select('id')
       .eq('id', user.id)
       .single();
 
-    // Not admin → redirect to homepage
     if (!adminData) {
       const url = request.nextUrl.clone();
       url.pathname = '/';
@@ -62,9 +60,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // ============================================
-  // PROTECT /account, /wishlist routes
-  // ============================================
+  // Account/Wishlist protection
   if (
     (pathname.startsWith('/account') || pathname.startsWith('/wishlist')) &&
     !user
@@ -79,13 +75,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico
-     * - public assets
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

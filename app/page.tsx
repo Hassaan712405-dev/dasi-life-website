@@ -7,6 +7,9 @@ import ReviewsSection from '@/components/layout/ReviewsSection';
 import WhyChooseUs from '@/components/layout/WhyChooseUs';
 import Newsletter from '@/components/layout/Newsletter';
 
+// ✅ Homepage ko 1 ghante ke liye cache karein
+export const revalidate = 3600;
+
 export default function HomePage() {
   return (
     <main>

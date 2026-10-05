@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server';
 import FadeIn from '@/components/motion/FadeIn';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 
+export const revalidate = 600;  // 10 minutes cache
+
 export default async function ShopPage({
   searchParams,
 }: {

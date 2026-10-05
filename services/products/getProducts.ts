@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import type { Product } from '@/types/database';
 
 interface GetProductsOptions {
@@ -14,7 +14,7 @@ interface GetProductsOptions {
 // FETCH PRODUCTS
 // ============================================
 export async function getProducts(options?: GetProductsOptions): Promise<Product[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   let query = supabase
     .from('products')
@@ -85,7 +85,7 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
 // FETCH SINGLE PRODUCT
 // ============================================
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   const { data, error } = await supabase
     .from('products')
