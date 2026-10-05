@@ -25,7 +25,6 @@ export async function createOrder(
 ): Promise<CreateOrderResult> {
   const supabase = createClient();
 
-  // Get current user (may be null for guest checkout)
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -63,25 +62,13 @@ export async function createOrder(
     .single();
 
   if (orderError || !orderData) {
-    // Full detailed error — using console.log instead of console.error
-    // Next.js intercepts console.error and doesn't show all args
     console.log('=== ORDER INSERT ERROR ===');
     console.log('Code:', orderError?.code);
     console.log('Message:', orderError?.message);
     console.log('Details:', orderError?.details);
     console.log('Hint:', orderError?.hint);
-    console.log('Full object:', JSON.stringify(orderError, null, 2));
-    console.log('Order payload:', JSON.stringify({
-      order_number: orderNumber,
-      user_id: user?.id || null,
-      customer_name: input.customerName,
-      customer_name_urdu: input.customerNameUrdu || null,
-      total: input.total,
-      status: 'pending',
-    }, null, 2));
     console.log('=== END ERROR ===');
 
-    // Build user-friendly message
     let errorMsg = 'Failed to create order';
     if (orderError?.message) {
       errorMsg = orderError.message;
@@ -100,7 +87,7 @@ export async function createOrder(
     order_id: orderData.id,
     product_id: item.productId.startsWith('sultani-')
       ? null
-      : item.productId, // only valid UUIDs
+      : item.productId,
     product_name: item.productName,
     variant_name: null,
     price: item.price,
@@ -114,7 +101,6 @@ export async function createOrder(
 
   if (itemsError) {
     console.error('Order items insert error:', itemsError);
-    // Order was created but items failed — still return success so user knows order placed
   }
 
   // 3. Insert status history
@@ -169,10 +155,9 @@ export async function getUserOrders(): Promise<OrderWithItems[]> {
 // ============================================
 export async function getOrderByNumber(
   orderNumber: string
-): Promise<OrderWithItems | null> {
+): Promise<(OrderWithItems & { order_status_history?: any[] }) | null> {
   const supabase = createClient();
 
-  // Normalize input
   const normalized = orderNumber.trim().toUpperCase().replace(/^#/, '');
   const searchNumber = normalized.startsWith('DL-')
     ? normalized
@@ -183,7 +168,8 @@ export async function getOrderByNumber(
     .select(
       `
       *,
-      order_items (*)
+      order_items (*),
+      order_status_history (*)
     `
     )
     .eq('order_number', searchNumber)
@@ -194,7 +180,15 @@ export async function getOrderByNumber(
     return null;
   }
 
-  return data as OrderWithItems;
+  // Sort status history (purana pehle)
+  if (data && data.order_status_history) {
+    data.order_status_history.sort(
+      (a: any, b: any) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  }
+
+  return data as OrderWithItems & { order_status_history?: any[] };
 }
 
 // ============================================
