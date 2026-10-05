@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 
@@ -17,6 +18,7 @@ export default function ParallaxImage({
   intensity = 50,
 }: ParallaxImageProps) {
   const ref = useRef<HTMLDivElement>(null);
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
@@ -29,13 +31,20 @@ export default function ParallaxImage({
   );
 
   return (
-    <div ref={ref} className={`overflow-hidden ${className}`}>
-      <motion.img
-        src={src}
-        alt={alt}
+    <div ref={ref} className={`relative overflow-hidden ${className}`}>
+      <motion.div
         style={{ y }}
-        className="w-full h-full object-cover scale-110"
-      />
+        className="absolute inset-0 scale-110"
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          priority
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
+          className="object-cover"
+        />
+      </motion.div>
     </div>
   );
 }
