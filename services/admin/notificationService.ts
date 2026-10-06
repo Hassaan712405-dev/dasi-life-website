@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
 
+// ============================================
+// TYPES
+// ============================================
 export interface AdminNotification {
   id: string;
   type: 'order' | 'review' | 'stock' | 'customer';
@@ -10,6 +13,32 @@ export interface AdminNotification {
   link?: string;
 }
 
+// Internal types for Supabase query results
+interface RecentOrderRow {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  total: number | null;
+  created_at: string;
+  status: string;
+}
+
+interface PendingReviewRow {
+  id: string;
+  rating: number;
+  created_at: string;
+  product_id: string;
+}
+
+interface LowStockProductRow {
+  id: string;
+  name: string;
+  stock: number | null;
+}
+
+// ============================================
+// GET ADMIN NOTIFICATIONS
+// ============================================
 export async function getAdminNotifications(): Promise<AdminNotification[]> {
   const supabase = createClient();
   const notifications: AdminNotification[] = [];
@@ -24,12 +53,14 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
       .order('created_at', { ascending: false })
       .limit(3);
 
-    (recentOrders || []).forEach((order) => {
+    const typedOrders: RecentOrderRow[] = (recentOrders || []) as RecentOrderRow[];
+
+    typedOrders.forEach((order: RecentOrderRow) => {
       notifications.push({
         id: `order-${order.id}`,
         type: 'order',
         title: 'New Order Placed',
-        message: `${order.customer_name} placed order #${order.order_number} (Rs ${Number(order.total).toLocaleString()})`,
+        message: `${order.customer_name} placed order #${order.order_number} (Rs ${Number(order.total || 0).toLocaleString()})`,
         time: order.created_at,
         isRead: false,
         link: '/admin/orders',
@@ -44,7 +75,9 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
       .order('created_at', { ascending: false })
       .limit(3);
 
-    (pendingReviews || []).forEach((review) => {
+    const typedReviews: PendingReviewRow[] = (pendingReviews || []) as PendingReviewRow[];
+
+    typedReviews.forEach((review: PendingReviewRow) => {
       notifications.push({
         id: `review-${review.id}`,
         type: 'review',
@@ -65,12 +98,14 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
       .order('stock', { ascending: true })
       .limit(3);
 
-    (lowStockProducts || []).forEach((product) => {
+    const typedProducts: LowStockProductRow[] = (lowStockProducts || []) as LowStockProductRow[];
+
+    typedProducts.forEach((product: LowStockProductRow) => {
       notifications.push({
         id: `stock-${product.id}`,
         type: 'stock',
         title: 'Low Stock Alert',
-        message: `${product.name} is running low (${product.stock} left)`,
+        message: `${product.name} is running low (${product.stock || 0} left)`,
         time: new Date().toISOString(),
         isRead: false,
         link: '/admin/products',
@@ -79,7 +114,8 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
 
     // Sort by time (newest first)
     notifications.sort(
-      (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+      (a: AdminNotification, b: AdminNotification) =>
+        new Date(b.time).getTime() - new Date(a.time).getTime()
     );
 
     return notifications;
@@ -89,6 +125,9 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
   }
 }
 
+// ============================================
+// GET TIME AGO
+// ============================================
 export function getTimeAgo(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
@@ -98,5 +137,8 @@ export function getTimeAgo(dateString: string): string {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
 }

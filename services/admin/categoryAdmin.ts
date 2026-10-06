@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
 
+// ============================================
+// TYPES
+// ============================================
 export interface Category {
   id: string;
   name: string;
@@ -21,6 +24,11 @@ export interface CategoryFormData {
   description: string;
   image_url: string | null;
   sort_order: number;
+}
+
+// Internal type for product count query
+interface ProductCategoryRow {
+  category_id: string | null;
 }
 
 // ============================================
@@ -48,15 +56,19 @@ export async function getAllCategoriesWithCount(): Promise<CategoryWithCount[]> 
     .select('category_id')
     .eq('is_active', true);
 
+  const typedProducts: ProductCategoryRow[] = (products || []) as ProductCategoryRow[];
+
   const countMap: Record<string, number> = {};
-  (products || []).forEach((p) => {
+  typedProducts.forEach((p: ProductCategoryRow) => {
     if (p.category_id) {
       countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
     }
   });
 
   // 3. Combine
-  return categories.map((cat) => ({
+  const typedCategories: Category[] = categories as Category[];
+
+  return typedCategories.map((cat: Category) => ({
     ...cat,
     product_count: countMap[cat.id] || 0,
   }));
@@ -98,7 +110,10 @@ export async function createCategory(
     .single();
 
   if (existing) {
-    return { success: false, error: 'This slug already exists. Please use a different one.' };
+    return {
+      success: false,
+      error: 'This slug already exists. Please use a different one.',
+    };
   }
 
   const { data: created, error } = await supabase

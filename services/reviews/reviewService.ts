@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
 
+// ============================================
+// TYPES
+// ============================================
 export interface ReviewWithProfile {
   id: string;
   product_id: string;
@@ -11,6 +14,41 @@ export interface ReviewWithProfile {
   created_at: string;
   customer_name?: string;
   customer_initial?: string;
+}
+
+// Internal types for Supabase query results
+interface ReviewRow {
+  id: string;
+  product_id: string;
+  user_id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  is_approved: boolean;
+  created_at: string;
+}
+
+interface ProfileRow {
+  id: string;
+  full_name: string | null;
+}
+
+interface OrderItemWithOrder {
+  id: string;
+  order:
+    | {
+        user_id: string | null;
+        status: string;
+      }
+    | {
+        user_id: string | null;
+        status: string;
+      }[]
+    | null;
+}
+
+interface RatingRow {
+  rating: number;
 }
 
 // ============================================
@@ -36,8 +74,12 @@ export async function getProductReviews(
 
   if (!reviews || reviews.length === 0) return [];
 
+  const typedReviews: ReviewRow[] = reviews as ReviewRow[];
+
   // 2. Get unique user IDs
-  const userIds = Array.from(new Set(reviews.map((r) => r.user_id)));
+  const userIds = Array.from(
+    new Set(typedReviews.map((r: ReviewRow) => r.user_id))
+  );
 
   // 3. Fetch profiles separately
   const { data: profiles } = await supabase
@@ -45,14 +87,16 @@ export async function getProductReviews(
     .select('id, full_name')
     .in('id', userIds);
 
+  const typedProfiles: ProfileRow[] = (profiles || []) as ProfileRow[];
+
   // 4. Create profile map
   const profileMap: Record<string, string> = {};
-  (profiles || []).forEach((p) => {
+  typedProfiles.forEach((p: ProfileRow) => {
     profileMap[p.id] = p.full_name || 'Anonymous';
   });
 
   // 5. Combine
-  return reviews.map((review) => {
+  return typedReviews.map((review: ReviewRow) => {
     const fullName = profileMap[review.user_id] || 'Anonymous';
     return {
       id: review.id,
@@ -109,11 +153,15 @@ export async function canUserReviewProduct(
 
   if (!orderItems) return false;
 
-  const hasPurchased = orderItems.some((item: any) => {
+  const typedItems: OrderItemWithOrder[] = orderItems as OrderItemWithOrder[];
+
+  const hasPurchased = typedItems.some((item: OrderItemWithOrder) => {
+    // Handle both object and array return types from Supabase join
+    const order = Array.isArray(item.order) ? item.order[0] : item.order;
+
     return (
-      item.order?.user_id === user.id &&
-      (item.order?.status === 'delivered' ||
-        item.order?.status === 'shipped')
+      order?.user_id === user.id &&
+      (order?.status === 'delivered' || order?.status === 'shipped')
     );
   });
 
@@ -136,7 +184,10 @@ export async function submitReview(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { success: false, error: 'You must be logged in to submit a review.' };
+    return {
+      success: false,
+      error: 'You must be logged in to submit a review.',
+    };
   }
 
   const { error } = await supabase.from('reviews').insert({
@@ -160,14 +211,20 @@ export async function submitReview(
     .eq('product_id', productId)
     .eq('is_approved', true);
 
-  if (allReviews && allReviews.length > 0) {
+  const typedAllReviews: RatingRow[] = (allReviews || []) as RatingRow[];
+
+  if (typedAllReviews.length > 0) {
     const avg =
-      allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+      typedAllReviews.reduce(
+        (sum: number, r: RatingRow) => sum + r.rating,
+        0
+      ) / typedAllReviews.length;
+
     await supabase
       .from('products')
       .update({
         rating_avg: Math.round(avg * 100) / 100,
-        rating_count: allReviews.length,
+        rating_count: typedAllReviews.length,
       })
       .eq('id', productId);
   }

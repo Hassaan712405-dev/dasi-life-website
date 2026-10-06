@@ -2,6 +2,13 @@ import { createClient } from '@/lib/supabase/client';
 import type { OrderWithItems, OrderStatus } from '@/types/order';
 
 // ============================================
+// INTERNAL TYPES
+// ============================================
+interface OrderStatusRow {
+  status: string;
+}
+
+// ============================================
 // GET ALL ORDERS (Admin)
 // ============================================
 export async function getAllOrders(): Promise<OrderWithItems[]> {
@@ -69,9 +76,7 @@ export async function getOrderStats(): Promise<{
 }> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from('orders')
-    .select('status');
+  const { data, error } = await supabase.from('orders').select('status');
 
   if (error || !data) {
     return {
@@ -84,13 +89,23 @@ export async function getOrderStats(): Promise<{
     };
   }
 
+  const typedData: OrderStatusRow[] = data as OrderStatusRow[];
+
   return {
-    total: data.length,
-    pending: data.filter((o) => o.status === 'pending').length,
-    processing: data.filter((o) => o.status === 'processing').length,
-    shipped: data.filter((o) => o.status === 'shipped').length,
-    delivered: data.filter((o) => o.status === 'delivered').length,
-    cancelled: data.filter((o) => o.status === 'cancelled').length,
+    total: typedData.length,
+    pending: typedData.filter((o: OrderStatusRow) => o.status === 'pending')
+      .length,
+    processing: typedData.filter(
+      (o: OrderStatusRow) => o.status === 'processing'
+    ).length,
+    shipped: typedData.filter((o: OrderStatusRow) => o.status === 'shipped')
+      .length,
+    delivered: typedData.filter(
+      (o: OrderStatusRow) => o.status === 'delivered'
+    ).length,
+    cancelled: typedData.filter(
+      (o: OrderStatusRow) => o.status === 'cancelled'
+    ).length,
   };
 }
 

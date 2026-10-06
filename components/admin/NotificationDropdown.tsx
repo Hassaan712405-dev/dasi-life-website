@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Bell,
   Package,
@@ -23,10 +24,20 @@ export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [loading, setLoading] = useState(false);
-  const [readIds, setReadIds] = useState<string[]>([]);
+  const [readIds, setReadIds] = useState<string[]>(() => {
+    // ✅ localStorage se read IDs load karein
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('admin_read_notifications');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
-  // Load notifications on mount
+  // ✅ Load notifications on mount + route change
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -35,7 +46,7 @@ export default function NotificationDropdown() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [pathname]);
 
   // Close on outside click
   useEffect(() => {
@@ -45,7 +56,8 @@ export default function NotificationDropdown() {
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () =>
+      document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Close on escape
@@ -62,12 +74,26 @@ export default function NotificationDropdown() {
   ).length;
 
   const markAllRead = () => {
-    setReadIds(notifications.map((n) => n.id));
+    const allIds = notifications.map((n) => n.id);
+    setReadIds(allIds);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        'admin_read_notifications',
+        JSON.stringify(allIds)
+      );
+    }
   };
 
   const markOneRead = (id: string) => {
     if (!readIds.includes(id)) {
-      setReadIds((prev) => [...prev, id]);
+      const newReadIds = [...readIds, id];
+      setReadIds(newReadIds);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'admin_read_notifications',
+          JSON.stringify(newReadIds)
+        );
+      }
     }
   };
 
@@ -168,7 +194,10 @@ export default function NotificationDropdown() {
             <div className="max-h-96 overflow-y-auto">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 size={20} className="animate-spin text-brand-green" />
+                  <Loader2
+                    size={20}
+                    className="animate-spin text-brand-green"
+                  />
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="text-center py-8 px-4">
@@ -188,7 +217,10 @@ export default function NotificationDropdown() {
                         key={notif.id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2, delay: index * 0.05 }}
+                        transition={{
+                          duration: 0.2,
+                          delay: index * 0.05,
+                        }}
                       >
                         <Link
                           href={notif.link || '#'}

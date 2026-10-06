@@ -1,6 +1,13 @@
 import { createClient } from '@/lib/supabase/client';
 
 // ============================================
+// INTERNAL TYPES
+// ============================================
+interface WishlistItemRow {
+  product_id: string;
+}
+
+// ============================================
 // GET OR CREATE USER WISHLIST
 // ============================================
 async function getOrCreateWishlist(userId: string): Promise<string | null> {
@@ -62,7 +69,9 @@ export async function getWishlistProductIds(): Promise<string[]> {
     return [];
   }
 
-  return items.map((item) => item.product_id);
+  const typedItems: WishlistItemRow[] = (items || []) as WishlistItemRow[];
+
+  return typedItems.map((item: WishlistItemRow) => item.product_id);
 }
 
 // ============================================

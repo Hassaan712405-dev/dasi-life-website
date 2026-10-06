@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
-import type { Product } from '@/types/database';
-import type { OrderWithItems } from '@/types/order';
 
+// ============================================
+// TYPES
+// ============================================
 export interface DashboardStats {
   totalRevenue: number;
   totalOrders: number;
@@ -33,6 +34,19 @@ export interface MonthlyRevenue {
   revenue: number;
 }
 
+// Internal types for reduce/map operations
+interface OrderRow {
+  total: number | null;
+  status: string;
+  created_at: string;
+}
+
+interface ProductStockRow {
+  id: string;
+  name: string;
+  stock: number | null;
+}
+
 // ============================================
 // GET DASHBOARD STATS
 // ============================================
@@ -55,35 +69,65 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .select('*', { count: 'exact', head: true })
     .eq('is_active', true);
 
-  // Calculate revenue (exclude cancelled)
-  const validOrders = (orders || []).filter(
-    (o) => o.status !== 'cancelled'
-  );
-  const totalRevenue = validOrders.reduce((sum, o) => sum + Number(o.total), 0);
-  const totalOrders = orders?.length || 0;
+  // Cast orders to typed array
+  const typedOrders: OrderRow[] = (orders || []) as OrderRow[];
 
-  // Calculate last month change (for demo — real change later)
+  // Calculate revenue (exclude cancelled)
+  const validOrders = typedOrders.filter(
+    (o: OrderRow) => o.status !== 'cancelled'
+  );
+  const totalRevenue = validOrders.reduce(
+    (sum: number, o: OrderRow) => sum + Number(o.total || 0),
+    0
+  );
+  const totalOrders = typedOrders.length;
+
+  // Calculate last month change
   const thisMonth = new Date();
-  const lastMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth() - 1, 1);
+  const lastMonth = new Date(
+    thisMonth.getFullYear(),
+    thisMonth.getMonth() - 1,
+    1
+  );
 
   const thisMonthOrders = validOrders.filter(
-    (o) => new Date(o.created_at) >= new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1)
+    (o: OrderRow) =>
+      new Date(o.created_at) >=
+      new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1)
   );
-  const lastMonthOrders = validOrders.filter((o) => {
+
+  const lastMonthOrders = validOrders.filter((o: OrderRow) => {
     const d = new Date(o.created_at);
-    return d >= lastMonth && d < new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1);
+    return (
+      d >= lastMonth &&
+      d < new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1)
+    );
   });
 
-  const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + Number(o.total), 0);
-  const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => sum + Number(o.total), 0);
+  const thisMonthRevenue = thisMonthOrders.reduce(
+    (sum: number, o: OrderRow) => sum + Number(o.total || 0),
+    0
+  );
+  const lastMonthRevenue = lastMonthOrders.reduce(
+    (sum: number, o: OrderRow) => sum + Number(o.total || 0),
+    0
+  );
 
-  const revenueChange = lastMonthRevenue > 0
-    ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 1000) / 10
-    : 0;
+  const revenueChange =
+    lastMonthRevenue > 0
+      ? Math.round(
+          ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 1000
+        ) / 10
+      : 0;
 
-  const ordersChange = lastMonthOrders.length > 0
-    ? Math.round(((thisMonthOrders.length - lastMonthOrders.length) / lastMonthOrders.length) * 1000) / 10
-    : 0;
+  const ordersChange =
+    lastMonthOrders.length > 0
+      ? Math.round(
+          ((thisMonthOrders.length - lastMonthOrders.length) /
+            lastMonthOrders.length) *
+            1000
+        ) / 10
+      : 0;
 
   return {
     totalRevenue,
@@ -133,7 +177,9 @@ export async function getLowStockProducts(): Promise<LowStockProduct[]> {
     return [];
   }
 
-  return data.map((p) => {
+  const typedProducts: ProductStockRow[] = data as ProductStockRow[];
+
+  return typedProducts.map((p: ProductStockRow) => {
     const stock = p.stock || 0;
     const minStock = 20;
     let status: 'Critical' | 'Low Stock' | 'Healthy' = 'Healthy';
@@ -164,6 +210,8 @@ export async function getMonthlyRevenue(): Promise<MonthlyRevenue[]> {
 
   if (!orders) return [];
 
+  const typedOrders: OrderRow[] = orders as OrderRow[];
+
   // Last 6 months
   const months: MonthlyRevenue[] = [];
   const now = new Date();
@@ -174,12 +222,15 @@ export async function getMonthlyRevenue(): Promise<MonthlyRevenue[]> {
     const start = d;
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
 
-    const monthOrders = orders.filter((o) => {
+    const monthOrders = typedOrders.filter((o: OrderRow) => {
       const orderDate = new Date(o.created_at);
       return orderDate >= start && orderDate <= end;
     });
 
-    const revenue = monthOrders.reduce((sum, o) => sum + Number(o.total), 0);
+    const revenue = monthOrders.reduce(
+      (sum: number, o: OrderRow) => sum + Number(o.total || 0),
+      0
+    );
 
     months.push({ month: monthName, revenue });
   }

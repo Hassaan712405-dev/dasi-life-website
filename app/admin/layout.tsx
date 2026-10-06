@@ -19,6 +19,7 @@ import {
   Lock,
   Menu,
   X,
+  Mail,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
@@ -32,6 +33,7 @@ const menuItems = [
   { name: 'Reviews', href: '/admin/reviews', icon: Star },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'CMS Pages', href: '/admin/cms', icon: FileText },
+  { name: 'Contact Messages', href: '/admin/contact-messages', icon: Mail },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
@@ -52,6 +54,7 @@ export default function AdminLayout({
     orders: 0,
     customers: 0,
     reviews: 0,
+    messages: 0,
   });
 
   // Close mobile menu on route change
@@ -107,19 +110,37 @@ export default function AdminLayout({
       if (!isAdmin) return;
       const supabase = createClient();
       try {
-        const [productsRes, ordersRes, customersRes, reviewsRes] =
-          await Promise.all([
-            supabase.from('products').select('*', { count: 'exact', head: true }),
-            supabase.from('orders').select('*', { count: 'exact', head: true }),
-            supabase.from('profiles').select('*', { count: 'exact', head: true }),
-            supabase.from('reviews').select('*', { count: 'exact', head: true }),
-          ]);
+        const [
+          productsRes,
+          ordersRes,
+          customersRes,
+          reviewsRes,
+          messagesRes,
+        ] = await Promise.all([
+          supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('orders')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('reviews')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('contact_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'new'),
+        ]);
 
         setCounts({
           products: productsRes.count || 0,
           orders: ordersRes.count || 0,
           customers: customersRes.count || 0,
           reviews: reviewsRes.count || 0,
+          messages: messagesRes.count || 0,
         });
       } catch (err) {
         console.error('Load counts error:', err);
@@ -136,19 +157,37 @@ export default function AdminLayout({
     async function refreshCounts() {
       const supabase = createClient();
       try {
-        const [productsRes, ordersRes, customersRes, reviewsRes] =
-          await Promise.all([
-            supabase.from('products').select('*', { count: 'exact', head: true }),
-            supabase.from('orders').select('*', { count: 'exact', head: true }),
-            supabase.from('profiles').select('*', { count: 'exact', head: true }),
-            supabase.from('reviews').select('*', { count: 'exact', head: true }),
-          ]);
+        const [
+          productsRes,
+          ordersRes,
+          customersRes,
+          reviewsRes,
+          messagesRes,
+        ] = await Promise.all([
+          supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('orders')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('reviews')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('contact_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'new'),
+        ]);
 
         setCounts({
           products: productsRes.count || 0,
           orders: ordersRes.count || 0,
           customers: customersRes.count || 0,
           reviews: reviewsRes.count || 0,
+          messages: messagesRes.count || 0,
         });
       } catch (err) {
         console.error('Refresh counts error:', err);
@@ -159,11 +198,18 @@ export default function AdminLayout({
 
   const getBadgeCount = (name: string): number | null => {
     switch (name) {
-      case 'Products': return counts.products;
-      case 'Orders': return counts.orders;
-      case 'Customers': return counts.customers;
-      case 'Reviews': return counts.reviews;
-      default: return null;
+      case 'Products':
+        return counts.products;
+      case 'Orders':
+        return counts.orders;
+      case 'Customers':
+        return counts.customers;
+      case 'Reviews':
+        return counts.reviews;
+      case 'Contact Messages':
+        return counts.messages;
+      default:
+        return null;
     }
   };
 
@@ -171,8 +217,13 @@ export default function AdminLayout({
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 size={40} className="animate-spin text-brand-green mx-auto mb-3" />
-          <p className="text-xs sm:text-sm text-brand-text-muted">Verifying access...</p>
+          <Loader2
+            size={40}
+            className="animate-spin text-brand-green mx-auto mb-3"
+          />
+          <p className="text-xs sm:text-sm text-brand-text-muted">
+            Verifying access...
+          </p>
         </div>
       </div>
     );
@@ -242,14 +293,18 @@ export default function AdminLayout({
 
       {/* Sidebar */}
       <AnimatePresence>
-        {(mobileOpen || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
+        {(mobileOpen ||
+          (typeof window !== 'undefined' &&
+            window.innerWidth >= 1024)) && (
           <motion.aside
             initial={{ x: -280 }}
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className={`fixed lg:sticky top-0 left-0 h-screen w-64 bg-[#1F4A2C] text-white flex-shrink-0 flex flex-col z-[58] lg:z-30 lg:translate-x-0 ${
-              mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+              mobileOpen
+                ? 'translate-x-0'
+                : '-translate-x-full lg:translate-x-0'
             }`}
           >
             {/* Logo */}
@@ -288,7 +343,10 @@ export default function AdminLayout({
                       key={item.href}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.04 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: index * 0.04,
+                      }}
                     >
                       <Link
                         href={item.href}
@@ -301,7 +359,13 @@ export default function AdminLayout({
                         <Icon size={16} className="shrink-0" />
                         <span className="flex-1">{item.name}</span>
                         {badge !== null && badge > 0 && (
-                          <span className="bg-white/15 text-white text-[10px] font-semibold rounded-full px-2 py-0.5 min-w-[22px] text-center">
+                          <span
+                            className={`text-[10px] font-semibold rounded-full px-2 py-0.5 min-w-[22px] text-center ${
+                              item.name === 'Contact Messages'
+                                ? 'bg-brand-gold text-white'
+                                : 'bg-white/15 text-white'
+                            }`}
+                          >
                             {badge}
                           </span>
                         )}
@@ -318,8 +382,12 @@ export default function AdminLayout({
                 HD
               </div>
               <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-medium truncate">Hassaan Developer</p>
-                <p className="text-[10px] sm:text-xs text-white/60 truncate">Super Admin</p>
+                <p className="text-xs sm:text-sm font-medium truncate">
+                  Hassaan Developer
+                </p>
+                <p className="text-[10px] sm:text-xs text-white/60 truncate">
+                  Super Admin
+                </p>
               </div>
             </div>
           </motion.aside>
@@ -339,7 +407,7 @@ export default function AdminLayout({
             </span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
-           <NotificationDropdown />
+            <NotificationDropdown key={pathname} />
             <span className="text-xs sm:text-sm text-brand-text-muted hidden sm:inline">
               Mailsi, PK
             </span>

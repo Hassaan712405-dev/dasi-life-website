@@ -12,6 +12,7 @@ import {
   Eye,
   Archive,
   AlertCircle,
+  MessageCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
@@ -20,6 +21,25 @@ import {
   deleteContactMessage,
   type ContactMessage,
 } from '@/services/contact/contactService';
+
+// ============================================
+// HELPER: Pakistan number ko WhatsApp format mein
+// ============================================
+function formatPakistaniNumber(phone: string): string {
+  let cleaned = phone.replace(/\D/g, '');
+
+  // Agar 0 se shuru hota hai, hatao aur 92 lagao
+  if (cleaned.startsWith('0')) {
+    cleaned = '92' + cleaned.slice(1);
+  }
+
+  // Agar 92 se shuru nahin hota, 92 lagao
+  if (!cleaned.startsWith('92')) {
+    cleaned = '92' + cleaned;
+  }
+
+  return cleaned;
+}
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -39,7 +59,9 @@ export default function ContactMessagesPage() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'new' | 'read' | 'replied' | 'archived'>('all');
+  const [filter, setFilter] = useState<
+    'all' | 'new' | 'read' | 'replied' | 'archived'
+  >('all');
   const [selected, setSelected] = useState<ContactMessage | null>(null);
   const [updating, setUpdating] = useState(false);
 
@@ -102,6 +124,7 @@ export default function ContactMessagesPage() {
 
   return (
     <div className="p-4 sm:p-6">
+      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-heading font-bold text-brand-green mb-2">
           Contact Messages
@@ -111,22 +134,26 @@ export default function ContactMessagesPage() {
         </p>
       </div>
 
+      {/* Filter tabs */}
       <div className="flex flex-wrap gap-2 mb-5">
-        {(['all', 'new', 'read', 'replied', 'archived'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`px-4 py-2 rounded-md text-xs font-medium transition-colors ${
-              filter === tab
-                ? 'bg-brand-green text-white'
-                : 'bg-white border border-gray-200 text-brand-text-muted hover:border-brand-green'
-            }`}
-          >
-            {STATUS_LABELS[tab] || 'All'} ({counts[tab]})
-          </button>
-        ))}
+        {(['all', 'new', 'read', 'replied', 'archived'] as const).map(
+          (tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-4 py-2 rounded-md text-xs font-medium transition-colors ${
+                filter === tab
+                  ? 'bg-brand-green text-white'
+                  : 'bg-white border border-gray-200 text-brand-text-muted hover:border-brand-green'
+              }`}
+            >
+              {STATUS_LABELS[tab] || 'All'} ({counts[tab]})
+            </button>
+          )
+        )}
       </div>
 
+      {/* Search */}
       <div className="relative mb-5">
         <Search
           size={16}
@@ -142,14 +169,21 @@ export default function ContactMessagesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5">
+        {/* List */}
         <div className="space-y-3">
           {loading ? (
             <div className="bg-white rounded-xl border border-gray-200 p-12 flex items-center justify-center">
-              <Loader2 size={24} className="animate-spin text-brand-green" />
+              <Loader2
+                size={24}
+                className="animate-spin text-brand-green"
+              />
             </div>
           ) : filtered.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-              <Mail size={40} className="text-brand-text-muted mx-auto mb-3" />
+              <Mail
+                size={40}
+                className="text-brand-text-muted mx-auto mb-3"
+              />
               <p className="text-sm text-brand-text-muted">
                 No messages found.
               </p>
@@ -205,6 +239,7 @@ export default function ContactMessagesPage() {
           )}
         </div>
 
+        {/* Detail */}
         <div className="lg:sticky lg:top-6 h-fit">
           {selected ? (
             <motion.div
@@ -220,6 +255,7 @@ export default function ContactMessagesPage() {
                   onClick={() => handleDelete(selected.id)}
                   disabled={updating}
                   className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                  title="Delete"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -293,6 +329,7 @@ export default function ContactMessagesPage() {
                 </div>
               </div>
 
+              {/* Status Buttons */}
               <div className="border-t border-gray-100 pt-4">
                 <p className="text-[10px] text-brand-text-muted uppercase tracking-wide mb-2">
                   Change Status
@@ -323,7 +360,9 @@ export default function ContactMessagesPage() {
                     Replied
                   </button>
                   <button
-                    onClick={() => handleStatusChange(selected.id, 'archived')}
+                    onClick={() =>
+                      handleStatusChange(selected.id, 'archived')
+                    }
                     disabled={updating}
                     className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-100 transition-colors disabled:opacity-50"
                   >
@@ -333,20 +372,39 @@ export default function ContactMessagesPage() {
                 </div>
               </div>
 
+              {/* Quick Action — WhatsApp to customer */}
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <a
-                  href={`mailto:${selected.email}?subject=Re: ${
-                    selected.subject || 'Your inquiry'
-                  }`}
-                  className="block w-full text-center bg-brand-green hover:bg-black text-white font-medium py-2.5 rounded-md transition-colors text-sm"
-                >
-                  Reply via Email
-                </a>
+                {selected.phone ? (
+                  <a
+                    href={`https://wa.me/${formatPakistaniNumber(
+                      selected.phone
+                    )}?text=${encodeURIComponent(
+                      `Assalam-o-Alaikum ${
+                        selected.name
+                      },\n\nThank you for contacting Dasi Life. Regarding your inquiry about "${
+                        selected.subject || 'your message'
+                      }":\n\n`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-center bg-[#25D366] hover:bg-[#128C7E] text-white font-medium py-2.5 rounded-md transition-colors text-sm inline-flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle size={14} />
+                    Reply to {selected.phone} on WhatsApp
+                  </a>
+                ) : (
+                  <div className="text-center text-xs text-brand-text-muted py-2">
+                    No phone number provided
+                  </div>
+                )}
               </div>
             </motion.div>
           ) : (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-              <Clock size={32} className="text-brand-text-muted mx-auto mb-3" />
+              <Clock
+                size={32}
+                className="text-brand-text-muted mx-auto mb-3"
+              />
               <p className="text-sm text-brand-text-muted">
                 Select a message to view details.
               </p>

@@ -1,7 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Phone, Mail, MapPin, Clock, MessageCircle, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  MessageCircle,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import FadeIn from '@/components/motion/FadeIn';
 import { submitContactMessage } from '@/services/contact/contactService';
@@ -51,6 +60,7 @@ export default function ContactPage() {
       return;
     }
 
+    // Submit to Supabase
     const result = await submitContactMessage({
       name: formData.name,
       email: formData.email,
@@ -66,6 +76,7 @@ export default function ContactPage() {
       return;
     }
 
+    // Success
     setFormSubmitted(true);
     setFormData({
       name: '',
@@ -89,8 +100,8 @@ export default function ContactPage() {
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-brand-text-muted leading-relaxed max-w-2xl mx-auto">
             Have questions about our Unani recipes, ordering process, or
-            personalized herbal recommendations? Our team of Unani experts is here
-            to guide you.
+            personalized herbal recommendations? Our team of Unani experts is
+            here to guide you.
           </p>
         </FadeIn>
       </div>
@@ -111,7 +122,10 @@ export default function ContactPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-5 bg-green-50 border border-green-200 rounded-md p-3 flex items-start gap-2"
                 >
-                  <CheckCircle2 size={16} className="text-green-600 shrink-0 mt-0.5" />
+                  <CheckCircle2
+                    size={16}
+                    className="text-green-600 shrink-0 mt-0.5"
+                  />
                   <div>
                     <p className="text-xs sm:text-sm text-green-700 font-medium">
                       Message sent successfully!
@@ -123,14 +137,17 @@ export default function ContactPage() {
                 </motion.div>
               )}
 
-              {/* Error */}
+              {/* Error Message */}
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-5 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2"
                 >
-                  <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                  <AlertCircle
+                    size={16}
+                    className="text-red-500 shrink-0 mt-0.5"
+                  />
                   <p className="text-xs sm:text-sm text-red-600">{error}</p>
                 </motion.div>
               )}
@@ -236,7 +253,7 @@ export default function ContactPage() {
             </div>
           </FadeIn>
 
-          {/* Info - Same as before */}
+          {/* Info */}
           <FadeIn delay={0.2}>
             <div className="space-y-4 sm:space-y-6">
               <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 md:p-7">
@@ -246,7 +263,10 @@ export default function ContactPage() {
 
                 <div className="space-y-4 sm:space-y-5">
                   <div className="flex gap-3">
-                    <Phone size={18} className="text-brand-gold shrink-0 mt-1" />
+                    <Phone
+                      size={18}
+                      className="text-brand-gold shrink-0 mt-1"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5 sm:mb-1">
                         Call or WhatsApp
@@ -264,7 +284,10 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Mail size={18} className="text-brand-gold shrink-0 mt-1" />
+                    <Mail
+                      size={18}
+                      className="text-brand-gold shrink-0 mt-1"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5 sm:mb-1">
                         Support Email
@@ -279,7 +302,10 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <MapPin size={18} className="text-brand-gold shrink-0 mt-1" />
+                    <MapPin
+                      size={18}
+                      className="text-brand-gold shrink-0 mt-1"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5 sm:mb-1">
                         Physical Studio
@@ -291,7 +317,10 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Clock size={18} className="text-brand-gold shrink-0 mt-1" />
+                    <Clock
+                      size={18}
+                      className="text-brand-gold shrink-0 mt-1"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5 sm:mb-1">
                         Support Hours

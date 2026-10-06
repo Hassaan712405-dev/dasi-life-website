@@ -1,11 +1,14 @@
 import { createClient } from '@/lib/supabase/client';
 
+// ============================================
+// TYPES
+// ============================================
 export interface SiteSettings {
   store_name: string;
   store_email: string;
   store_phone: string;
   store_address: string;
-  shipping_enabled: boolean; // ← NAYA
+  shipping_enabled: boolean;
   free_shipping_threshold: number;
   shipping_fee: number;
   facebook_url: string;
@@ -16,13 +19,19 @@ export interface SiteSettings {
   response_time: string;
 }
 
+// Internal type for Supabase query result
+interface SettingRow {
+  key: string;
+  value: string;
+}
+
 // Default fallback values
 const DEFAULTS: SiteSettings = {
   store_name: 'Dasi Life',
   store_email: 'dasilife@gmail.com',
   store_phone: '03422544495',
   store_address: 'Rehman Town Mailsi',
-  shipping_enabled: true, // ← Default: shipping ON
+  shipping_enabled: true,
   free_shipping_threshold: 3000,
   shipping_fee: 200,
   facebook_url: 'https://facebook.com/dasilife',
@@ -48,8 +57,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return DEFAULTS;
   }
 
+  const typedRows: SettingRow[] = data as SettingRow[];
+
   const settings: Record<string, string> = {};
-  data.forEach((row) => {
+  typedRows.forEach((row: SettingRow) => {
     settings[row.key] = row.value;
   });
 
@@ -58,7 +69,6 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     store_email: settings.store_email || DEFAULTS.store_email,
     store_phone: settings.store_phone || DEFAULTS.store_phone,
     store_address: settings.store_address || DEFAULTS.store_address,
-    // ✅ Shipping enabled — default true
     shipping_enabled:
       settings.shipping_enabled !== undefined
         ? settings.shipping_enabled === 'true'
@@ -86,10 +96,12 @@ export async function updateSiteSettings(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
 
-  const rows = Object.entries(updates).map(([key, value]) => ({
-    key,
-    value: String(value),
-  }));
+  const rows = Object.entries(updates).map(
+    ([key, value]: [string, any]) => ({
+      key,
+      value: String(value),
+    })
+  );
 
   const { error } = await supabase
     .from('site_settings')
@@ -110,7 +122,7 @@ export function calculateShippingFee(
   subtotal: number,
   settings: SiteSettings
 ): number {
-  // ✅ Agar shipping disabled hai → hamesha FREE
+  // Agar shipping disabled hai → hamesha FREE
   if (!settings.shipping_enabled) return 0;
   // Cart empty → 0
   if (subtotal === 0) return 0;

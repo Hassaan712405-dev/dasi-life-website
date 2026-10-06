@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/client';
 import { createPublicClient } from '@/lib/supabase/public';
 
+// ============================================
+// TYPES
+// ============================================
 export interface ContactMessage {
   id: string;
   name: string;
@@ -14,7 +17,7 @@ export interface ContactMessage {
 }
 
 // ============================================
-// SUBMIT CONTACT MESSAGE (public)
+// SUBMIT CONTACT MESSAGE (public — koi bhi bhej sakta hai)
 // ============================================
 export async function submitContactMessage(data: {
   name: string;
@@ -42,7 +45,7 @@ export async function submitContactMessage(data: {
 }
 
 // ============================================
-// GET ALL MESSAGES (admin)
+// GET ALL MESSAGES (admin only)
 // ============================================
 export async function getAllContactMessages(): Promise<ContactMessage[]> {
   const supabase = createClient();
@@ -61,7 +64,7 @@ export async function getAllContactMessages(): Promise<ContactMessage[]> {
 }
 
 // ============================================
-// UPDATE MESSAGE STATUS
+// UPDATE MESSAGE STATUS (admin only)
 // ============================================
 export async function updateMessageStatus(
   id: string,
@@ -82,7 +85,7 @@ export async function updateMessageStatus(
 }
 
 // ============================================
-// DELETE MESSAGE
+// DELETE MESSAGE (admin only)
 // ============================================
 export async function deleteContactMessage(
   id: string
@@ -102,7 +105,7 @@ export async function deleteContactMessage(
 }
 
 // ============================================
-// GET UNREAD COUNT (for admin badge)
+// GET UNREAD COUNT (admin badge ke liye)
 // ============================================
 export async function getUnreadCount(): Promise<number> {
   const supabase = createClient();

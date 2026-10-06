@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
 
+// ============================================
+// TYPES
+// ============================================
 export interface AdminReview {
   id: string;
   product_id: string;
@@ -12,6 +15,36 @@ export interface AdminReview {
   product_name?: string;
   customer_name?: string;
   customer_initial?: string;
+}
+
+// Internal types for Supabase query results
+interface ReviewRow {
+  id: string;
+  product_id: string;
+  user_id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  is_approved: boolean;
+  created_at: string;
+}
+
+interface ProductNameRow {
+  id: string;
+  name: string;
+}
+
+interface ProfileNameRow {
+  id: string;
+  full_name: string | null;
+}
+
+interface RatingRow {
+  rating: number;
+}
+
+interface ProductIdRow {
+  product_id: string;
 }
 
 // ============================================
@@ -33,9 +66,15 @@ export async function getAllReviews(): Promise<AdminReview[]> {
 
   if (!reviews || reviews.length === 0) return [];
 
+  const typedReviews: ReviewRow[] = reviews as ReviewRow[];
+
   // 2. Get unique product IDs and user IDs
-  const productIds = Array.from(new Set(reviews.map((r) => r.product_id)));
-  const userIds = Array.from(new Set(reviews.map((r) => r.user_id)));
+  const productIds = Array.from(
+    new Set(typedReviews.map((r: ReviewRow) => r.product_id))
+  );
+  const userIds = Array.from(
+    new Set(typedReviews.map((r: ReviewRow) => r.user_id))
+  );
 
   // 3. Fetch products
   const { data: products } = await supabase
@@ -43,25 +82,29 @@ export async function getAllReviews(): Promise<AdminReview[]> {
     .select('id, name')
     .in('id', productIds);
 
+  const typedProducts: ProductNameRow[] = (products || []) as ProductNameRow[];
+
   // 4. Fetch profiles
   const { data: profiles } = await supabase
     .from('profiles')
     .select('id, full_name')
     .in('id', userIds);
 
+  const typedProfiles: ProfileNameRow[] = (profiles || []) as ProfileNameRow[];
+
   // 5. Create maps
   const productMap: Record<string, string> = {};
-  (products || []).forEach((p) => {
+  typedProducts.forEach((p: ProductNameRow) => {
     productMap[p.id] = p.name;
   });
 
   const profileMap: Record<string, string> = {};
-  (profiles || []).forEach((p) => {
+  typedProfiles.forEach((p: ProfileNameRow) => {
     profileMap[p.id] = p.full_name || 'Anonymous';
   });
 
   // 6. Combine
-  return reviews.map((review) => {
+  return typedReviews.map((review: ReviewRow) => {
     const fullName = profileMap[review.user_id] || 'Anonymous';
     return {
       id: review.id,
@@ -99,6 +142,8 @@ export async function setReviewApproval(
     return { success: false, error: 'Review not found' };
   }
 
+  const typedReview = review as ProductIdRow;
+
   // 2. Update approval
   const { error } = await supabase
     .from('reviews')
@@ -111,7 +156,7 @@ export async function setReviewApproval(
   }
 
   // 3. Recalculate product rating
-  await recalculateProductRating(review.product_id);
+  await recalculateProductRating(typedReview.product_id);
 
   return { success: true };
 }
@@ -135,7 +180,8 @@ export async function deleteReview(
     return { success: false, error: 'Review not found' };
   }
 
-  const productId = review.product_id;
+  const typedReview = review as ProductIdRow;
+  const productId = typedReview.product_id;
 
   // 2. Delete the review
   const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
@@ -164,7 +210,9 @@ async function recalculateProductRating(productId: string): Promise<void> {
     .eq('product_id', productId)
     .eq('is_approved', true);
 
-  if (!reviews || reviews.length === 0) {
+  const typedReviews: RatingRow[] = (reviews || []) as RatingRow[];
+
+  if (typedReviews.length === 0) {
     // No reviews — reset to 0
     await supabase
       .from('products')
@@ -178,13 +226,14 @@ async function recalculateProductRating(productId: string): Promise<void> {
 
   // Calculate average
   const avg =
-    reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    typedReviews.reduce((sum: number, r: RatingRow) => sum + r.rating, 0) /
+    typedReviews.length;
 
   await supabase
     .from('products')
     .update({
       rating_avg: Math.round(avg * 100) / 100,
-      rating_count: reviews.length,
+      rating_count: typedReviews.length,
     })
     .eq('id', productId);
 }

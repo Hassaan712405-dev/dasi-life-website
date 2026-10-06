@@ -70,6 +70,52 @@ const statusToStepIndex: Record<OrderStatus, number> = {
   cancelled: -1,
 };
 
+// ============================================
+// TYPES
+// ============================================
+interface OrderItem {
+  id: string;
+  product_name: string;
+  variant_name: string | null;
+  price: number;
+  quantity: number;
+  subtotal: number;
+}
+
+interface StatusHistoryItem {
+  id: string;
+  status: OrderStatus;
+  note: string | null;
+  created_at: string;
+}
+
+interface OrderData {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  shipping_address: string;
+  shipping_city: string;
+  shipping_state: string;
+  shipping_postal_code: string;
+  shipping_country: string;
+  subtotal: number;
+  shipping_fee: number;
+  discount: number;
+  total: number;
+  status: OrderStatus;
+  payment_method: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  order_items: OrderItem[];
+  order_status_history: StatusHistoryItem[];
+}
+
+// ============================================
+// HELPERS
+// ============================================
 function getStatusBadgeColor(status: OrderStatus): string {
   switch (status) {
     case 'pending':
@@ -93,12 +139,15 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// ============================================
+// MAIN COMPONENT
+// ============================================
 function TrackOrderContent() {
   const searchParams = useSearchParams();
   const initialOrder = searchParams.get('order') || '';
 
   const [orderNumber, setOrderNumber] = useState(initialOrder);
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [realtimeStatus, setRealtimeStatus] = useState<
@@ -130,15 +179,19 @@ function TrackOrderContent() {
       return;
     }
 
-    if (data.order_status_history) {
-      data.order_status_history.sort(
-        (a: any, b: any) =>
+    // Sort status history
+    const sortedData = { ...data };
+    if (sortedData.order_status_history) {
+      sortedData.order_status_history = [
+        ...sortedData.order_status_history,
+      ].sort(
+        (a: StatusHistoryItem, b: StatusHistoryItem) =>
           new Date(a.created_at).getTime() -
           new Date(b.created_at).getTime()
       );
     }
 
-    setOrder(data);
+    setOrder(sortedData as OrderData);
     setLoading(false);
   }, []);
 
@@ -159,9 +212,9 @@ function TrackOrderContent() {
           table: 'orders',
           filter: `order_number=eq.${order.order_number}`,
         },
-        (payload: any) => {
+        (payload: { new: Partial<OrderData> }) => {
           console.log('Order updated:', payload);
-          setOrder((prev: any) =>
+          setOrder((prev) =>
             prev ? { ...prev, ...payload.new } : prev
           );
         }
@@ -174,15 +227,15 @@ function TrackOrderContent() {
           table: 'order_status_history',
           filter: `order_id=eq.${order.id}`,
         },
-        (payload: any) => {
+        (payload: { new: StatusHistoryItem }) => {
           console.log('Status history added:', payload);
-          setOrder((prev: any) => {
+          setOrder((prev) => {
             if (!prev) return prev;
             const newHistory = [
               ...(prev.order_status_history || []),
               payload.new,
             ].sort(
-              (a: any, b: any) =>
+              (a: StatusHistoryItem, b: StatusHistoryItem) =>
                 new Date(a.created_at).getTime() -
                 new Date(b.created_at).getTime()
             );
@@ -190,7 +243,7 @@ function TrackOrderContent() {
           });
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
           setRealtimeStatus('live');
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
@@ -219,7 +272,7 @@ function TrackOrderContent() {
   };
 
   const currentStepIndex = order
-    ? statusToStepIndex[order.status as OrderStatus] ?? 0
+    ? statusToStepIndex[order.status] ?? 0
     : -1;
 
   return (
@@ -251,7 +304,7 @@ function TrackOrderContent() {
                 <input
                   type="text"
                   value={orderNumber}
-                  onChange={(e) =>
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setOrderNumber(e.target.value.toUpperCase())
                   }
                   placeholder="DL-802925621"
@@ -319,7 +372,7 @@ function TrackOrderContent() {
                     )}
                     <span
                       className={`${getStatusBadgeColor(
-                        order.status as OrderStatus
+                        order.status
                       )} text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full`}
                     >
                       {capitalize(order.status)}
@@ -511,7 +564,7 @@ function TrackOrderContent() {
                   </div>
 
                   <div className="space-y-3">
-                    {order.order_items.map((item: any) => (
+                    {order.order_items.map((item: OrderItem) => (
                       <div
                         key={item.id}
                         className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0"
