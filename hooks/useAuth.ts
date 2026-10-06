@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { useEffect, useState, useCallback } from 'react';
+import type {
+  User,
+  AuthChangeEvent,
+  Session,
+} from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
 export function useAuth() {
@@ -12,23 +16,35 @@ export function useAuth() {
     const supabase = createClient();
     let mounted = true;
 
-    // Get current user
-    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
-      if (mounted) {
-        setUser(data.user ?? null);
-        setLoading(false);
-      }
-    });
+    // Get initial session
+    async function getInitialSession() {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event: AuthChangeEvent, session: Session | null) => {
         if (mounted) {
           setUser(session?.user ?? null);
           setLoading(false);
         }
+      } catch {
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    }
+
+    getInitialSession();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     );
 
@@ -38,9 +54,18 @@ export function useAuth() {
     };
   }, []);
 
+  const refresh = useCallback(async () => {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    setUser(session?.user ?? null);
+  }, []);
+
   return {
     user,
     loading,
     isLoggedIn: !!user,
+    refresh,
   };
 }

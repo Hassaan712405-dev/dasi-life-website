@@ -2,13 +2,17 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { signUp } from '@/services/auth/authService';
+import { Suspense } from 'react';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/account';
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -19,10 +23,34 @@ export default function RegisterPage() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorType, setErrorType] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setErrorType('');
+
+    // Validation
+    if (!fullName.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!phone.trim()) {
+      setError('Please enter your phone number.');
+      return;
+    }
+
+    if (phone.replace(/\D/g, '').length < 10) {
+      setError('Please enter a valid phone number.');
+      return;
+    }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
@@ -41,17 +69,69 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const result = await signUp(email.trim(), password, fullName.trim(), phone.trim());
+    try {
+      const result = await signUp(
+        email.trim(),
+        password,
+        fullName.trim(),
+        phone.trim()
+      );
 
-    if (!result.success) {
-      setError(result.error || 'Registration failed. Please try again.');
+      if (!result.success) {
+        setError(result.error || 'Registration failed. Please try again.');
+        setErrorType(result.errorType || 'unknown');
+        setLoading(false);
+        return;
+      }
+
+      // If email confirmation required
+      if (result.needsConfirmation) {
+        setSuccess(true);
+        setLoading(false);
+        return;
+      }
+
+      // Success — auto-login
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      window.location.href = redirectTo;
+    } catch (err) {
+      console.error('Register error:', err);
+      setError('Something went wrong. Please try again.');
       setLoading(false);
-      return;
     }
-
-    router.push('/account');
-    router.refresh();
   };
+
+  // Success screen (email confirmation)
+  if (success) {
+    return (
+      <div className="bg-brand-cream min-h-screen">
+        <div className="container-custom py-8 sm:py-12 md:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-green-100 mx-auto flex items-center justify-center mb-5">
+              <CheckCircle2 size={32} className="text-green-600" />
+            </div>
+            <h1 className="text-2xl font-heading font-bold text-brand-green mb-3">
+              Account Created!
+            </h1>
+            <p className="text-sm text-brand-text-muted mb-6">
+              Please check your email <strong>{email}</strong> to verify your
+              account, then login.
+            </p>
+            <Link
+              href="/login"
+              className="inline-block bg-brand-green hover:bg-black text-white font-medium py-3 px-8 rounded-md transition-colors text-sm"
+            >
+              Go to Login
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-brand-cream min-h-screen">
@@ -74,14 +154,56 @@ export default function RegisterPage() {
             </p>
           </div>
 
+          {/* ERROR — Friendly with Login Link */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 sm:mb-5 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2"
+              className={`mb-4 sm:mb-5 border rounded-md p-3 sm:p-4 ${
+                errorType === 'already_registered'
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-red-50 border-red-200'
+              }`}
             >
-              <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
-              <p className="text-xs sm:text-sm text-red-600">{error}</p>
+              <div className="flex items-start gap-2">
+                <AlertCircle
+                  size={16}
+                  className={`shrink-0 mt-0.5 ${
+                    errorType === 'already_registered'
+                      ? 'text-amber-600'
+                      : 'text-red-500'
+                  }`}
+                />
+                <div className="flex-1">
+                  <p
+                    className={`text-xs sm:text-sm font-medium ${
+                      errorType === 'already_registered'
+                        ? 'text-amber-700'
+                        : 'text-red-600'
+                    }`}
+                  >
+                    {error}
+                  </p>
+
+                  {/* Show Login + Forgot Password links */}
+                  {errorType === 'already_registered' && (
+                    <div className="mt-3 pt-3 border-t border-amber-200 space-y-2">
+                      <Link
+                        href="/login"
+                        className="block w-full text-center bg-brand-green hover:bg-black text-white font-medium py-2.5 rounded-md transition-colors text-xs sm:text-sm"
+                      >
+                        Login Karein →
+                      </Link>
+                      <Link
+                        href="/forgot-password"
+                        className="block text-center text-xs sm:text-sm text-amber-700 hover:text-amber-800 underline"
+                      >
+                        Password bhool gaye? Reset karein
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -96,6 +218,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="E.g., Hamza Ahmed"
                 required
+                autoComplete="name"
                 disabled={loading}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
@@ -111,6 +234,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
+                autoComplete="email"
                 disabled={loading}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
@@ -126,6 +250,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+92 300 1234567"
                 required
+                autoComplete="tel"
                 disabled={loading}
                 className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
@@ -143,6 +268,7 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                   minLength={6}
+                  autoComplete="new-password"
                   disabled={loading}
                   className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-14 sm:pr-16 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
                 />
@@ -170,17 +296,40 @@ export default function RegisterPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  autoComplete="new-password"
                   disabled={loading}
                   className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-14 sm:pr-16 text-xs sm:text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-medium text-brand-gold hover:text-brand-green transition-colors"
                 >
                   {showConfirmPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
+              {/* Real-time password match indicator */}
+              {confirmPassword && (
+                <p
+                  className={`text-[10px] sm:text-xs mt-1 flex items-center gap-1 ${
+                    password === confirmPassword
+                      ? 'text-green-600'
+                      : 'text-red-500'
+                  }`}
+                >
+                  {password === confirmPassword ? (
+                    <>
+                      <CheckCircle2 size={11} /> Passwords match
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle size={11} /> Passwords do not match
+                    </>
+                  )}
+                </p>
+              )}
             </div>
 
             <label className="flex items-start gap-2.5 sm:gap-3 cursor-pointer">
@@ -239,5 +388,19 @@ export default function RegisterPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-brand-cream flex items-center justify-center">
+          <Loader2 size={40} className="animate-spin text-brand-green" />
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }
