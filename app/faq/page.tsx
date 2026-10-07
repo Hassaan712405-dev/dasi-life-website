@@ -10,27 +10,32 @@ import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 const faqs = [
   {
     question: 'How do I place an order and pay via Cash on Delivery (COD)?',
-    answer: "Placing an order is extremely easy. Simply browse our apothecary catalog, add your preferred Sultani Herbal Majoon or capsules to the cart, and proceed to checkout. On the checkout screen, select 'Cash on Delivery' as your payment option. You will pay the courier in cash when your package is delivered to your doorstep anywhere in Pakistan.",
+    answer:
+      "Placing an order is extremely easy. Simply browse our apothecary catalog, add your preferred Sultani Herbal Majoon or capsules to the cart, and proceed to checkout. On the checkout screen, select 'Cash on Delivery' as your payment option. You will pay the courier in cash when your package is delivered to your doorstep anywhere in Pakistan.",
     category: 'Shipping & COD',
   },
   {
     question: 'Are Dasi Life products 100% natural and safe?',
-    answer: 'Yes, absolute botanical integrity is our core standard. We source raw ingredients exclusively from clean mountain valleys and certified organic farms. Our signature Unani preparations contain only cold-pressed herbs, wild roots, raw honey, and organic minerals. We use zero artificial colors, heavy metals, or harmful preservatives.',
+    answer:
+      'Yes, absolute botanical integrity is our core standard. We source raw ingredients exclusively from clean mountain valleys and certified organic farms. Our signature Unani preparations contain only cold-pressed herbs, wild roots, raw honey, and organic minerals. We use zero artificial colors, heavy metals, or harmful preservatives.',
     category: 'Authenticity',
   },
   {
     question: 'How long does nationwide shipping take within Pakistan?',
-    answer: 'We deliver nationwide with leading courier services. Shipping generally takes 2 to 4 business days for major cities (Lahore, Karachi, Islamabad) and 4 to 6 business days for other regional districts. Delivery is completely free on all orders over Rs. 3,000.',
+    answer:
+      'We deliver nationwide with leading courier services. Shipping generally takes 2 to 4 business days for major cities (Lahore, Karachi, Islamabad) and 4 to 6 business days for other regional districts. Delivery is completely FREE on all orders nationwide.',
     category: 'Shipping & COD',
   },
   {
     question: 'What is your return and exchange policy?',
-    answer: 'We want you to be completely satisfied with your wellness journey. If you receive a damaged jar or would like to request an exchange, you can contact us at support@dasilife.store within 14 days of purchase. Unopened bottles in original packaging qualify for immediate refunds or replacements.',
+    answer:
+      'We want you to be completely satisfied with your wellness journey. If you receive a damaged jar or would like to request an exchange, you can contact us at dasilife@gmail.com or WhatsApp +92 342 2544495 within 14 days of purchase. Unopened bottles in original packaging qualify for immediate refunds or replacements.',
     category: 'Returns',
   },
   {
     question: 'Can I take herbal capsules and Sultani Majoon together?',
-    answer: 'Our products are prepared to harmonize together safely. However, we always recommend consulting our in-house Hakim or your personal medical advisor to establish a tailored daily regimen that matches your physical constitution (mizaj).',
+    answer:
+      'Our products are prepared to harmonize together safely. However, we always recommend consulting our in-house Hakim or your personal medical advisor to establish a tailored daily regimen that matches your physical constitution (mizaj).',
     category: 'Our Products',
   },
 ];

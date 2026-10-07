@@ -8,7 +8,8 @@ export async function proxy(request: NextRequest) {
   const needsAuth =
     pathname.startsWith('/admin') ||
     pathname.startsWith('/account') ||
-    pathname.startsWith('/wishlist');
+    pathname.startsWith('/wishlist') ||
+    pathname.startsWith('/checkout');
 
   if (!needsAuth) {
     return NextResponse.next({ request });
@@ -37,21 +38,31 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // Admin protection
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin-login')) {
+  // ============================================
+  // ✅ ADMIN ROUTES PROTECTION
+  // ============================================
+  if (
+    pathname.startsWith('/admin') &&
+    !pathname.startsWith('/admin-login')
+  ) {
+    // Not logged in → admin-login
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = '/admin-login';
+      url.searchParams.set('redirect', pathname);
       return NextResponse.redirect(url);
     }
 
+    // Logged in but NOT admin → homepage
     const { data: adminData } = await supabase
       .from('admin_users')
       .select('id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!adminData) {
       const url = request.nextUrl.clone();
@@ -60,13 +71,18 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Account/Wishlist protection
+  // ============================================
+  // ✅ ACCOUNT / WISHLIST / CHECKOUT PROTECTION
+  // ============================================
   if (
-    (pathname.startsWith('/account') || pathname.startsWith('/wishlist')) &&
+    (pathname.startsWith('/account') ||
+      pathname.startsWith('/wishlist') ||
+      pathname.startsWith('/checkout')) &&
     !user
   ) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
+    url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
 

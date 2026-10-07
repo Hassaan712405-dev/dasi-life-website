@@ -2,16 +2,7 @@ import Link from 'next/link';
 import { Search as SearchIcon, ChevronRight } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import { searchProducts } from '@/services/products/searchProducts';
-
-function getImageUrl(slug: string): string {
-  const map: Record<string, string> = {
-    'sultani-herbal-majoon': '/images/product-majoon.png',
-    'sultani-herbal-hair-oil': '/images/product-hair-oil.png',
-    'sultani-herbal-capsule-joint-bone': '/images/product-joint-bone.png',
-    'sultani-herbal-capsule-weight-loss': '/images/product-weight-loss.png',
-  };
-  return map[slug] || '/images/product-majoon.png';
-}
+import { getProductImageUrl } from '@/lib/utils/productImage';
 
 export default async function SearchPage({
   searchParams,
@@ -43,7 +34,6 @@ export default async function SearchPage({
             Your Search Results
           </h1>
 
-          {/* Search Form */}
           <form
             action="/search"
             method="GET"
@@ -94,7 +84,7 @@ export default async function SearchPage({
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                 {results.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -103,7 +93,8 @@ export default async function SearchPage({
                     shortDescription={product.short_description || ''}
                     price={product.price}
                     compareAtPrice={product.compare_at_price || product.price}
-                    imageUrl={getImageUrl(product.slug)}
+                    imageUrl={getProductImageUrl(product)}
+                    productId={product.id}
                   />
                 ))}
               </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import FadeIn from '@/components/motion/FadeIn';
 
 export default function RootedSection() {
@@ -10,11 +11,13 @@ export default function RootedSection() {
           {/* Left Side — Image */}
           <FadeIn delay={0.1} x={-30} y={0}>
             <div className="flex justify-center lg:justify-start">
-              <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-                <img
+              <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg aspect-square">
+                <Image
                   src="/images/product-majoon.png"
                   alt="Dasi Life — Rooted in tradition, proven by science"
-                  className="w-full h-auto rounded-2xl shadow-lg"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-contain rounded-2xl"
                 />
               </div>
             </div>

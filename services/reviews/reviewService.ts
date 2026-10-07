@@ -26,6 +26,7 @@ interface ReviewRow {
   body: string | null;
   is_approved: boolean;
   created_at: string;
+  customer_name: string | null;
 }
 
 interface ProfileRow {
@@ -47,19 +48,17 @@ interface OrderItemWithOrder {
     | null;
 }
 
-interface RatingRow {
-  rating: number;
-}
-
 // ============================================
 // GET REVIEWS FOR PRODUCT
+// ✅ Sirf APPROVED reviews public ko dikhengi
+// ✅ customer_name column se naam use karo
 // ============================================
 export async function getProductReviews(
   productId: string
 ): Promise<ReviewWithProfile[]> {
   const supabase = createClient();
 
-  // 1. Get reviews
+  // 1. Get approved reviews only
   const { data: reviews, error } = await supabase
     .from('reviews')
     .select('*')
@@ -76,28 +75,9 @@ export async function getProductReviews(
 
   const typedReviews: ReviewRow[] = reviews as ReviewRow[];
 
-  // 2. Get unique user IDs
-  const userIds = Array.from(
-    new Set(typedReviews.map((r: ReviewRow) => r.user_id))
-  );
-
-  // 3. Fetch profiles separately
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .in('id', userIds);
-
-  const typedProfiles: ProfileRow[] = (profiles || []) as ProfileRow[];
-
-  // 4. Create profile map
-  const profileMap: Record<string, string> = {};
-  typedProfiles.forEach((p: ProfileRow) => {
-    profileMap[p.id] = p.full_name || 'Anonymous';
-  });
-
-  // 5. Combine
+  // 2. ✅ Directly use customer_name from reviews table
   return typedReviews.map((review: ReviewRow) => {
-    const fullName = profileMap[review.user_id] || 'Anonymous';
+    const fullName = review.customer_name || 'Anonymous';
     return {
       id: review.id,
       product_id: review.product_id,
@@ -137,7 +117,7 @@ export async function canUserReviewProduct(
 
   if (existingReview) return false;
 
-  // Check if user purchased this product with delivered status
+  // Check if user purchased this product with delivered/shipped status
   const { data: orderItems } = await supabase
     .from('order_items')
     .select(
@@ -156,7 +136,6 @@ export async function canUserReviewProduct(
   const typedItems: OrderItemWithOrder[] = orderItems as OrderItemWithOrder[];
 
   const hasPurchased = typedItems.some((item: OrderItemWithOrder) => {
-    // Handle both object and array return types from Supabase join
     const order = Array.isArray(item.order) ? item.order[0] : item.order;
 
     return (
@@ -170,6 +149,8 @@ export async function canUserReviewProduct(
 
 // ============================================
 // SUBMIT REVIEW
+// ✅ is_approved: false — Admin approval zaroori
+// ✅ customer_name save karo
 // ============================================
 export async function submitReview(
   productId: string,
@@ -190,43 +171,45 @@ export async function submitReview(
     };
   }
 
+  // ✅ Check if user already reviewed this product
+  const { data: existingReview } = await supabase
+    .from('reviews')
+    .select('id')
+    .eq('product_id', productId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (existingReview) {
+    return {
+      success: false,
+      error: 'You have already reviewed this product.',
+    };
+  }
+
+  // ✅ Get customer name from profiles
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
+  const customerName =
+    profile?.full_name || user.email?.split('@')[0] || 'Customer';
+
+  // ✅ Insert review — NOT approved by default
   const { error } = await supabase.from('reviews').insert({
     product_id: productId,
     user_id: user.id,
     rating,
     title: title.trim() || null,
     body: body.trim(),
-    is_approved: true,
+    is_approved: false, // ✅ Admin approval zaroori
+    customer_name: customerName, // ✅ Customer ka naam save karo
   });
 
   if (error) {
     console.error('Submit review error:', JSON.stringify(error, null, 2));
     return { success: false, error: error.message };
-  }
-
-  // Update product rating_avg and rating_count
-  const { data: allReviews } = await supabase
-    .from('reviews')
-    .select('rating')
-    .eq('product_id', productId)
-    .eq('is_approved', true);
-
-  const typedAllReviews: RatingRow[] = (allReviews || []) as RatingRow[];
-
-  if (typedAllReviews.length > 0) {
-    const avg =
-      typedAllReviews.reduce(
-        (sum: number, r: RatingRow) => sum + r.rating,
-        0
-      ) / typedAllReviews.length;
-
-    await supabase
-      .from('products')
-      .update({
-        rating_avg: Math.round(avg * 100) / 100,
-        rating_count: typedAllReviews.length,
-      })
-      .eq('id', productId);
   }
 
   return { success: true };

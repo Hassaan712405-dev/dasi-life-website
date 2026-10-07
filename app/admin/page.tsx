@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Calendar,
   Loader2,
+  Plus,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
@@ -389,10 +390,11 @@ export default function AdminDashboard() {
             Quick Actions
           </h2>
 
+          {/* ✅ Sirf 1 Quick Action — Promo Coupon hata diya */}
           <div className="border border-gray-200 rounded-lg p-3 sm:p-4">
             <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
-                <span className="text-brand-green font-bold text-base leading-none">+</span>
+                <Plus size={16} className="text-brand-green" />
               </div>
               <div>
                 <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5">
@@ -411,25 +413,26 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
+          {/* ✅ Naya Quick Action — View Orders */}
           <div className="border border-gray-200 rounded-lg p-3 sm:p-4">
             <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
-                <span className="text-brand-green text-base leading-none">%</span>
+                <ShoppingCart size={16} className="text-brand-green" />
               </div>
               <div>
                 <p className="text-xs sm:text-sm font-semibold text-brand-text-dark mb-0.5">
-                  Create Promo Coupon
+                  Manage Orders
                 </p>
                 <p className="text-[10px] sm:text-xs text-brand-text-muted">
-                  Setup a discount campaign
+                  View and update customer orders
                 </p>
               </div>
             </div>
             <Link
-              href="/admin/coupons"
+              href="/admin/orders"
               className="block w-full text-center bg-brand-green hover:bg-black text-white text-xs sm:text-sm font-medium py-2 sm:py-2.5 rounded-md transition-colors"
             >
-              Generate Coupon Code
+              Go to Orders
             </Link>
           </div>
         </motion.div>

@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { signUp } from '@/services/auth/authService';
-import { Suspense } from 'react';
 
 function RegisterForm() {
   const router = useRouter();
@@ -142,6 +141,7 @@ function RegisterForm() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-md mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 md:p-10"
         >
+          {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
             <p className="text-brand-gold font-semibold text-[10px] sm:text-xs tracking-widest uppercase mb-2 sm:mb-3">
               Join the Heritage
@@ -192,13 +192,13 @@ function RegisterForm() {
                         href="/login"
                         className="block w-full text-center bg-brand-green hover:bg-black text-white font-medium py-2.5 rounded-md transition-colors text-xs sm:text-sm"
                       >
-                        Login Karein →
+                        Login Instead →
                       </Link>
                       <Link
                         href="/forgot-password"
                         className="block text-center text-xs sm:text-sm text-amber-700 hover:text-amber-800 underline"
                       >
-                        Password bhool gaye? Reset karein
+                        Forgot password? Reset it
                       </Link>
                     </div>
                   )}
@@ -208,6 +208,7 @@ function RegisterForm() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-5">
+            {/* Full Name */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Full Name <span className="text-red-500">*</span>
@@ -224,6 +225,7 @@ function RegisterForm() {
               />
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Email Address <span className="text-red-500">*</span>
@@ -240,6 +242,7 @@ function RegisterForm() {
               />
             </div>
 
+            {/* Phone */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Phone Number <span className="text-red-500">*</span>
@@ -256,6 +259,7 @@ function RegisterForm() {
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Password <span className="text-red-500">*</span>
@@ -275,9 +279,10 @@ function RegisterForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-medium text-brand-gold hover:text-brand-green transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
@@ -285,6 +290,7 @@ function RegisterForm() {
               </p>
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
                 Confirm Password <span className="text-red-500">*</span>
@@ -302,12 +308,15 @@ function RegisterForm() {
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-medium text-brand-gold hover:text-brand-green transition-colors"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showConfirmPassword ? 'Hide' : 'Show'}
+                  {showConfirmPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
               {/* Real-time password match indicator */}
@@ -332,6 +341,7 @@ function RegisterForm() {
               )}
             </div>
 
+            {/* Terms */}
             <label className="flex items-start gap-2.5 sm:gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -359,6 +369,7 @@ function RegisterForm() {
               </span>
             </label>
 
+            {/* Submit */}
             <motion.button
               type="submit"
               disabled={loading}
@@ -379,7 +390,9 @@ function RegisterForm() {
           <p className="text-center text-xs sm:text-sm text-brand-text-muted mt-6 sm:mt-8">
             Already have an account?{' '}
             <Link
-              href="/login"
+              href={`/login${
+                redirectTo === '/checkout' ? '?redirect=/checkout' : ''
+              }`}
               className="text-brand-gold hover:text-brand-green transition-colors font-semibold"
             >
               Sign In

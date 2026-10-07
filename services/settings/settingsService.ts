@@ -25,15 +25,15 @@ interface SettingRow {
   value: string;
 }
 
-// Default fallback values
+// ✅ Default fallback values — FREE delivery sab ke liye
 const DEFAULTS: SiteSettings = {
   store_name: 'Dasi Life',
   store_email: 'dasilife@gmail.com',
   store_phone: '03422544495',
   store_address: 'Rehman Town Mailsi',
-  shipping_enabled: true,
-  free_shipping_threshold: 3000,
-  shipping_fee: 200,
+  shipping_enabled: false,        // ✅ Shipping disabled (FREE)
+  free_shipping_threshold: 0,     // ✅ Sab ke liye free
+  shipping_fee: 0,                // ✅ Koi fee nahi
   facebook_url: 'https://facebook.com/dasilife',
   instagram_url: 'https://instagram.com/dasilife',
   whatsapp_number: '923422544495',
@@ -117,16 +117,19 @@ export async function updateSiteSettings(
 
 // ============================================
 // CALCULATE SHIPPING FEE
+// ✅ FREE delivery — sab ke liye
 // ============================================
 export function calculateShippingFee(
   subtotal: number,
   settings: SiteSettings
 ): number {
-  // Agar shipping disabled hai → hamesha FREE
+  // ✅ Agar shipping disabled hai → hamesha FREE
   if (!settings.shipping_enabled) return 0;
-  // Cart empty → 0
+  // ✅ Cart empty → 0
   if (subtotal === 0) return 0;
-  // Threshold se upar → FREE
+  // ✅ Threshold 0 hai → sab ke liye FREE
+  if (settings.free_shipping_threshold === 0) return 0;
+  // ✅ Threshold se upar → FREE
   if (subtotal >= settings.free_shipping_threshold) return 0;
   // Warna shipping fee charge
   return settings.shipping_fee;

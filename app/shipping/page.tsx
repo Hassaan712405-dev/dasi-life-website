@@ -77,10 +77,9 @@ export default function ShippingPage() {
             <p className="text-sm md:text-base text-brand-text-muted leading-relaxed">
               To keep premium Unani healthcare accessible, we offer{' '}
               <strong className="text-brand-text-dark">
-                FREE Delivery on all orders above Rs. 3,000
-              </strong>{' '}
-              nationwide. For orders below Rs. 3,000, a standard shipping fee of
-              Rs. 200 is applied.
+                FREE Delivery on ALL orders nationwide
+              </strong>
+              . No minimum order value required.
             </p>
           </section>
 
@@ -105,7 +104,7 @@ export default function ShippingPage() {
             <p className="text-sm md:text-base text-brand-text-muted leading-relaxed">
               Once dispatched, you will receive a tracking link via email or SMS.
               You can monitor your package through our partner courier networks
-              (TCS, Leopard, or M&amp;P) at any time.
+              (TCS, Leopard, or M&P) at any time.
             </p>
           </section>
         </div>

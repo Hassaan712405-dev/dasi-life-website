@@ -50,6 +50,13 @@ export default async function CategoryPage({
     notFound();
   }
 
+  // ✅ Total count for this category
+  const { count: totalCount } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true)
+    .eq('category_id', currentCategory.id);
+
   return (
     <div className="bg-brand-cream min-h-screen">
       <div className="container-custom pt-6 md:pt-8">
@@ -75,7 +82,7 @@ export default async function CategoryPage({
               {currentCategory.name}
             </h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-brand-text-muted">
-              Showing {products.length} of {products.length} results
+              Showing {products.length} of {totalCount || 0} products
             </p>
           </div>
         </FadeIn>

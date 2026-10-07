@@ -1,7 +1,9 @@
 export interface CartItem {
   id: string;
   productId: string;
+  variantId?: string;
   name: string;
+  variantName?: string;
   slug: string;
   price: number;
   imageUrl: string;
@@ -10,11 +12,14 @@ export interface CartItem {
 
 export interface CartContextType {
   items: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity' | 'id'>, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (
+    item: Omit<CartItem, 'quantity' | 'id'>,
+    quantity?: number
+  ) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   getTotalItems: () => number;
   getSubtotal: () => number;
-  isInCart: (productId: string) => boolean;
+  isInCart: (cartItemId: string) => boolean;
 }

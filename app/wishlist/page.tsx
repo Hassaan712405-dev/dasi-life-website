@@ -117,7 +117,9 @@ export default function WishlistPage() {
               {productIds.length > 0 && (
                 <button
                   type="button"
-                  onClick={clearWishlist}
+                  onClick={async () => {
+                    await clearWishlist();
+                  }}
                   className="text-sm text-brand-text-muted hover:text-red-500 transition-colors underline self-start sm:self-auto"
                 >
                   Clear All Wishlist

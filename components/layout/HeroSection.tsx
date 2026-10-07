@@ -8,8 +8,7 @@ import { Leaf } from 'lucide-react';
 
 export default function HeroSection() {
   return (
-    <section className="bg-brand-cream py-8 sm:py-12 md:py-16 lg:py-20 relative overflow-hidden">
-      {/* Floating decorative elements */}
+    <section className="bg-brand-cream py-8 sm:py-12 md:py-16 lg:py-20 relative">
       <FloatingElement
         duration={6}
         distance={30}
@@ -31,10 +30,9 @@ export default function HeroSection() {
       <div className="container-custom relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 items-center">
           
-          {/* Left Side — Text */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="order-2 lg:order-1 text-center lg:text-left"
           >
@@ -68,14 +66,12 @@ export default function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Right Side — Image with Parallax */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="order-1 lg:order-2 flex justify-center lg:justify-end"
           >
-            {/* ✅ FIX: w-full, wider max-width, better aspect ratio */}
             <div className="relative w-full max-w-[340px] xs:max-w-[380px] sm:max-w-md md:max-w-lg lg:max-w-lg mx-auto rounded-2xl shadow-xl overflow-hidden">
               <ParallaxImage
                 src="/images/hero-majoon.png"

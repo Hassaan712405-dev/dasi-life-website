@@ -4,18 +4,18 @@ import { notFound } from 'next/navigation';
 import ProductGallery from '@/components/products/ProductGallery';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductCard from '@/components/products/ProductCard';
-import ReviewSection from '@/components/products/ReviewSection';
 import ProductTabs from '@/components/products/ProductTabs';
+import ProductBenefits from '@/components/products/ProductBenefits';
+import StickyCTA from '@/components/products/StickyCTA';
+import ProductVideo from '@/components/products/ProductVideo';
 import { getProductBySlug, getProducts } from '@/services/products/getProducts';
 import { getProductImageUrl } from '@/lib/utils/productImage';
 import FadeIn from '@/components/motion/FadeIn';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 import type { Metadata } from 'next';
 
-// ✅ 1 hour cache
 export const revalidate = 3600;
 
-// ✅ Dynamic metadata for SEO
 export async function generateMetadata({
   params,
 }: {
@@ -28,13 +28,26 @@ export async function generateMetadata({
     return { title: 'Product Not Found' };
   }
 
+  const imageUrl = getProductImageUrl(product);
+
   return {
     title: product.name,
     description: product.short_description || product.description || '',
+    alternates: {
+      canonical: `/product/${product.slug}`,
+    },
     openGraph: {
       title: product.name,
       description: product.short_description || product.description || '',
-      images: [getProductImageUrl(product)],
+      images: [imageUrl],
+      url: `https://www.dasilife.store/product/${product.slug}`,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description: product.short_description || product.description || '',
+      images: [imageUrl],
     },
   };
 }
@@ -46,7 +59,6 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  // ✅ Product aur related products parallel laao
   const product = await getProductBySlug(slug);
 
   if (!product) {
@@ -54,16 +66,82 @@ export default async function ProductPage({
   }
 
   const relatedProducts = await getProducts({
-    limit: 3,
-    // agar related products ke liye category filter hai to:
-    // categorySlug: product.category_slug
+    limit: 4,
+    categorySlug: product.category_id ? undefined : undefined,
   });
 
-  const imageUrl = getProductImageUrl(product);
-  const images = [imageUrl, imageUrl, imageUrl, imageUrl];
+  const images =
+    product.product_images && product.product_images.length > 0
+      ? [...product.product_images]
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((img) => img.url)
+      : [getProductImageUrl(product)];
+
+  const imageUrl = images[0];
+
+  // ✅ Product Schema
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.short_description || product.description || '',
+    image: images,
+    sku: product.sku || product.id,
+    brand: {
+      '@type': 'Brand',
+      name: 'Dasi Life',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://www.dasilife.store/product/${product.slug}`,
+      priceCurrency: 'PKR',
+      price: product.price,
+      availability:
+        product.stock > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+  };
+
+  // ✅ Breadcrumb Schema
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://www.dasilife.store',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Shop',
+        item: 'https://www.dasilife.store/shop',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.name,
+        item: `https://www.dasilife.store/product/${product.slug}`,
+      },
+    ],
+  };
 
   return (
     <div className="bg-brand-cream min-h-screen">
+      {/* ✅ Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <div className="container-custom pt-6 md:pt-8">
         <FadeIn>
           <div className="flex items-center gap-2 text-[10px] sm:text-xs md:text-sm text-brand-text-muted mb-4 sm:mb-6 flex-wrap">
@@ -82,7 +160,7 @@ export default async function ProductPage({
         </FadeIn>
       </div>
 
-      <div className="container-custom pb-10 sm:pb-12 md:pb-16">
+      <div className="container-custom pb-10 sm:pb-12 md:pb-16 pb-24 lg:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 mb-10 sm:mb-12 md:mb-16">
           <FadeIn delay={0.1}>
             <ProductGallery images={images} alt={product.name} />
@@ -98,15 +176,28 @@ export default async function ProductPage({
               reviewCount={product.rating_count || 0}
               imageUrl={imageUrl}
               productId={product.id}
+              stock={product.stock}
+              sku={product.sku}
+              variants={product.product_variants || []}
             />
           </FadeIn>
         </div>
 
-        {/* ✅ Tabs — client component */}
+        {/* ✅ Product Video */}
+        <ProductVideo
+          videoUrl={product.video_url}
+          posterUrl={imageUrl}
+          productName={product.name}
+        />
+
+        {/* ✅ Product Benefits */}
+        <ProductBenefits />
+
+        {/* ✅ Tabs */}
         <ProductTabs product={product} />
 
         {/* Related Products */}
-        {relatedProducts.length > 0 && (
+        {relatedProducts.filter((p) => p.id !== product.id).length > 0 && (
           <div>
             <FadeIn>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-brand-green mb-5 sm:mb-6 md:mb-8">
@@ -137,6 +228,16 @@ export default async function ProductPage({
           </div>
         )}
       </div>
+
+      {/* ✅ Sticky CTA (mobile only) */}
+      <StickyCTA
+        productId={product.id}
+        name={product.name}
+        slug={product.slug}
+        price={product.price}
+        imageUrl={imageUrl}
+        stock={product.stock}
+      />
     </div>
   );
 }

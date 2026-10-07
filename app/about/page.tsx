@@ -52,9 +52,9 @@ const milestones = [
   },
   {
     year: '2024',
-    title: 'Thousands Served',
+    title: 'Growing Community',
     description:
-      'Over 50,000 families now trust Dasi Life for their daily wellness needs, with a 98% customer satisfaction rate.',
+      'Thousands of families now trust Dasi Life for their daily wellness needs.',
   },
 ];
 
@@ -85,9 +85,7 @@ const promises = [
 export default function AboutPage() {
   return (
     <div className="bg-brand-cream min-h-screen">
-      {/* ============================================ */}
       {/* HERO SECTION */}
-      {/* ============================================ */}
       <section className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920&q=80"
@@ -116,9 +114,7 @@ export default function AboutPage() {
         </FadeIn>
       </section>
 
-      {/* ============================================ */}
       {/* STORY SECTION */}
-      {/* ============================================ */}
       <section className="bg-white py-12 sm:py-16 md:py-24">
         <div className="container-custom">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-20 items-center">
@@ -169,9 +165,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ============================================ */}
       {/* CORE VALUES */}
-      {/* ============================================ */}
       <section className="bg-brand-cream-dark py-12 sm:py-16 md:py-24">
         <div className="container-custom">
           <FadeIn>
@@ -221,9 +215,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ============================================ */}
       {/* MILESTONES / TIMELINE */}
-      {/* ============================================ */}
       <section className="bg-white py-12 sm:py-16 md:py-24">
         <div className="container-custom">
           <FadeIn>
@@ -239,7 +231,6 @@ export default function AboutPage() {
           </FadeIn>
 
           <div className="relative max-w-4xl mx-auto">
-            {/* Vertical line (desktop) */}
             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-brand-gold/30 -translate-x-1/2"></div>
 
             <Stagger staggerDelay={0.15} className="space-y-8 md:space-y-12">
@@ -250,7 +241,6 @@ export default function AboutPage() {
                       index % 2 === 0 ? '' : 'md:direction-rtl'
                     }`}
                   >
-                    {/* Dot */}
                     <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                       <div className="w-4 h-4 rounded-full bg-brand-gold ring-4 ring-white"></div>
                     </div>
@@ -282,9 +272,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ============================================ */}
       {/* PROMISES */}
-      {/* ============================================ */}
       <section className="bg-brand-cream-dark py-12 sm:py-16 md:py-24">
         <div className="container-custom">
           <FadeIn>
@@ -325,9 +313,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ============================================ */}
       {/* CTA */}
-      {/* ============================================ */}
       <FadeIn>
         <section className="bg-gradient-to-br from-brand-green via-brand-green-light to-brand-green-dark py-14 sm:py-16 md:py-20 lg:py-24">
           <div className="container-custom text-center max-w-2xl mx-auto">

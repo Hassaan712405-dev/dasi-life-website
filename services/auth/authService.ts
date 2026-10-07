@@ -18,7 +18,7 @@ export interface AuthResult {
 }
 
 // ============================================
-// SIGN UP
+// SIGN UP (Customer)
 // ============================================
 export async function signUp(
   email: string,
@@ -60,6 +60,14 @@ export async function signUp(
         };
       }
 
+      if (msg.includes('rate limit') || msg.includes('too many')) {
+        return {
+          success: false,
+          error: 'Too many attempts. Please try again later.',
+          errorType: 'unknown',
+        };
+      }
+
       return {
         success: false,
         error: error.message,
@@ -67,7 +75,6 @@ export async function signUp(
       };
     }
 
-    // Supabase returns empty identities when email already exists
     if (
       data.user &&
       data.user.identities &&
@@ -80,7 +87,6 @@ export async function signUp(
       };
     }
 
-    // needsConfirmation = true if no session (email verification required)
     const needsConfirmation = !data.session;
 
     return {
@@ -98,7 +104,7 @@ export async function signUp(
 }
 
 // ============================================
-// SIGN IN
+// SIGN IN (Customer)
 // ============================================
 export async function signIn(
   email: string,
@@ -129,6 +135,14 @@ export async function signIn(
           success: false,
           error: 'Incorrect email or password. Please try again.',
           errorType: 'invalid_credentials',
+        };
+      }
+
+      if (msg.includes('rate limit') || msg.includes('too many')) {
+        return {
+          success: false,
+          error: 'Too many attempts. Please try again later.',
+          errorType: 'unknown',
         };
       }
 
@@ -180,25 +194,96 @@ export async function getCurrentUser() {
 }
 
 // ============================================
-// RESET PASSWORD
+// IS ADMIN
 // ============================================
-export async function resetPassword(email: string): Promise<AuthResult> {
+export async function isAdmin(): Promise<boolean> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return false;
+
+  const { data } = await supabase
+    .from('admin_users')
+    .select('id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  return !!data;
+}
+
+// ============================================
+// FORGOT PASSWORD (Send Reset Email)
+// ============================================
+export async function forgotPassword(email: string): Promise<AuthResult> {
   const supabase = createClient();
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
       {
-        redirectTo: `${window.location.origin}/account/profile`,
+        redirectTo: `${window.location.origin}/reset-password`, // ✅ Updated
       }
     );
 
     if (error) {
+      if (
+        error.message.toLowerCase().includes('rate limit') ||
+        error.message.toLowerCase().includes('too many')
+      ) {
+        return {
+          success: false,
+          error: 'Too many attempts. Please try again later.',
+        };
+      }
+
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message };
+    return {
+      success: false,
+      error: 'Network error. Please check your connection.',
+    };
+  }
+}
+
+// ============================================
+// RESET PASSWORD (Update Password)
+// ============================================
+export async function resetPassword(newPassword: string): Promise<AuthResult> {
+  const supabase = createClient();
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      if (error.message.toLowerCase().includes('same password')) {
+        return {
+          success: false,
+          error: 'New password must be different from your current password.',
+        };
+      }
+
+      if (error.message.toLowerCase().includes('weak')) {
+        return {
+          success: false,
+          error: 'Password is too weak. Please use at least 6 characters.',
+        };
+      }
+
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: 'Network error. Please check your connection.',
+    };
   }
 }

@@ -10,15 +10,16 @@ interface GetProductsOptions {
   featuredOnly?: boolean;
 }
 
-// ============================================
-// FETCH PRODUCTS
-// ============================================
-export async function getProducts(options?: GetProductsOptions): Promise<Product[]> {
+export async function getProducts(
+  options?: GetProductsOptions
+): Promise<Product[]> {
   const supabase = createPublicClient();
 
   let query = supabase
     .from('products')
-    .select('*, product_images(url, alt, sort_order)')
+    .select(
+      '*, product_images(url, alt, sort_order), product_variants(id, product_id, name, price, compare_at_price, stock, sku, sort_order)'
+    )
     .eq('is_active', true);
 
   if (options?.featuredOnly) {
@@ -76,15 +77,16 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
   return (data || []) as Product[];
 }
 
-// ============================================
-// FETCH SINGLE PRODUCT
-// ============================================
-export async function getProductBySlug(slug: string): Promise<Product | null> {
+export async function getProductBySlug(
+  slug: string
+): Promise<Product | null> {
   const supabase = createPublicClient();
 
   const { data, error } = await supabase
     .from('products')
-    .select('*, product_images(url, alt, sort_order)')
+    .select(
+      '*, product_images(url, alt, sort_order), product_variants(id, product_id, name, price, compare_at_price, stock, sku, sort_order)'
+    )
     .eq('slug', slug)
     .eq('is_active', true)
     .single();

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
 
-const BASE_URL = 'https://dasilife.store';
+const BASE_URL = 'https://www.dasilife.store';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
@@ -66,18 +66,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE_URL}/terms`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${BASE_URL}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${BASE_URL}/register`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.3,

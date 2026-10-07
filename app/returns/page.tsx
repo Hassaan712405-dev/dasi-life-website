@@ -63,10 +63,10 @@ export default function ReturnsPage() {
                 <span>
                   Email us at{' '}
                   <strong className="text-brand-text-dark">
-                    returns@dasilife.store
+                    dasilife@gmail.com
                   </strong>{' '}
                   or Whatsapp our team at{' '}
-                  <strong className="text-brand-text-dark">+92 300 1234567</strong>{' '}
+                  <strong className="text-brand-text-dark">+92 342 2544495</strong>{' '}
                   with your order number.
                 </span>
               </li>
@@ -76,7 +76,7 @@ export default function ReturnsPage() {
                 </span>
                 <span>
                   Our courier partner will collect the product from your address,
-                  or we will guide you on returning it to our Lahore lab hub.
+                  or we will guide you on returning it to our Mailsi lab hub.
                 </span>
               </li>
             </ol>
@@ -123,7 +123,7 @@ export default function ReturnsPage() {
             <div className="bg-brand-cream-dark rounded-xl p-4 md:p-5 flex items-center gap-3">
               <Phone size={20} className="text-brand-green shrink-0" />
               <p className="text-sm md:text-base font-semibold text-brand-text-dark">
-                Call Center Support: +92 300 1234567{' '}
+                Call Center Support: +92 342 2544495{' '}
                 <span className="font-normal text-brand-text-muted">
                   (10:00 AM - 6:00 PM, Monday to Saturday)
                 </span>

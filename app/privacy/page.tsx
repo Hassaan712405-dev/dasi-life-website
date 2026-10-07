@@ -141,10 +141,10 @@ export default function PrivacyPage() {
               For any privacy-related inquiries, please contact our data
               protection officer at{' '}
               <strong className="text-brand-text-dark">
-                privacy@dasilife.store
+                dasilife@gmail.com
               </strong>{' '}
-              or call +92 300 1234567. Our physical office is at: Studio 4B,
-              Heritage Plaza, Lahore, Pakistan.
+              or call +92 342 2544495. Our physical office is at: Rehman Town
+              Mailsi, Pakistan.
             </p>
           </section>
         </div>

@@ -21,8 +21,8 @@ const badges = [
   },
   {
     icon: Truck,
-    title: 'COD Active',
-    subtitle: 'Nationwide delivery',
+    title: 'COD + Free Delivery',
+    subtitle: 'Nationwide, no minimum',
   },
 ];
 

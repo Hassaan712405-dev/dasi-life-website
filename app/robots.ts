@@ -15,10 +15,13 @@ export default function robots(): MetadataRoute.Robots {
           '/api/',
           '/order-success/',
           '/_next/',
+          '/login/',
+          '/register/',
+          '/forgot-password/',
         ],
       },
     ],
-    sitemap: 'https://dasilife.store/sitemap.xml',
-    host: 'https://dasilife.store',
+    sitemap: 'https://www.dasilife.store/sitemap.xml',
+    host: 'https://www.dasilife.store',
   };
 }

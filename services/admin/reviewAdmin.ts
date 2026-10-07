@@ -27,16 +27,12 @@ interface ReviewRow {
   body: string | null;
   is_approved: boolean;
   created_at: string;
+  customer_name: string | null;
 }
 
 interface ProductNameRow {
   id: string;
   name: string;
-}
-
-interface ProfileNameRow {
-  id: string;
-  full_name: string | null;
 }
 
 interface RatingRow {
@@ -49,6 +45,7 @@ interface ProductIdRow {
 
 // ============================================
 // GET ALL REVIEWS (Admin)
+// ✅ customer_name column se naam use karo
 // ============================================
 export async function getAllReviews(): Promise<AdminReview[]> {
   const supabase = createClient();
@@ -68,12 +65,9 @@ export async function getAllReviews(): Promise<AdminReview[]> {
 
   const typedReviews: ReviewRow[] = reviews as ReviewRow[];
 
-  // 2. Get unique product IDs and user IDs
+  // 2. Get unique product IDs
   const productIds = Array.from(
     new Set(typedReviews.map((r: ReviewRow) => r.product_id))
-  );
-  const userIds = Array.from(
-    new Set(typedReviews.map((r: ReviewRow) => r.user_id))
   );
 
   // 3. Fetch products
@@ -84,28 +78,15 @@ export async function getAllReviews(): Promise<AdminReview[]> {
 
   const typedProducts: ProductNameRow[] = (products || []) as ProductNameRow[];
 
-  // 4. Fetch profiles
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .in('id', userIds);
-
-  const typedProfiles: ProfileNameRow[] = (profiles || []) as ProfileNameRow[];
-
-  // 5. Create maps
+  // 4. Create product map
   const productMap: Record<string, string> = {};
   typedProducts.forEach((p: ProductNameRow) => {
     productMap[p.id] = p.name;
   });
 
-  const profileMap: Record<string, string> = {};
-  typedProfiles.forEach((p: ProfileNameRow) => {
-    profileMap[p.id] = p.full_name || 'Anonymous';
-  });
-
-  // 6. Combine
+  // 5. ✅ Directly use customer_name from reviews table
   return typedReviews.map((review: ReviewRow) => {
-    const fullName = profileMap[review.user_id] || 'Anonymous';
+    const fullName = review.customer_name || 'Anonymous';
     return {
       id: review.id,
       product_id: review.product_id,

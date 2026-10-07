@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import FadeIn from '@/components/motion/FadeIn';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
@@ -31,7 +32,6 @@ export default function CategoriesSection() {
   return (
     <section className="bg-white py-10 sm:py-12 md:py-16">
       <div className="container-custom">
-        {/* Header */}
         <FadeIn>
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
             <p className="text-brand-gold font-semibold text-[10px] sm:text-xs md:text-sm tracking-widest uppercase mb-2 sm:mb-3">
@@ -43,7 +43,6 @@ export default function CategoriesSection() {
           </div>
         </FadeIn>
 
-        {/* Categories Grid */}
         <Stagger
           staggerDelay={0.1}
           className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
@@ -54,16 +53,16 @@ export default function CategoriesSection() {
                 href={`/category/${category.slug}`}
                 className="group block bg-[#F0EDE6] rounded-xl overflow-hidden border border-gray-300 shadow-md hover:shadow-xl hover:border-brand-green/40 transition-all duration-500 h-full"
               >
-                {/* Image */}
                 <div className="relative overflow-hidden bg-white aspect-[4/3]">
-                  <img
+                  <Image
                     src={category.imageUrl}
                     alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
                 </div>
 
-                {/* Info */}
                 <div className="p-4 sm:p-5">
                   <h3 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green mb-1.5 sm:mb-2">
                     {category.name}

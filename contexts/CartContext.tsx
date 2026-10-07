@@ -13,6 +13,12 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'dasi-life-cart';
 
+// ✅ Unique cart item ID banao (variant-aware)
+// Format: productId::variantId  ya  productId (agar variant nahi)
+function generateCartItemId(productId: string, variantId?: string): string {
+  return variantId ? `${productId}::${variantId}` : productId;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -46,35 +52,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     quantity: number = 1
   ) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId);
+      const newItemId = generateCartItemId(item.productId, item.variantId);
+      const existing = prev.find((i) => i.id === newItemId);
+
       if (existing) {
         return prev.map((i) =>
-          i.productId === item.productId
-            ? { ...i, quantity: i.quantity + quantity }
-            : i
+          i.id === newItemId ? { ...i, quantity: i.quantity + quantity } : i
         );
       }
+
       return [
         ...prev,
         {
           ...item,
-          id: `${item.productId}-${Date.now()}`,
+          id: newItemId,
           quantity,
         },
       ];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  // ✅ cartItemId se remove karo (variant-aware)
+  const removeFromCart = (cartItemId: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== cartItemId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  // ✅ cartItemId se quantity update karo
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     if (quantity < 1) return;
     setItems((prev) =>
-      prev.map((i) =>
-        i.productId === productId ? { ...i, quantity } : i
-      )
+      prev.map((i) => (i.id === cartItemId ? { ...i, quantity } : i))
     );
   };
 
@@ -90,8 +97,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
-  const isInCart = (productId: string) => {
-    return items.some((i) => i.productId === productId);
+  // ✅ cartItemId se check karo
+  const isInCart = (cartItemId: string) => {
+    return items.some((i) => i.id === cartItemId);
   };
 
   return (

@@ -68,6 +68,14 @@ export default function AccountDashboard() {
   const userInitials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'U';
   const displayName = user?.email?.split('@')[0] || 'User';
 
+  // ✅ Dynamic joined date from user.created_at
+  const joinedDate = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'Jan 2026';
+
   const totalOrders = orders.length;
   const activeOrders = orders.filter(
     (o) => o.status === 'pending' || o.status === 'processing' || o.status === 'shipped'
@@ -90,7 +98,7 @@ export default function AccountDashboard() {
             userName={displayName}
             userInitials={userInitials}
             userEmail={user?.email}
-            joinedDate="Jan 2026"
+            joinedDate={joinedDate}
           />
 
           <div className="space-y-6 sm:space-y-8">

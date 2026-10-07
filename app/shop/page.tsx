@@ -27,7 +27,7 @@ export default async function ShopPage({
   const supabase = createPublicClient();
 
   // ✅ Dono queries parallel chalao
-  const [categoriesResult, products] = await Promise.all([
+  const [categoriesResult, products, totalCountResult] = await Promise.all([
     supabase
       .from('categories')
       .select('id, name, slug')
@@ -39,9 +39,15 @@ export default async function ShopPage({
       sortBy: (sortBy as any) || 'popularity',
       limit: 100,
     }),
+    // ✅ Total count query
+    supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true),
   ]);
 
   const categories = categoriesResult.data || [];
+  const totalCount = totalCountResult.count || 0;
 
   return (
     <div className="bg-brand-cream min-h-screen">
@@ -66,7 +72,7 @@ export default async function ShopPage({
                 : 'Our Products'}
             </h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-brand-text-muted">
-              Showing {products.length} of {products.length} results
+              Showing {products.length} of {totalCount} products
             </p>
           </div>
         </FadeIn>

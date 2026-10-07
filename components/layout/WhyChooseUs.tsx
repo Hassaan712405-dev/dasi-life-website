@@ -11,9 +11,9 @@ const features = [
   },
   {
     icon: Truck,
-    title: 'Cash on Delivery',
+    title: 'COD + Free Delivery',
     description:
-      'Enjoy stress-free shopping with our secure Cash on Delivery option available all across Pakistan.',
+      'Enjoy stress-free shopping with our secure Cash on Delivery option and FREE nationwide delivery across Pakistan.',
   },
   {
     icon: ShieldCheck,

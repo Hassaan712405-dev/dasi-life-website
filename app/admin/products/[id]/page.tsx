@@ -1,15 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Save, ArrowLeft, Loader2, AlertCircle, Check } from 'lucide-react';
+import {
+  Save,
+  ArrowLeft,
+  Loader2,
+  AlertCircle,
+  Check,
+  Upload,
+  X,
+} from 'lucide-react';
 import {
   getProductById,
   updateProduct,
   getAllCategories,
   ProductFormData,
 } from '@/services/admin/productAdmin';
+import { uploadProductImage } from '@/services/admin/storageService';
+import { getProductImageUrl } from '@/lib/utils/productImage';
+import type { Product } from '@/types/database';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -22,6 +33,10 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [productData, setProductData] = useState<Product | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load product + categories
   useEffect(() => {
@@ -37,6 +52,9 @@ export default function EditProductPage() {
         return;
       }
 
+      setProductData(product);
+      setImagePreview(getProductImageUrl(product));
+
       setFormData({
         name: product.name,
         slug: product.slug,
@@ -50,6 +68,7 @@ export default function EditProductPage() {
         category_id: product.category_id,
         is_active: product.is_active,
         is_featured: product.is_featured,
+        image_url: null,
       });
       setCategories(cats);
       setLoading(false);
@@ -59,6 +78,45 @@ export default function EditProductPage() {
 
   const update = (field: keyof ProductFormData, value: any) => {
     setFormData((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !formData) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be smaller than 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    const slug = formData.slug || 'product';
+    const result = await uploadProductImage(file, slug);
+
+    if (!result.success || !result.url) {
+      setError(result.error || 'Failed to upload image.');
+      setUploading(false);
+      return;
+    }
+
+    setImagePreview(result.url);
+    update('image_url', result.url);
+    setUploading(false);
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    update('image_url', null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,6 +207,63 @@ export default function EditProductPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Product Image */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="font-heading font-semibold text-lg text-brand-green mb-5">
+            Product Image
+          </h2>
+
+          {imagePreview ? (
+            <div className="relative inline-block">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-40 h-40 object-cover rounded-lg border border-gray-200"
+              />
+              <button
+                type="button"
+                onClick={removeImage}
+                className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
+                aria-label="Remove image"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <label className="border-2 border-dashed border-gray-300 hover:border-brand-green rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+              {uploading ? (
+                <>
+                  <Loader2
+                    size={32}
+                    className="animate-spin text-brand-green mb-3"
+                  />
+                  <p className="text-sm text-brand-text-muted">Uploading...</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-brand-green/10 flex items-center justify-center mb-3">
+                    <Upload size={20} className="text-brand-green" />
+                  </div>
+                  <p className="text-sm font-medium text-brand-text-dark mb-1">
+                    Click to upload new image
+                  </p>
+                  <p className="text-xs text-brand-text-muted">
+                    PNG, JPG up to 5MB
+                  </p>
+                </>
+              )}
+            </label>
+          )}
+        </div>
+
         {/* Basic Info */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-heading font-semibold text-lg text-brand-green mb-5">
@@ -300,9 +415,7 @@ export default function EditProductPage() {
               </label>
               <select
                 value={formData.category_id || ''}
-                onChange={(e) =>
-                  update('category_id', e.target.value || null)
-                }
+                onChange={(e) => update('category_id', e.target.value || null)}
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green cursor-pointer"
               >
                 <option value="">No Category</option>
@@ -352,7 +465,7 @@ export default function EditProductPage() {
           </Link>
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || uploading}
             className="flex-1 btn-primary py-3 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? (

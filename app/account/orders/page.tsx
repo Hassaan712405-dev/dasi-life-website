@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getUserOrders } from '@/services/orders/orderService';
 import type { OrderWithItems } from '@/types/order';
 
-const filters = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+const filters = ['All', 'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
 function getStatusColor(status: string): string {
   switch (status) {
@@ -68,6 +68,14 @@ export default function OrdersPage() {
 
   const userInitials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'U';
 
+  // ✅ Dynamic joined date
+  const joinedDate = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'Jan 2026';
+
   if (!authLoading && !user) {
     return (
       <div className="bg-brand-cream min-h-screen">
@@ -98,7 +106,7 @@ export default function OrdersPage() {
             userName={user?.email?.split('@')[0] || 'User'}
             userInitials={userInitials}
             userEmail={user?.email}
-            joinedDate="Jan 2026"
+            joinedDate={joinedDate}
           />
 
           <div className="space-y-5 sm:space-y-6">
@@ -152,7 +160,7 @@ export default function OrdersPage() {
               </motion.div>
             )}
 
-            {/* Filters */}
+            {/* ✅ Filters — Confirmed added */}
             {!loading && orders.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

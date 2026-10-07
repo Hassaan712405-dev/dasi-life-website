@@ -118,9 +118,9 @@ export default function TermsPage() {
             <p className="text-sm md:text-base text-brand-text-muted leading-relaxed">
               These terms are governed by the laws of Pakistan. For physical
               inquiries or dispute resolution, contact our corporate office at:
-              Studio 4B, Heritage Plaza, Lahore, Pakistan, or write to{' '}
+              Rehman Town Mailsi, Pakistan, or write to{' '}
               <strong className="text-brand-text-dark">
-                legal@dasilife.store
+                dasilife@gmail.com
               </strong>
               .
             </p>

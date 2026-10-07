@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
@@ -14,17 +15,17 @@ export default function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeFromCart } = useCart();
 
   const handleIncrease = () => {
-    updateQuantity(item.productId, item.quantity + 1);
+    updateQuantity(item.id, item.quantity + 1);
   };
 
   const handleDecrease = () => {
     if (item.quantity > 1) {
-      updateQuantity(item.productId, item.quantity - 1);
+      updateQuantity(item.id, item.quantity - 1);
     }
   };
 
   const handleRemove = () => {
-    removeFromCart(item.productId);
+    removeFromCart(item.id);
   };
 
   const subtotal = item.price * item.quantity;
@@ -42,12 +43,14 @@ export default function CartItem({ item }: CartItemProps) {
       <div className="flex items-center gap-3 sm:gap-4">
         <Link
           href={`/product/${item.slug}`}
-          className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-brand-cream rounded-lg overflow-hidden shrink-0"
+          className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-brand-cream rounded-lg overflow-hidden shrink-0 relative"
         >
-          <img
+          <Image
             src={item.imageUrl}
             alt={item.name}
-            className="w-full h-full object-cover"
+            fill
+            sizes="96px"
+            className="object-cover"
           />
         </Link>
         <div className="min-w-0 flex-1">
@@ -56,6 +59,13 @@ export default function CartItem({ item }: CartItemProps) {
               {item.name}
             </h3>
           </Link>
+
+          {item.variantName && (
+            <p className="text-[10px] sm:text-xs text-brand-text-muted mb-1">
+              Option: {item.variantName}
+            </p>
+          )}
+
           <p className="text-[10px] sm:text-xs md:text-sm text-brand-text-muted mb-1">
             Rs {item.price.toLocaleString()}
           </p>

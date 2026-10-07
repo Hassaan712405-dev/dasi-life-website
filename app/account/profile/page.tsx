@@ -1,10 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  User,
+  MapPin,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
 import {
   getProfile,
   updateProfile,
@@ -38,20 +48,30 @@ export default function ProfilePage() {
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Pakistan');
 
+  // Loading states
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  // Success states
   const [profileSaved, setProfileSaved] = useState(false);
   const [addressSaved, setAddressSaved] = useState(false);
-  const [error, setError] = useState('');
+  const [passwordSaved, setPasswordSaved] = useState(false);
 
-  // Password
+  // Error states
+  const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Password state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
 
-  // ✅ LOAD DATA ON MOUNT
+  // ✅ Load data on mount
   useEffect(() => {
     async function load() {
       if (!user) return;
@@ -82,7 +102,7 @@ export default function ProfilePage() {
     load();
   }, [user]);
 
-  // ✅ SAVE PROFILE
+  // ✅ Save profile
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -106,7 +126,7 @@ export default function ProfilePage() {
     setTimeout(() => setProfileSaved(false), 3000);
   };
 
-  // ✅ SAVE ADDRESS
+  // ✅ Save address
   const handleAddressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -135,10 +155,69 @@ export default function ProfilePage() {
     setTimeout(() => setAddressSaved(false), 3000);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  // ✅ Change password (REAL)
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?.email) return;
+
+    setPasswordError('');
+
+    // Validation
+    if (!currentPassword) {
+      setPasswordError('Please enter your current password.');
+      return;
+    }
+    if (!newPassword) {
+      setPasswordError('Please enter a new password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setPasswordError('New password must be different from current.');
+      return;
+    }
+
+    setSavingPassword(true);
+
+    const supabase = createClient();
+
+    // Step 1: Verify current password by signing in
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      setSavingPassword(false);
+      setPasswordError('Current password is incorrect.');
+      return;
+    }
+
+    // Step 2: Update password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    setSavingPassword(false);
+
+    if (updateError) {
+      setPasswordError(updateError.message || 'Failed to update password.');
+      return;
+    }
+
+    // Success
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
     setPasswordSaved(true);
-    setTimeout(() => setPasswordSaved(false), 3000);
+    setTimeout(() => setPasswordSaved(false), 5000);
   };
 
   const userInitials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'U';
@@ -169,8 +248,8 @@ export default function ProfilePage() {
                 Account Details
               </h1>
               <p className="text-xs sm:text-sm md:text-base text-brand-text-muted leading-relaxed">
-                Apni details save karein. Checkout par yeh automatically fill
-                hongi.
+                Manage your personal information, shipping address, and account security.
+                These details are automatically filled at checkout.
               </p>
             </motion.div>
 
@@ -192,16 +271,26 @@ export default function ProfilePage() {
               </div>
             ) : (
               <>
-                {/* Profile Info */}
+                {/* Profile Information */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
                   className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
                 >
-                  <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green mb-4 sm:mb-6">
-                    Profile Information
-                  </h2>
+                  <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-4 border-b border-gray-100">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
+                      <User size={16} className="text-brand-green" />
+                    </div>
+                    <div>
+                      <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green">
+                        Profile Information
+                      </h2>
+                      <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                        Your personal details
+                      </p>
+                    </div>
+                  </div>
 
                   <form
                     onSubmit={handleProfileSubmit}
@@ -231,6 +320,9 @@ export default function ProfilePage() {
                         disabled
                         className="w-full bg-gray-50 border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-brand-text-muted cursor-not-allowed"
                       />
+                      <p className="text-[10px] sm:text-xs text-brand-text-muted mt-1">
+                        Email cannot be changed. Contact support if needed.
+                      </p>
                     </div>
 
                     <div>
@@ -284,12 +376,19 @@ export default function ProfilePage() {
                   transition={{ duration: 0.5, delay: 0.15 }}
                   className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
                 >
-                  <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green mb-1">
-                    Shipping Address
-                  </h2>
-                  <p className="text-xs sm:text-sm text-brand-text-muted mb-4 sm:mb-6">
-                    Checkout par yeh address automatically fill hoga.
-                  </p>
+                  <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-4 border-b border-gray-100">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
+                      <MapPin size={16} className="text-brand-green" />
+                    </div>
+                    <div>
+                      <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green">
+                        Shipping Address
+                      </h2>
+                      <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                        This address will be auto-filled at checkout
+                      </p>
+                    </div>
+                  </div>
 
                   <form
                     onSubmit={handleAddressSubmit}
@@ -304,7 +403,7 @@ export default function ProfilePage() {
                           type="text"
                           value={addrFullName}
                           onChange={(e) => setAddrFullName(e.target.value)}
-                          placeholder="Receiver ka naam"
+                          placeholder="Receiver's name"
                           disabled={savingAddress}
                           className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
                         />
@@ -456,55 +555,137 @@ export default function ProfilePage() {
                   transition={{ duration: 0.5, delay: 0.2 }}
                   className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8"
                 >
-                  <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green mb-4 sm:mb-6">
-                    Change Password
-                  </h2>
+                  <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-4 border-b border-gray-100">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
+                      <Lock size={16} className="text-brand-green" />
+                    </div>
+                    <div>
+                      <h2 className="font-heading font-semibold text-lg sm:text-xl md:text-2xl text-brand-green">
+                        Change Password
+                      </h2>
+                      <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                        Keep your account secure
+                      </p>
+                    </div>
+                  </div>
+
+                  {passwordError && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2 mb-4">
+                      <AlertCircle
+                        size={14}
+                        className="text-red-500 shrink-0 mt-0.5"
+                      />
+                      <p className="text-xs sm:text-sm text-red-600">
+                        {passwordError}
+                      </p>
+                    </div>
+                  )}
 
                   <form
                     onSubmit={handlePasswordSubmit}
                     className="space-y-3 sm:space-y-5"
                   >
-                    {[
-                      { label: 'Current Password', show: showCurrent, setShow: setShowCurrent },
-                      { label: 'New Password', show: showNew, setShow: setShowNew },
-                      { label: 'Confirm New Password', show: showConfirm, setShow: setShowConfirm },
-                    ].map((field, index) => (
-                      <div key={index}>
-                        <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
-                          {field.label}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={field.show ? 'text' : 'password'}
-                            placeholder="••••••••"
-                            className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => field.setShow(!field.show)}
-                            className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
-                          >
-                            {field.show ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showCurrent ? 'text' : 'password'}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Enter current password"
+                          disabled={savingPassword}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrent(!showCurrent)}
+                          className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                        >
+                          {showCurrent ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+                        </button>
                       </div>
-                    ))}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNew ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter new password (min. 8 characters)"
+                          disabled={savingPassword}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNew(!showNew)}
+                          className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                        >
+                          {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-brand-text-dark mb-1.5 sm:mb-2">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirm ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Re-enter new password"
+                          disabled={savingPassword}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirm(!showConfirm)}
+                          className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                        >
+                          {showConfirm ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
 
                     <div className="flex items-center gap-3 pt-2">
                       <motion.button
                         type="submit"
                         whileTap={{ scale: 0.97 }}
-                        className="bg-brand-green hover:bg-black text-white font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-md transition-colors text-xs sm:text-sm"
+                        disabled={savingPassword}
+                        className="bg-brand-green hover:bg-black text-white font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-md transition-colors text-xs sm:text-sm inline-flex items-center gap-2 disabled:opacity-60"
                       >
-                        Update Password
+                        {savingPassword ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          'Update Password'
+                        )}
                       </motion.button>
                       {passwordSaved && (
                         <motion.span
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="text-xs sm:text-sm text-brand-green font-medium"
+                          className="text-xs sm:text-sm text-brand-green font-medium inline-flex items-center gap-1"
                         >
-                          ✓ Password updated!
+                          <CheckCircle2 size={14} />
+                          Password updated successfully!
                         </motion.span>
                       )}
                     </div>

@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // If already logged in as admin, redirect to /admin
+  // ✅ If already logged in as admin, redirect to /admin
   useEffect(() => {
     async function checkAlreadyLoggedIn() {
       if (authLoading || !user) return;
@@ -47,39 +47,55 @@ export default function AdminLoginPage() {
 
     const supabase = createClient();
 
-    // 1. Sign in with email/password
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+    try {
+      // 1. Sign in with email/password
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
 
-    if (authError || !authData.user) {
-      setError(authError?.message || 'Invalid email or password.');
+      if (authError || !authData.user) {
+        // ✅ Better error messages
+        const msg = authError?.message?.toLowerCase() || '';
+
+        if (msg.includes('email not confirmed')) {
+          setError('Please verify your email first. Check your inbox.');
+        } else if (msg.includes('invalid')) {
+          setError('Invalid email or password.');
+        } else {
+          setError(authError?.message || 'Invalid email or password.');
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      // 2. ✅ Check admin_users table (SIRF YAHAN ADMIN CHECK)
+      const { data: adminData, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      if (adminError || !adminData) {
+        // ❌ Not an admin — sign out immediately
+        await supabase.auth.signOut();
+        setError(
+          'This account does not have admin access. Please contact the administrator.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      // 3. ✅ Admin confirmed — redirect
+      router.replace('/admin');
+      router.refresh();
+    } catch (err: any) {
+      console.error('Admin login error:', err);
+      setError('Something went wrong. Please try again.');
       setLoading(false);
-      return;
     }
-
-    // 2. Check if user is in admin_users table
-    const { data: adminData, error: adminError } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('id', authData.user.id)
-      .single();
-
-    if (adminError || !adminData) {
-      // Not admin — sign out immediately
-      await supabase.auth.signOut();
-      setError(
-        'This account does not have admin access. Please contact the administrator.'
-      );
-      setLoading(false);
-      return;
-    }
-
-    // 3. Redirect to admin panel
-    router.replace('/admin');
-    router.refresh();
   };
 
   return (
@@ -118,7 +134,10 @@ export default function AdminLoginPage() {
           {/* Error */}
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
-              <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+              <AlertCircle
+                size={16}
+                className="text-red-500 shrink-0 mt-0.5"
+              />
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
@@ -134,9 +153,10 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@dasilife.com"
+                placeholder="admin@dasilife.store"
                 required
                 disabled={loading}
+                autoComplete="email"
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
               />
             </div>
@@ -154,6 +174,7 @@ export default function AdminLoginPage() {
                   placeholder="••••••••"
                   required
                   disabled={loading}
+                  autoComplete="current-password"
                   className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 pr-16 text-sm text-brand-text-dark focus:outline-none focus:ring-2 focus:ring-brand-green disabled:opacity-60"
                 />
                 <button

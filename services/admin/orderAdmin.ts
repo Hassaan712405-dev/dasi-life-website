@@ -1,12 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
+import { restoreStock } from '@/services/products/inventoryService';
 import type { OrderWithItems, OrderStatus } from '@/types/order';
-
-// ============================================
-// INTERNAL TYPES
-// ============================================
-interface OrderStatusRow {
-  status: string;
-}
 
 // ============================================
 // GET ALL ORDERS (Admin)
@@ -16,12 +10,7 @@ export async function getAllOrders(): Promise<OrderWithItems[]> {
 
   const { data, error } = await supabase
     .from('orders')
-    .select(
-      `
-      *,
-      order_items (*)
-    `
-    )
+    .select('*, order_items(*)')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -29,100 +18,69 @@ export async function getAllOrders(): Promise<OrderWithItems[]> {
     return [];
   }
 
-  return (data || []) as OrderWithItems[];
+  return data as OrderWithItems[];
 }
 
 // ============================================
 // UPDATE ORDER STATUS
+// ✅ Stock restore karo — agar cancel ho raha hai
 // ============================================
 export async function updateOrderStatus(
   orderId: string,
-  status: OrderStatus,
-  note?: string
+  newStatus: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
 
-  // 1. Update order status
-  const { error } = await supabase
+  // 1. Get current order + items
+  const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .update({ status })
+    .select('*, order_items(*)')
+    .eq('id', orderId)
+    .single();
+
+  if (fetchError || !order) {
+    return { success: false, error: 'Order not found' };
+  }
+
+  const oldStatus = order.status;
+
+  // ✅ 2. Stock restore — agar order cancel ho raha hai
+  if (newStatus === 'cancelled' && oldStatus !== 'cancelled') {
+    const items = order.order_items || [];
+
+    for (const item of items) {
+      const result = await restoreStock(
+        item.product_id,
+        item.variant_id,
+        item.quantity
+      );
+
+      if (!result.success) {
+        console.error('Stock restore error:', result.error);
+      }
+    }
+  }
+
+  // 3. Update status
+  const { error: updateError } = await supabase
+    .from('orders')
+    .update({
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', orderId);
 
-  if (error) {
-    console.error('Update status error:', error);
-    return { success: false, error: error.message };
+  if (updateError) {
+    console.error('Update order status error:', updateError);
+    return { success: false, error: updateError.message };
   }
 
-  // 2. Add to status history
+  // 4. Insert status history
   await supabase.from('order_status_history').insert({
     order_id: orderId,
-    status,
-    note: note || `Status changed to ${status} by admin`,
+    status: newStatus,
+    note: `Status updated from ${oldStatus} to ${newStatus}`,
   });
-
-  return { success: true };
-}
-
-// ============================================
-// GET ORDER STATS
-// ============================================
-export async function getOrderStats(): Promise<{
-  total: number;
-  pending: number;
-  processing: number;
-  shipped: number;
-  delivered: number;
-  cancelled: number;
-}> {
-  const supabase = createClient();
-
-  const { data, error } = await supabase.from('orders').select('status');
-
-  if (error || !data) {
-    return {
-      total: 0,
-      pending: 0,
-      processing: 0,
-      shipped: 0,
-      delivered: 0,
-      cancelled: 0,
-    };
-  }
-
-  const typedData: OrderStatusRow[] = data as OrderStatusRow[];
-
-  return {
-    total: typedData.length,
-    pending: typedData.filter((o: OrderStatusRow) => o.status === 'pending')
-      .length,
-    processing: typedData.filter(
-      (o: OrderStatusRow) => o.status === 'processing'
-    ).length,
-    shipped: typedData.filter((o: OrderStatusRow) => o.status === 'shipped')
-      .length,
-    delivered: typedData.filter(
-      (o: OrderStatusRow) => o.status === 'delivered'
-    ).length,
-    cancelled: typedData.filter(
-      (o: OrderStatusRow) => o.status === 'cancelled'
-    ).length,
-  };
-}
-
-// ============================================
-// DELETE ORDER
-// ============================================
-export async function deleteOrder(
-  orderId: string
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
-
-  const { error } = await supabase.from('orders').delete().eq('id', orderId);
-
-  if (error) {
-    console.error('Delete order error:', error);
-    return { success: false, error: error.message };
-  }
 
   return { success: true };
 }

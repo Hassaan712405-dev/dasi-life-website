@@ -21,6 +21,7 @@ import type { CartItem } from '@/types/cart';
 import { useAuth } from '@/hooks/useAuth';
 import { getSiteSettings } from '@/services/settings/settingsService';
 import { createOrder } from '@/services/orders/orderService';
+import { trackBeginCheckout } from '@/lib/analytics/events';
 
 interface CheckoutFormData {
   customer_name: string;
@@ -51,7 +52,7 @@ const PROVINCES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { items, getSubtotal, clearCart } = useCart();
 
   const [loading, setLoading] = useState(true);
@@ -82,13 +83,6 @@ export default function CheckoutPage() {
     notes: '',
   });
 
-  // 🔐 LOGIN CHECK
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login?redirect=/checkout');
-    }
-  }, [authLoading, user, router]);
-
   // Load settings
   useEffect(() => {
     async function load() {
@@ -102,7 +96,7 @@ export default function CheckoutPage() {
     load();
   }, []);
 
-  // ✅ AUTO-FILL FROM PROFILE + ADDRESS
+  // ✅ AUTO-FILL FROM PROFILE (if logged in)
   useEffect(() => {
     async function loadProfileAndAddress() {
       if (!user) return;
@@ -120,15 +114,9 @@ export default function CheckoutPage() {
         ...prev,
         customer_email: prev.customer_email || user.email || '',
         customer_name:
-          prev.customer_name ||
-          profile?.full_name ||
-          address?.full_name ||
-          '',
+          prev.customer_name || profile?.full_name || address?.full_name || '',
         customer_phone:
-          prev.customer_phone ||
-          profile?.phone ||
-          address?.phone ||
-          '',
+          prev.customer_phone || profile?.phone || address?.phone || '',
         shipping_address: prev.shipping_address || address?.street || '',
         shipping_city: prev.shipping_city || address?.city || '',
         shipping_state: prev.shipping_state || address?.state || '',
@@ -142,6 +130,22 @@ export default function CheckoutPage() {
     loadProfileAndAddress();
   }, [user]);
 
+  // ✅ BeginCheckout tracking
+  useEffect(() => {
+    if (!loading && items.length > 0 && !success) {
+      trackBeginCheckout(
+        items.map((item) => ({
+          id: item.productId,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        getSubtotal()
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
   // Redirect if cart empty
   useEffect(() => {
     if (!loading && items.length === 0 && !success) {
@@ -150,7 +154,8 @@ export default function CheckoutPage() {
   }, [loading, items.length, success, router]);
 
   const subtotal = getSubtotal();
-  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingFee;
+  // ✅ FREE delivery — sab ke liye (threshold 0 hai toh hamesha 0)
+  const shipping = freeShippingThreshold === 0 ? 0 : (subtotal >= freeShippingThreshold ? 0 : shippingFee);
   const total = subtotal + shipping;
 
   const update = (field: keyof CheckoutFormData, value: string) => {
@@ -180,11 +185,6 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (!user) {
-      router.push('/login?redirect=/checkout');
-      return;
-    }
 
     setTouched({
       customer_name: true,
@@ -238,7 +238,9 @@ export default function CheckoutPage() {
         notes: formData.notes.trim() || undefined,
         items: items.map((item: CartItem) => ({
           productId: item.productId,
+          variantId: item.variantId,
           productName: item.name,
+          variantName: item.variantName,
           price: item.price,
           quantity: item.quantity,
           imageUrl: item.imageUrl,
@@ -265,24 +267,15 @@ export default function CheckoutPage() {
     }
   };
 
-  // 🔐 AUTH LOADING
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen bg-brand-cream flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 size={40} className="animate-spin text-brand-green mx-auto mb-3" />
-          <p className="text-sm text-brand-text-muted">Verifying access...</p>
-        </div>
-      </div>
-    );
-  }
-
   // LOADING
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-cream flex items-center justify-center">
         <div className="text-center">
-          <Loader2 size={40} className="animate-spin text-brand-green mx-auto mb-3" />
+          <Loader2
+            size={40}
+            className="animate-spin text-brand-green mx-auto mb-3"
+          />
           <p className="text-sm text-brand-text-muted">Loading checkout...</p>
         </div>
       </div>
@@ -310,14 +303,19 @@ export default function CheckoutPage() {
           <h1 className="font-heading font-bold text-2xl text-brand-green mb-3">
             Order Placed Successfully!
           </h1>
-          <p className="text-sm text-brand-text-muted mb-2">Your order number is:</p>
+          <p className="text-sm text-brand-text-muted mb-2">
+            Your order number is:
+          </p>
           <p className="font-heading font-bold text-xl text-brand-green mb-5">
             #{orderNumber}
           </p>
           <p className="text-xs text-brand-text-muted mb-6">
             We'll contact you shortly to confirm your order.
           </p>
-          <Loader2 size={20} className="animate-spin text-brand-green mx-auto" />
+          <Loader2
+            size={20}
+            className="animate-spin text-brand-green mx-auto"
+          />
           <p className="text-xs text-brand-text-muted mt-2">Redirecting...</p>
         </motion.div>
       </div>
@@ -329,10 +327,15 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-brand-cream flex items-center justify-center p-4">
         <div className="text-center">
-          <ShoppingBag size={48} className="text-brand-text-muted mx-auto mb-4" />
-          <p className="text-sm text-brand-text-muted mb-4">Your cart is empty.</p>
+          <ShoppingBag
+            size={48}
+            className="text-brand-text-muted mx-auto mb-4"
+          />
+          <p className="text-sm text-brand-text-muted mb-4">
+            Your cart is empty.
+          </p>
           <Link
-            href="/products"
+            href="/shop"
             className="inline-block bg-brand-green hover:bg-black text-white font-medium px-6 py-3 rounded-md transition-colors text-sm"
           >
             Continue Shopping
@@ -368,16 +371,47 @@ export default function CheckoutPage() {
           </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2 mb-5"
-        >
-          <Lock size={14} className="text-green-600 shrink-0" />
-          <p className="text-xs sm:text-sm text-green-700">
-            You are logged in as <strong>{user.email}</strong>
-          </p>
-        </motion.div>
+        {/* ✅ Guest Notice */}
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-blue-50 border border-blue-200 rounded-md p-3 flex items-center gap-2 mb-5"
+          >
+            <User size={14} className="text-blue-600 shrink-0" />
+            <p className="text-xs sm:text-sm text-blue-700">
+              You are checking out as a guest.{' '}
+              <Link
+                href="/login?redirect=/checkout"
+                className="font-semibold underline"
+              >
+                Login
+              </Link>{' '}
+              or{' '}
+              <Link
+                href="/register?redirect=/checkout"
+                className="font-semibold underline"
+              >
+                Register
+              </Link>{' '}
+              for faster checkout.
+            </p>
+          </motion.div>
+        )}
+
+        {/* ✅ Logged in Notice */}
+        {user && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2 mb-5"
+          >
+            <Lock size={14} className="text-green-600 shrink-0" />
+            <p className="text-xs sm:text-sm text-green-700">
+              You are logged in as <strong>{user.email}</strong>
+            </p>
+          </motion.div>
+        )}
 
         {error && (
           <motion.div
@@ -444,7 +478,9 @@ export default function CheckoutPage() {
                       <input
                         type="tel"
                         value={formData.customer_phone}
-                        onChange={(e) => update('customer_phone', e.target.value)}
+                        onChange={(e) =>
+                          update('customer_phone', e.target.value)
+                        }
                         onBlur={() => handleBlur('customer_phone')}
                         placeholder="Enter your phone number"
                         required
@@ -467,7 +503,9 @@ export default function CheckoutPage() {
                       <input
                         type="email"
                         value={formData.customer_email}
-                        onChange={(e) => update('customer_email', e.target.value)}
+                        onChange={(e) =>
+                          update('customer_email', e.target.value)
+                        }
                         placeholder="Enter your email"
                         className={inputClass('customer_email', false)}
                       />
@@ -504,12 +542,16 @@ export default function CheckoutPage() {
                     </label>
                     <textarea
                       value={formData.shipping_address}
-                      onChange={(e) => update('shipping_address', e.target.value)}
+                      onChange={(e) =>
+                        update('shipping_address', e.target.value)
+                      }
                       onBlur={() => handleBlur('shipping_address')}
                       placeholder="Enter your address"
                       required
                       rows={3}
-                      className={`${inputClass('shipping_address')} resize-none`}
+                      className={`${inputClass(
+                        'shipping_address'
+                      )} resize-none`}
                     />
                     {hasError('shipping_address') && (
                       <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
@@ -548,10 +590,14 @@ export default function CheckoutPage() {
                       <div className="relative">
                         <select
                           value={formData.shipping_state}
-                          onChange={(e) => update('shipping_state', e.target.value)}
+                          onChange={(e) =>
+                            update('shipping_state', e.target.value)
+                          }
                           onBlur={() => handleBlur('shipping_state')}
                           required
-                          className={`${inputClass('shipping_state')} appearance-none pr-10 cursor-pointer`}
+                          className={`${inputClass(
+                            'shipping_state'
+                          )} appearance-none pr-10 cursor-pointer`}
                         >
                           <option value="">Select your state</option>
                           {PROVINCES.map((province) => (
@@ -561,7 +607,12 @@ export default function CheckoutPage() {
                           ))}
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                          >
                             <path
                               d="M2 4L6 8L10 4"
                               stroke="#1F4A2C"
@@ -590,14 +641,20 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         value={formData.shipping_postal_code}
-                        onChange={(e) => update('shipping_postal_code', e.target.value)}
+                        onChange={(e) =>
+                          update('shipping_postal_code', e.target.value)
+                        }
                         placeholder="Enter your postal code"
                         className={inputClass('shipping_postal_code', false)}
                       />
                     </div>
                   </div>
 
-                  <input type="hidden" value={formData.shipping_country} readOnly />
+                  <input
+                    type="hidden"
+                    value={formData.shipping_country}
+                    readOnly
+                  />
                 </div>
               </motion.div>
 
@@ -635,7 +692,9 @@ export default function CheckoutPage() {
                       name="payment_method"
                       value="cod"
                       checked={formData.payment_method === 'cod'}
-                      onChange={(e) => update('payment_method', e.target.value)}
+                      onChange={(e) =>
+                        update('payment_method', e.target.value)
+                      }
                       className="mt-0.5 accent-brand-green"
                     />
                     <div>
@@ -661,7 +720,9 @@ export default function CheckoutPage() {
                         name="payment_method"
                         value="bank_transfer"
                         checked={formData.payment_method === 'bank_transfer'}
-                        onChange={(e) => update('payment_method', e.target.value)}
+                        onChange={(e) =>
+                          update('payment_method', e.target.value)
+                        }
                         className="mt-0.5 accent-brand-green"
                       />
                       <div>
@@ -728,8 +789,16 @@ export default function CheckoutPage() {
                         <p className="text-xs sm:text-sm font-medium text-brand-text-dark line-clamp-2">
                           {item.name}
                         </p>
+
+                        {item.variantName && (
+                          <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                            Option: {item.variantName}
+                          </p>
+                        )}
+
                         <p className="text-[10px] sm:text-xs text-brand-text-muted">
-                          Qty: {item.quantity} × Rs {item.price.toLocaleString()}
+                          Qty: {item.quantity} × Rs{' '}
+                          {item.price.toLocaleString()}
                         </p>
                       </div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark shrink-0">
@@ -752,10 +821,10 @@ export default function CheckoutPage() {
                       {shipping === 0 ? 'FREE' : `Rs ${shipping.toLocaleString()}`}
                     </span>
                   </div>
-                  {shipping === 0 && freeShippingThreshold > 0 && (
+                  {shipping === 0 && (
                     <p className="text-[10px] sm:text-xs text-green-600 flex items-center gap-1">
                       <Truck size={11} />
-                      Free shipping applied!
+                      Free delivery applied!
                     </p>
                   )}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-200">

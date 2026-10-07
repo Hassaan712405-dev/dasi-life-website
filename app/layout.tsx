@@ -7,8 +7,44 @@ import ScrollProgress from '@/components/motion/ScrollProgress';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import { SettingsProvider } from '@/contexts/SettingsContext';
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
+import { GoogleAnalytics } from '@next/third-parties/google';
+import MetaPixel from '@/components/analytics/MetaPixel';
+
+// ============================================
+// ORGANIZATION SCHEMA
+// ============================================
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Dasi Life',
+  url: 'https://www.dasilife.store',
+  logo: 'https://www.dasilife.store/images/logo.png',
+  description: 'Premium Unani Herbal Wellness',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+92-342-2544495',
+    contactType: 'Customer Service',
+    areaServed: 'PK',
+    availableLanguage: ['en', 'ur'],
+  },
+};
+
+// ============================================
+// WEBSITE SCHEMA
+// ============================================
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Dasi Life',
+  url: 'https://www.dasilife.store',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://www.dasilife.store/search?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
 
 export const metadata: Metadata = {
   title: {
@@ -33,14 +69,14 @@ export const metadata: Metadata = {
   authors: [{ name: 'Dasi Life' }],
   creator: 'Dasi Life',
   publisher: 'Dasi Life',
-  metadataBase: new URL('https://dasilife.store'),
+  metadataBase: new URL('https://www.dasilife.store'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_PK',
-    url: 'https://dasilife.store',
+    url: 'https://www.dasilife.store',
     siteName: 'Dasi Life',
     title: 'Dasi Life — Premium Unani Herbal Wellness',
     description:
@@ -76,27 +112,51 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
   return (
     <html lang="en" data-scroll-behavior="smooth">
-     <body className="min-h-screen flex flex-col">
-      <Analytics />
-  <SpeedInsights />
+      <body>
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
 
-  <SettingsProvider>
-    <CartProvider>
-      <WishlistProvider>
-        <ScrollProgress />
-        <Header />
+        {/* WebSite Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
 
-        <main className="flex-1">
-          <PageTransition>{children}</PageTransition>
-        </main>
+        <Analytics />
+        <SpeedInsights />
 
-        <Footer />
-      </WishlistProvider>
-    </CartProvider>
-  </SettingsProvider>
-</body>
+        {/* Meta Pixel */}
+        <MetaPixel />
+
+        <SettingsProvider>
+          <CartProvider>
+            <WishlistProvider>
+              {/* ✅ Header pehle */}
+              <Header />
+              
+              {/* ✅ ScrollProgress header ke baad */}
+              <ScrollProgress />
+
+              {/* ✅ main pe padding — no flex */}
+              <main className="pt-[68px] sm:pt-[72px] md:pt-[76px] lg:pt-[88px]">
+                <PageTransition>{children}</PageTransition>
+              </main>
+
+              <Footer />
+            </WishlistProvider>
+          </CartProvider>
+        </SettingsProvider>
+
+        {/* Google Analytics 4 */}
+        {gaId && <GoogleAnalytics gaId={gaId} />}
+      </body>
     </html>
   );
 }

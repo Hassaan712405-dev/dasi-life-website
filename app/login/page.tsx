@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { signIn } from '@/services/auth/authService';
 import { createClient } from '@/lib/supabase/client';
@@ -183,20 +183,20 @@ function LoginForm() {
                         href="/forgot-password"
                         className="block text-xs text-brand-gold hover:text-brand-green underline"
                       >
-                        Password bhool gaye? Reset karein →
+                        Forgot password? Reset it →
                       </Link>
                       <Link
                         href="/register"
                         className="block text-xs text-brand-gold hover:text-brand-green underline"
                       >
-                        Naya account banayein →
+                        Create new account →
                       </Link>
                     </div>
                   )}
 
                   {errorType === 'email_not_confirmed' && (
                     <p className="text-xs text-amber-700 mt-2">
-                      Email nahin mili? Spam folder check karein.
+                      Email not received? Check your spam folder.
                     </p>
                   )}
                 </div>
@@ -240,9 +240,10 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-medium text-brand-gold hover:text-brand-green transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-green transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>

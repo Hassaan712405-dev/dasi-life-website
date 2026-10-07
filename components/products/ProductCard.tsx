@@ -16,6 +16,7 @@ interface ProductCardProps {
   compareAtPrice: number;
   imageUrl: string;
   productId?: string;
+  priority?: boolean;
 }
 
 export default function ProductCard({
@@ -26,6 +27,7 @@ export default function ProductCard({
   compareAtPrice,
   imageUrl,
   productId,
+  priority = false,
 }: ProductCardProps) {
   const discount =
     compareAtPrice > 0
@@ -74,7 +76,6 @@ export default function ProductCard({
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className="group relative bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-brand-green/30 transition-shadow duration-500 flex flex-col h-full"
     >
-      {/* Image */}
       <Link
         href={`/product/${slug}`}
         className="block relative overflow-hidden bg-brand-cream"
@@ -90,6 +91,7 @@ export default function ProductCard({
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover"
+            priority={priority}
           />
         </motion.div>
 
@@ -107,7 +109,6 @@ export default function ProductCard({
         )}
       </Link>
 
-      {/* Wishlist Heart */}
       <motion.button
         type="button"
         onClick={handleWishlistToggle}
@@ -137,7 +138,6 @@ export default function ProductCard({
         />
       </motion.button>
 
-      {/* Info */}
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         <Link href={`/product/${slug}`}>
           <h3 className="font-heading font-semibold text-sm sm:text-base md:text-lg text-brand-green hover:text-brand-green-light transition-colors line-clamp-2 mb-1.5 sm:mb-2">

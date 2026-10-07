@@ -38,7 +38,6 @@ export default function ContactPage() {
     setError('');
     setLoading(true);
 
-    // Validation
     if (!formData.name.trim()) {
       setError('Please enter your name.');
       setLoading(false);
@@ -60,7 +59,6 @@ export default function ContactPage() {
       return;
     }
 
-    // Submit to Supabase
     const result = await submitContactMessage({
       name: formData.name,
       email: formData.email,
@@ -76,7 +74,6 @@ export default function ContactPage() {
       return;
     }
 
-    // Success
     setFormSubmitted(true);
     setFormData({
       name: '',
@@ -115,7 +112,6 @@ export default function ContactPage() {
                 Send Us a Message
               </h2>
 
-              {/* Success Message */}
               {formSubmitted && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -137,7 +133,6 @@ export default function ContactPage() {
                 </motion.div>
               )}
 
-              {/* Error Message */}
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}

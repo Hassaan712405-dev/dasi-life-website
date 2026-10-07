@@ -83,7 +83,6 @@ export async function createProduct(
 
   const { image_url, ...productData } = data;
 
-  // Check if slug exists, append timestamp if needed
   const { data: existing } = await supabase
     .from('products')
     .select('id')
@@ -105,7 +104,6 @@ export async function createProduct(
     return { success: false, error: error.message };
   }
 
-  // Save image
   if (image_url) {
     const { error: imageError } = await supabase
       .from('product_images')
@@ -174,6 +172,79 @@ export async function deleteProduct(
   }
 
   return { success: true };
+}
+
+// ============================================
+// BULK ACTIVATE PRODUCTS
+// ============================================
+export async function bulkActivateProducts(
+  ids: string[]
+): Promise<{ success: boolean; error?: string; count?: number }> {
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  const supabase = createClient();
+
+  const { error, count } = await supabase
+    .from('products')
+    .update({ is_active: true })
+    .in('id', ids);
+
+  if (error) {
+    console.error('Bulk activate error:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, count: count || ids.length };
+}
+
+// ============================================
+// BULK DEACTIVATE PRODUCTS
+// ============================================
+export async function bulkDeactivateProducts(
+  ids: string[]
+): Promise<{ success: boolean; error?: string; count?: number }> {
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  const supabase = createClient();
+
+  const { error, count } = await supabase
+    .from('products')
+    .update({ is_active: false })
+    .in('id', ids);
+
+  if (error) {
+    console.error('Bulk deactivate error:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, count: count || ids.length };
+}
+
+// ============================================
+// BULK DELETE PRODUCTS
+// ============================================
+export async function bulkDeleteProducts(
+  ids: string[]
+): Promise<{ success: boolean; error?: string; count?: number }> {
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  const supabase = createClient();
+
+  // ✅ Delete images first (foreign key)
+  await supabase.from('product_images').delete().in('product_id', ids);
+
+  // ✅ Delete products
+  const { error, count } = await supabase
+    .from('products')
+    .delete()
+    .in('id', ids);
+
+  if (error) {
+    console.error('Bulk delete error:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, count: count || ids.length };
 }
 
 // ============================================

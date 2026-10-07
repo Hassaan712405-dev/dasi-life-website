@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { getSiteSettings } from '@/services/settings/settingsService';
 
 const menuItems = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -49,6 +50,9 @@ export default function AdminLayout({
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminName, setAdminName] = useState('Admin');
+  const [adminInitials, setAdminInitials] = useState('AD');
+  const [storeLocation, setStoreLocation] = useState('Pakistan');
   const [counts, setCounts] = useState({
     products: 0,
     orders: 0,
@@ -56,6 +60,40 @@ export default function AdminLayout({
     reviews: 0,
     messages: 0,
   });
+
+  // ✅ Load admin name from user + store location from settings
+  useEffect(() => {
+    async function loadAdminInfo() {
+      if (!user) return;
+
+      // Admin name from email
+      const email = user.email || '';
+      const namePart = email.split('@')[0];
+      const displayName = namePart
+        .replace(/[._-]/g, ' ')
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      setAdminName(displayName || 'Admin');
+
+      // Initials
+      const initials = displayName
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+      setAdminInitials(initials || 'AD');
+
+      // Store location from settings
+      const settings = await getSiteSettings();
+      if (settings?.store_address) {
+        setStoreLocation(settings.store_address);
+      }
+    }
+
+    if (user) loadAdminInfo();
+  }, [user]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -376,14 +414,14 @@ export default function AdminLayout({
               </ul>
             </nav>
 
-            {/* Admin Profile */}
+            {/* Admin Profile — ✅ DYNAMIC */}
             <div className="px-4 py-4 border-t border-white/10 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-brand-gold flex items-center justify-center text-white font-semibold text-sm shrink-0">
-                HD
+                {adminInitials}
               </div>
               <div className="min-w-0">
                 <p className="text-xs sm:text-sm font-medium truncate">
-                  Hassaan Developer
+                  {adminName}
                 </p>
                 <p className="text-[10px] sm:text-xs text-white/60 truncate">
                   Super Admin
@@ -408,8 +446,9 @@ export default function AdminLayout({
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
             <NotificationDropdown key={pathname} />
-            <span className="text-xs sm:text-sm text-brand-text-muted hidden sm:inline">
-              Mailsi, PK
+            {/* ✅ DYNAMIC LOCATION */}
+            <span className="text-xs sm:text-sm text-brand-text-muted hidden sm:inline truncate max-w-[120px]">
+              {storeLocation}
             </span>
           </div>
         </header>

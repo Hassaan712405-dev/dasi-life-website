@@ -1,7 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, ShieldCheck, Truck, CreditCard, ShoppingBag } from 'lucide-react';
+import {
+  ChevronRight,
+  ShieldCheck,
+  Truck,
+  CreditCard,
+  ShoppingBag,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
@@ -73,7 +79,7 @@ export default function CartPage() {
               <div className="space-y-3 sm:space-y-4">
                 <AnimatePresence>
                   {items.map((item) => (
-                    <CartItem key={item.productId} item={item} />
+                    <CartItem key={item.id} item={item} />
                   ))}
                 </AnimatePresence>
               </div>
@@ -82,8 +88,14 @@ export default function CartPage() {
               <FadeIn delay={0.3}>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 bg-brand-cream-dark rounded-xl p-3 sm:p-4 md:p-5 mt-5 sm:mt-6">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <ShieldCheck size={18} className="text-brand-green shrink-0 sm:hidden" />
-                    <ShieldCheck size={22} className="text-brand-green shrink-0 hidden sm:block" />
+                    <ShieldCheck
+                      size={18}
+                      className="text-brand-green shrink-0 sm:hidden"
+                    />
+                    <ShieldCheck
+                      size={22}
+                      className="text-brand-green shrink-0 hidden sm:block"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark">
                         Secure Checkout
@@ -94,8 +106,14 @@ export default function CartPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <CreditCard size={18} className="text-brand-green shrink-0 sm:hidden" />
-                    <CreditCard size={22} className="text-brand-green shrink-0 hidden sm:block" />
+                    <CreditCard
+                      size={18}
+                      className="text-brand-green shrink-0 sm:hidden"
+                    />
+                    <CreditCard
+                      size={22}
+                      className="text-brand-green shrink-0 hidden sm:block"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark">
                         Cash on Delivery
@@ -106,14 +124,20 @@ export default function CartPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Truck size={18} className="text-brand-green shrink-0 sm:hidden" />
-                    <Truck size={22} className="text-brand-green shrink-0 hidden sm:block" />
+                    <Truck
+                      size={18}
+                      className="text-brand-green shrink-0 sm:hidden"
+                    />
+                    <Truck
+                      size={22}
+                      className="text-brand-green shrink-0 hidden sm:block"
+                    />
                     <div>
                       <p className="text-xs sm:text-sm font-semibold text-brand-text-dark">
                         Free Delivery
                       </p>
                       <p className="text-[10px] sm:text-xs text-brand-text-muted">
-                        Orders above Rs. 3,000
+                        On all orders nationwide
                       </p>
                     </div>
                   </div>

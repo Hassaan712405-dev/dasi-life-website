@@ -14,7 +14,6 @@ export default async function BestsellersSection() {
   return (
     <section className="bg-white py-10 sm:py-12 md:py-16">
       <div className="container-custom">
-        {/* Header */}
         <FadeIn>
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
             <p className="text-brand-gold font-semibold text-[10px] sm:text-xs md:text-sm tracking-widest uppercase mb-2 sm:mb-3">
@@ -26,12 +25,11 @@ export default async function BestsellersSection() {
           </div>
         </FadeIn>
 
-        {/* Products Grid */}
         <Stagger
           staggerDelay={0.1}
           className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
         >
-          {products.map((product) => (
+          {products.map((product, index) => (
             <StaggerItem key={product.id}>
               <ProductCard
                 name={product.name}
@@ -41,6 +39,7 @@ export default async function BestsellersSection() {
                 compareAtPrice={product.compare_at_price || product.price}
                 imageUrl={getProductImageUrl(product)}
                 productId={product.id}
+                priority={index < 4}
               />
             </StaggerItem>
           ))}

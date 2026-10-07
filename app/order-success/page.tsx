@@ -6,9 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
+import { trackPurchase } from '@/lib/analytics/events';
 import type { OrderWithItems } from '@/types/order';
 
-// ✅ YEH LINE ZAROORI HAI — page ko static prerender hone se rokegi
 export const dynamic = 'force-dynamic';
 
 function OrderSuccessContent() {
@@ -18,6 +18,7 @@ function OrderSuccessContent() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [tracked, setTracked] = useState(false);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -29,6 +30,7 @@ function OrderSuccessContent() {
 
       const supabase = createClient();
 
+      // ✅ Public read for order success (order_number based)
       const { data, error: fetchError } = await supabase
         .from('orders')
         .select('*, order_items(*)')
@@ -47,6 +49,23 @@ function OrderSuccessContent() {
 
     fetchOrder();
   }, [orderNumber]);
+
+  useEffect(() => {
+    if (order && !tracked) {
+      trackPurchase({
+        orderNumber: order.order_number,
+        total: order.total,
+        items: order.order_items.map((item) => ({
+          id: item.product_id || item.id,
+          name: item.product_name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      });
+      setTracked(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order]);
 
   if (loading) {
     return (
@@ -179,6 +198,9 @@ function OrderSuccessContent() {
                   <p className="text-xs sm:text-sm text-brand-text-dark">
                     <span className="font-medium">{item.quantity}x</span>{' '}
                     {item.product_name}
+                    {item.variant_name && (
+                      <span className="text-brand-text-muted"> — {item.variant_name}</span>
+                    )}
                   </p>
                   <p className="text-xs sm:text-sm font-semibold text-brand-text-dark shrink-0">
                     Rs {item.subtotal.toLocaleString()}

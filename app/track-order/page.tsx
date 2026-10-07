@@ -32,31 +32,31 @@ const timelineSteps: {
   {
     status: 'pending',
     title: 'Order Placed',
-    description: 'Aap ka order receive ho gaya hai aur confirm hone ka intezar hai.',
+    description: 'Your order has been received and is awaiting confirmation.',
     icon: Clock,
   },
   {
     status: 'confirmed',
     title: 'Order Confirmed',
-    description: 'Order verify ho gaya hai aur tayyari shuru ho gayi hai.',
+    description: 'Your order has been verified and preparation has started.',
     icon: CheckCircle2,
   },
   {
     status: 'processing',
     title: 'Processing',
-    description: 'Aap ka order pack kiya ja raha hai.',
+    description: 'Your order is being carefully packed.',
     icon: Package,
   },
   {
     status: 'shipped',
     title: 'Shipped',
-    description: 'Order courier ko de diya gaya hai. Jald pahuchega.',
+    description: 'Your order has been handed to the courier. It will arrive soon.',
     icon: Truck,
   },
   {
     status: 'delivered',
     title: 'Delivered',
-    description: 'Order successfully deliver ho gaya. Shukriya!',
+    description: 'Your order has been successfully delivered. Thank you!',
     icon: CheckCircle2,
   },
 ];
@@ -291,7 +291,7 @@ function TrackOrderContent() {
                 Track Your Order
               </h1>
               <p className="text-xs sm:text-sm md:text-base text-brand-text-muted max-w-md mx-auto leading-relaxed">
-                Apna order number daalein aur real-time status check karein.
+                Enter your order number to check your order status in real-time.
               </p>
             </div>
 

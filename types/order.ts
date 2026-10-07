@@ -6,14 +6,22 @@ export type OrderStatus =
   | 'delivered'
   | 'cancelled';
 
+// ============================================
+// ORDER ITEM INPUT (createOrder ke liye)
+// ============================================
 export interface OrderItemInput {
   productId: string;
+  variantId?: string;         // ← NEW
   productName: string;
+  variantName?: string;       // ← NEW
   price: number;
   quantity: number;
   imageUrl?: string;
 }
 
+// ============================================
+// CREATE ORDER INPUT
+// ============================================
 export interface CreateOrderInput {
   customerName: string;
   customerNameUrdu?: string;
@@ -36,6 +44,9 @@ export interface CreateOrderInput {
   notes?: string;
 }
 
+// ============================================
+// ORDER RECORD
+// ============================================
 export interface OrderRecord {
   id: string;
   order_number: string;
@@ -64,21 +75,32 @@ export interface OrderRecord {
   updated_at: string;
 }
 
+// ============================================
+// ORDER ITEM RECORD (DB se aata hai)
+// ============================================
 export interface OrderItemRecord {
   id: string;
   order_id: string;
   product_id: string | null;
+  variant_id: string | null;     // ← NEW
   product_name: string;
   variant_name: string | null;
   price: number;
   quantity: number;
   subtotal: number;
+  image_url?: string | null;     // ← NEW (optional)
 }
 
+// ============================================
+// ORDER WITH ITEMS
+// ============================================
 export interface OrderWithItems extends OrderRecord {
   order_items: OrderItemRecord[];
 }
 
+// ============================================
+// CREATE ORDER RESULT
+// ============================================
 export interface CreateOrderResult {
   success: boolean;
   orderNumber?: string;
