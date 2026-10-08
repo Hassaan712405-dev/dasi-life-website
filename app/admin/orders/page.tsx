@@ -148,7 +148,7 @@ export default function AdminOrdersPage() {
         </div>
       </motion.div>
 
-      {/* Table */}
+      {/* Orders List */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -168,86 +168,173 @@ export default function AdminOrdersPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
-              <thead>
-                <tr className="bg-gray-50 text-[10px] sm:text-xs font-semibold text-brand-text-muted uppercase tracking-wide border-b border-gray-200">
-                  <th className="text-left px-3 sm:px-4 py-3">Order</th>
-                  <th className="text-left px-3 sm:px-4 py-3">Customer</th>
-                  <th className="text-left px-3 sm:px-4 py-3">Phone</th>
-                  <th className="text-left px-3 sm:px-4 py-3">Total</th>
-                  <th className="text-left px-3 sm:px-4 py-3">Status</th>
-                  <th className="text-left px-3 sm:px-4 py-3">Date</th>
-                  <th className="text-right px-3 sm:px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order, index) => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.03 }}
-                    className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium text-brand-text-dark">
-                      #{order.order_number}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-dark truncate max-w-[120px]">
-                      {order.customer_name}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-muted">
-                      {order.customer_phone}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-brand-text-dark whitespace-nowrap">
-                      Rs {order.total.toLocaleString()}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3">
-                      {updatingId === order.id ? (
-                        <div className="flex items-center gap-2 text-[10px] sm:text-xs text-brand-text-muted">
-                          <Loader2 size={12} className="animate-spin" />
-                          Updating...
+          <>
+            {/* ============================================ */}
+            {/* DESKTOP TABLE — hidden on mobile (md+)     */}
+            {/* ============================================ */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead>
+                  <tr className="bg-gray-50 text-[10px] sm:text-xs font-semibold text-brand-text-muted uppercase tracking-wide border-b border-gray-200">
+                    <th className="text-left px-4 py-3">Order</th>
+                    <th className="text-left px-4 py-3">Customer</th>
+                    <th className="text-left px-4 py-3">Phone</th>
+                    <th className="text-left px-4 py-3">Total</th>
+                    <th className="text-left px-4 py-3">Status</th>
+                    <th className="text-left px-4 py-3">Date</th>
+                    <th className="text-right px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map((order, index) => (
+                    <motion.tr
+                      key={order.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.03 }}
+                      className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-sm font-medium text-brand-text-dark">
+                        #{order.order_number}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-brand-text-dark truncate max-w-[120px]">
+                        {order.customer_name}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-brand-text-muted">
+                        {order.customer_phone}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-brand-text-dark whitespace-nowrap">
+                        Rs {order.total.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {updatingId === order.id ? (
+                          <div className="flex items-center gap-2 text-xs text-brand-text-muted">
+                            <Loader2 size={12} className="animate-spin" />
+                            Updating...
+                          </div>
+                        ) : (
+                          <select
+                            value={order.status}
+                            onChange={(e) =>
+                              handleStatusChange(order.id, e.target.value as OrderStatus)
+                            }
+                            className={`${getStatusColor(order.status)} text-xs font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-green`}
+                          >
+                            {statusOptions.map((s) => (
+                              <option key={s} value={s}>
+                                {capitalize(s)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-brand-text-muted whitespace-nowrap">
+                        {new Date(order.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setViewingOrder(order)}
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-green border border-brand-green rounded-md px-3 py-1.5 hover:bg-brand-green hover:text-white transition-colors"
+                          >
+                            <Eye size={12} />
+                            View
+                          </button>
                         </div>
-                      ) : (
-                        <select
-                          value={order.status}
-                          onChange={(e) =>
-                            handleStatusChange(order.id, e.target.value as OrderStatus)
-                          }
-                          className={`${getStatusColor(order.status)} text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-green`}
-                        >
-                          {statusOptions.map((s) => (
-                            <option key={s} value={s}>
-                              {capitalize(s)}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-muted whitespace-nowrap">
-                      {new Date(order.created_at).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3">
-                      <div className="flex items-center justify-end">
-                        <button
-                          type="button"
-                          onClick={() => setViewingOrder(order)}
-                          className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-brand-green border border-brand-green rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 hover:bg-brand-green hover:text-white transition-colors"
-                        >
-                          <Eye size={11} />
-                          View
-                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ============================================ */}
+            {/* MOBILE CARDS — hidden on desktop            */}
+            {/* ============================================ */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {filteredOrders.map((order, index) => (
+                <motion.div
+                  key={order.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.03 }}
+                  className="p-4 space-y-3"
+                >
+                  {/* Top row: Order # + Date */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-bold text-brand-text-dark">
+                        #{order.order_number}
+                      </p>
+                      <p className="text-[10px] text-brand-text-muted mt-0.5">
+                        {new Date(order.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                    {updatingId === order.id ? (
+                      <div className="flex items-center gap-1.5 text-[10px] text-brand-text-muted">
+                        <Loader2 size={12} className="animate-spin" />
+                        Updating...
                       </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    ) : (
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          handleStatusChange(order.id, e.target.value as OrderStatus)
+                        }
+                        className={`${getStatusColor(order.status)} text-[10px] font-semibold px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-green`}
+                      >
+                        {statusOptions.map((s) => (
+                          <option key={s} value={s}>
+                            {capitalize(s)}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Customer info */}
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-brand-text-dark">
+                      {order.customer_name}
+                    </p>
+                    <p className="text-xs text-brand-text-muted flex items-center gap-1.5">
+                      <Phone size={11} className="text-brand-green" />
+                      {order.customer_phone}
+                    </p>
+                  </div>
+
+                  {/* Total + View button */}
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      <p className="text-[10px] text-brand-text-muted uppercase tracking-wide">
+                        Total
+                      </p>
+                      <p className="text-base font-bold text-brand-green">
+                        Rs {order.total.toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewingOrder(order)}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-brand-green rounded-md px-4 py-2.5 hover:bg-black transition-colors shadow-sm"
+                    >
+                      <Eye size={13} />
+                      View Details
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
         )}
       </motion.div>
 
@@ -272,8 +359,8 @@ export default function AdminOrdersPage() {
             >
               {/* Header */}
               <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10 rounded-t-xl">
-                <div>
-                  <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green">
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green truncate">
                     Order #{viewingOrder.order_number}
                   </h2>
                   <p className="text-[10px] sm:text-xs text-brand-text-muted">
@@ -286,22 +373,24 @@ export default function AdminOrdersPage() {
                     })}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* PRINT BUTTON */}
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
+                  {/* PRINT BUTTON — mobile par sirf icon */}
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="inline-flex items-center gap-1.5 bg-brand-green hover:bg-black text-white text-[10px] sm:text-xs font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-md transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-brand-green hover:bg-black text-white text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1.5 sm:py-2 rounded-md transition-colors"
                   >
                     <Printer size={12} />
-                    Print Label
+                    <span className="hidden sm:inline">Print Label</span>
+                    <span className="sm:hidden">Print</span>
                   </button>
 
                   {/* CLOSE BUTTON */}
                   <button
                     type="button"
                     onClick={() => setViewingOrder(null)}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors shrink-0"
+                    aria-label="Close"
                   >
                     <X size={16} />
                   </button>
@@ -330,12 +419,12 @@ export default function AdminOrdersPage() {
                   <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                     <p className="font-medium text-brand-text-dark">{viewingOrder.customer_name}</p>
                     <p className="flex items-center gap-2 text-brand-text-muted">
-                      <Phone size={12} className="text-brand-green" />
+                      <Phone size={12} className="text-brand-green shrink-0" />
                       {viewingOrder.customer_phone}
                     </p>
                     {viewingOrder.customer_email && (
                       <p className="flex items-center gap-2 text-brand-text-muted">
-                        <Mail size={12} className="text-brand-green" />
+                        <Mail size={12} className="text-brand-green shrink-0" />
                         <span className="break-all">{viewingOrder.customer_email}</span>
                       </p>
                     )}
