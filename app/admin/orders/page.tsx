@@ -265,7 +265,7 @@ export default function AdminOrdersPage() {
                   transition={{ duration: 0.3, delay: index * 0.03 }}
                   className="p-4 space-y-3"
                 >
-                  {/* Top row: Order # + Date */}
+                  {/* Top row: Order # + Status */}
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-bold text-brand-text-dark">
@@ -313,8 +313,8 @@ export default function AdminOrdersPage() {
                   </div>
 
                   {/* Total + View button */}
-                  <div className="flex items-center justify-between pt-1">
-                    <div>
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <div className="shrink-0">
                       <p className="text-[10px] text-brand-text-muted uppercase tracking-wide">
                         Total
                       </p>
@@ -325,10 +325,10 @@ export default function AdminOrdersPage() {
                     <button
                       type="button"
                       onClick={() => setViewingOrder(order)}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-brand-green rounded-md px-4 py-2.5 hover:bg-black transition-colors shadow-sm"
+                      className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-brand-green rounded-md px-4 py-2.5 hover:bg-black active:scale-95 transition-all shadow-sm shrink-0"
                     >
                       <Eye size={13} />
-                      View Details
+                      View
                     </button>
                   </div>
                 </motion.div>
@@ -358,12 +358,12 @@ export default function AdminOrdersPage() {
               className="bg-white rounded-xl max-w-2xl w-full my-4 sm:my-8"
             >
               {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10 rounded-t-xl">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 z-10 rounded-t-xl">
                 <div className="min-w-0 flex-1">
                   <h2 className="font-heading font-semibold text-base sm:text-xl text-brand-green truncate">
                     Order #{viewingOrder.order_number}
                   </h2>
-                  <p className="text-[10px] sm:text-xs text-brand-text-muted">
+                  <p className="text-[10px] sm:text-xs text-brand-text-muted truncate">
                     {new Date(viewingOrder.created_at).toLocaleString('en-US', {
                       month: 'long',
                       day: 'numeric',
@@ -373,16 +373,15 @@ export default function AdminOrdersPage() {
                     })}
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
-                  {/* PRINT BUTTON — mobile par sirf icon */}
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  {/* PRINT BUTTON */}
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="inline-flex items-center gap-1.5 bg-brand-green hover:bg-black text-white text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1.5 sm:py-2 rounded-md transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-brand-green hover:bg-black text-white text-[10px] sm:text-xs font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-md transition-colors"
                   >
                     <Printer size={12} />
-                    <span className="hidden sm:inline">Print Label</span>
-                    <span className="sm:hidden">Print</span>
+                    <span className="hidden sm:inline">Print</span>
                   </button>
 
                   {/* CLOSE BUTTON */}
