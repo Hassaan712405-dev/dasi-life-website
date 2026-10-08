@@ -170,19 +170,19 @@ export default function AdminOrdersPage() {
         ) : (
           <>
             {/* ============================================ */}
-            {/* DESKTOP TABLE — hidden on mobile (md+)     */}
+            {/* DESKTOP TABLE — sirf desktop/tablet par      */}
             {/* ============================================ */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="bg-gray-50 text-[10px] sm:text-xs font-semibold text-brand-text-muted uppercase tracking-wide border-b border-gray-200">
-                    <th className="text-left px-4 py-3">Order</th>
-                    <th className="text-left px-4 py-3">Customer</th>
-                    <th className="text-left px-4 py-3">Phone</th>
-                    <th className="text-left px-4 py-3">Total</th>
-                    <th className="text-left px-4 py-3">Status</th>
-                    <th className="text-left px-4 py-3">Date</th>
-                    <th className="text-right px-4 py-3">Actions</th>
+                    <th className="text-left px-3 sm:px-4 py-3">Order</th>
+                    <th className="text-left px-3 sm:px-4 py-3">Customer</th>
+                    <th className="text-left px-3 sm:px-4 py-3">Phone</th>
+                    <th className="text-left px-3 sm:px-4 py-3">Total</th>
+                    <th className="text-left px-3 sm:px-4 py-3">Status</th>
+                    <th className="text-left px-3 sm:px-4 py-3">Date</th>
+                    <th className="text-right px-3 sm:px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -194,21 +194,21 @@ export default function AdminOrdersPage() {
                       transition={{ duration: 0.3, delay: index * 0.03 }}
                       className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3 text-sm font-medium text-brand-text-dark">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium text-brand-text-dark">
                         #{order.order_number}
                       </td>
-                      <td className="px-4 py-3 text-sm text-brand-text-dark truncate max-w-[120px]">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-dark truncate max-w-[120px]">
                         {order.customer_name}
                       </td>
-                      <td className="px-4 py-3 text-sm text-brand-text-muted">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-muted">
                         {order.customer_phone}
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-brand-text-dark whitespace-nowrap">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-brand-text-dark whitespace-nowrap">
                         Rs {order.total.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         {updatingId === order.id ? (
-                          <div className="flex items-center gap-2 text-xs text-brand-text-muted">
+                          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-brand-text-muted">
                             <Loader2 size={12} className="animate-spin" />
                             Updating...
                           </div>
@@ -218,7 +218,7 @@ export default function AdminOrdersPage() {
                             onChange={(e) =>
                               handleStatusChange(order.id, e.target.value as OrderStatus)
                             }
-                            className={`${getStatusColor(order.status)} text-xs font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-green`}
+                            className={`${getStatusColor(order.status)} text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-green`}
                           >
                             {statusOptions.map((s) => (
                               <option key={s} value={s}>
@@ -228,21 +228,21 @@ export default function AdminOrdersPage() {
                           </select>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-brand-text-muted whitespace-nowrap">
+                      <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-brand-text-muted whitespace-nowrap">
                         {new Date(order.created_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                         })}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <div className="flex items-center justify-end">
                           <button
                             type="button"
                             onClick={() => setViewingOrder(order)}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-green border border-brand-green rounded-md px-3 py-1.5 hover:bg-brand-green hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-brand-green border border-brand-green rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 hover:bg-brand-green hover:text-white transition-colors"
                           >
-                            <Eye size={12} />
+                            <Eye size={11} />
                             View
                           </button>
                         </div>
@@ -254,7 +254,7 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* ============================================ */}
-            {/* MOBILE CARDS — hidden on desktop            */}
+            {/* MOBILE CARDS — sirf mobile par                */}
             {/* ============================================ */}
             <div className="md:hidden divide-y divide-gray-100">
               {filteredOrders.map((order, index) => (
@@ -265,7 +265,7 @@ export default function AdminOrdersPage() {
                   transition={{ duration: 0.3, delay: index * 0.03 }}
                   className="p-4 space-y-3"
                 >
-                  {/* Top row: Order # + Status */}
+                  {/* Order # + Status */}
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-bold text-brand-text-dark">
@@ -301,7 +301,7 @@ export default function AdminOrdersPage() {
                     )}
                   </div>
 
-                  {/* Customer info */}
+                  {/* Customer */}
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-brand-text-dark">
                       {order.customer_name}
@@ -312,7 +312,7 @@ export default function AdminOrdersPage() {
                     </p>
                   </div>
 
-                  {/* Total + View button */}
+                  {/* Total + View Button */}
                   <div className="flex items-center justify-between gap-3 pt-1">
                     <div className="shrink-0">
                       <p className="text-[10px] text-brand-text-muted uppercase tracking-wide">
