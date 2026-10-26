@@ -1,0 +1,52 @@
+﻿=== DESI LIFE WEBSITE AUDIT ===
+Date: 10/02/2026 18:06:49
+
+=== NODE/NPM ===
+Node: v24.21.0
+NPM: 11.19.0
+
+=== TYPESCRIPT ===
+.next/dev/types/validator.ts(17,39): error TS1434: Unexpected keyword or identifier.
+
+=== ESLINT ===
+
+> dasi-life-website@1.0.0 lint
+> next lint
+
+node.exe : Invalid project directory provided, no such directory: C:\Users\HASSAAN\OneDrive\Desktop\dasi-life-website\lint
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Invalid project...fe-website\lint:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+=== BUILD ===
+
+> dasi-life-website@1.0.0 build
+> next build
+
+Γû▓ Next.js 16.3.6 (Turbopack)
+- Environments: .env.local
+node.exe : ΓÜá Warning: Next.js ignored package-lock.json in C:\Users\HASSAAN because it is outside the current Git repository 
+(C:\Users\HASSAAN\OneDrive\Desktop\dasi-life-website).
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ΓÜá Warning: Ne...-life-website).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+Γ£ô Running next.config.js took 66ms
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 1488ms
+  Running TypeScript ...
+.next/dev/types/validator.ts(17,39): error TS1434: Unexpected keyword or identifier.
+Failed to type check.
+
+
+=== DEAD CODE ===
+Console.logs:
+853

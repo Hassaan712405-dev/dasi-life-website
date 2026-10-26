@@ -1,0 +1,384 @@
+/* ---------- Fonts (must be first) ---------- */
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- Variables ---------- */
+:root {
+  --font-heading: 'Clash Display', sans-serif;
+  --font-body: 'Satoshi', sans-serif;
+  --font-accent: 'Bricolage Grotesque', sans-serif;
+  
+  /* Colors */
+  --color-primary: #1B5E20;
+  --color-primary-hover: #0D0D0D;
+  --color-gold: #C9A961;
+  --color-black: #0D0D0D;
+  --color-cream: #F5F0E8;
+  --color-white: #FFFFFF;
+  --color-text-dark: #1A1A1A;
+  --color-text-muted: #6B6B6B;
+  
+  /* Navbar Height (Default Mobile) */
+  --navbar-height: 68px;
+}
+
+@media (min-width: 640px) {
+  :root { --navbar-height: 72px; }
+}
+@media (min-width: 768px) {
+  :root { --navbar-height: 76px; }
+}
+@media (min-width: 1024px) {
+  :root { --navbar-height: 88px; }
+}
+
+/* ============================================ */
+/* GLOBAL PRIMARY COLOR OVERRIDES (#1B5E20)     */
+/* ============================================ */
+
+/* Buttons */
+.bg-brand-green,
+.btn-primary,
+button.bg-brand-green,
+a.bg-brand-green {
+  background-color: var(--color-primary) !important;
+}
+
+.hover\:bg-brand-green:hover {
+  background-color: var(--color-primary) !important;
+}
+
+/* Green text */
+.text-brand-green {
+  color: var(--color-primary) !important;
+}
+
+.hover\:text-brand-green:hover {
+  color: var(--color-primary) !important;
+}
+
+/* Border */
+.border-brand-green {
+  border-color: var(--color-primary) !important;
+}
+
+/* Links & focus rings */
+.ring-brand-green:focus {
+  --tw-ring-color: var(--color-primary) !important;
+}
+
+/* Badges */
+.bg-brand-green\/10 {
+  background-color: rgba(27, 94, 32, 0.1) !important;
+}
+
+/* Headings (h1, h2, h3, h4, h5, h6) */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-primary);
+}
+
+.font-heading.text-brand-green,
+h2.text-brand-green,
+h3.text-brand-green {
+  color: var(--color-primary) !important;
+}
+
+/* Explore All Products button hover */
+a[href="/shop"]:hover {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: #F5F0E8;
+  color: #1A1A1A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Accent ---------- */
+.font-accent {
+  font-family: var(--font-accent);
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #EBE4D6;
+}
+::-webkit-scrollbar-thumb {
+  background: #1B5E20;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0D0D0D;
+}
+
+/* ---------- Utility ---------- */
+.container-custom {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ============================================
+   BUTTON SYSTEM
+   ============================================ */
+
+.btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  background-color: #1B5E20;
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #1B5E20;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  z-index: 0;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #0D0D0D;
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-primary:hover {
+  color: #FFFFFF;
+  border-color: #0D0D0D;
+}
+
+.btn-primary:hover::before {
+  width: 100%;
+}
+
+.btn-secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  background-color: #FFFFFF;
+  color: #1B5E20;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #1B5E20;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  z-index: 0;
+}
+
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #0D0D0D;
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-secondary:hover {
+  color: #FFFFFF;
+  border-color: #0D0D0D;
+}
+
+.btn-secondary:hover::before {
+  width: 100%;
+}
+
+.btn-small {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  background-color: #1B5E20;
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.625rem 1rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #1B5E20;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  z-index: 0;
+  width: 100%;
+}
+
+.btn-small::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #0D0D0D;
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-small:hover {
+  color: #FFFFFF;
+  border-color: #0D0D0D;
+}
+
+.btn-small:hover::before {
+  width: 100%;
+}
+
+/* ============================================
+   MARQUEE
+   ============================================ */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+.marquee-container:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+/* ============================================ */
+/* HERO CAROUSEL — sizing + animations          */
+/* ============================================ */
+.hero-wrapper {
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.hero-carousel {
+  position: relative;
+  width: 100%;
+  height: calc(100svh - var(--navbar-height));
+  min-height: 420px;
+  overflow: hidden;
+  background-color: #0D0D0D;
+}
+
+/* Image zoom animation */
+@keyframes hero-zoom {
+  from { transform: scale(1.04); }
+  to   { transform: scale(1.12); }
+}
+
+.hero-zoom {
+  transform: scale(1.04);
+  transition: transform 0.8s ease-out;
+  will-change: transform;
+}
+
+.hero-zoom.is-active {
+  animation: hero-zoom 7s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-zoom,
+  .hero-zoom.is-active {
+    animation: none;
+    transform: scale(1);
+    transition: none;
+  }
+}
+
+/* ============================================ */
+/* PRINT STYLES */
+/* ============================================ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-label,
+  #print-label * {
+    visibility: visible;
+  }
+  #print-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+.urdu-text {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+  direction: rtl;
+  line-height: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
