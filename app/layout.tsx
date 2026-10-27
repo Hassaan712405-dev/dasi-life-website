@@ -89,10 +89,15 @@ export const metadata: Metadata = {
     description:
       'Premium Desi-inspired herbal wellness bridging traditional Unani formulations with modern laboratory standards.',
   },
+  // ✅ NAYA PROFESSIONAL FAVICON SETUP
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-icon.png',
+    icon: [
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/icons/favicon-16x16.png',
+    apple: '/icons/apple-touch-icon.png',
   },
   manifest: '/manifest.webmanifest',
   robots: {
