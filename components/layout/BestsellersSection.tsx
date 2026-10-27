@@ -48,16 +48,18 @@ export default function BestsellersSection() {
     <section className="py-16 bg-[#FDFBF7]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
         
+        {/* Section Heading */}
         <div className="text-center mb-10">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-[#1B5E20] mb-3">
             Our Products
           </h2>
           <p className="text-brand-text-muted text-sm sm:text-base max-w-md mx-auto">
-            &ldquo;Pure herbal care, naturally sourced&rdquo;
+            “Pure herbal care, naturally sourced”
           </p>
           <div className="w-16 h-[2px] bg-[#C9A961] mx-auto mt-6" />
         </div>
 
+        {/* Product Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {products.map((product) => (
             <ProductCard
@@ -74,7 +76,7 @@ export default function BestsellersSection() {
           ))}
         </div>
 
-        {/* ✅ Explore All Products */}
+        {/* ✅ Explore All Products Button */}
         <div className="text-center mt-12">
           <Link 
             href="/shop" 

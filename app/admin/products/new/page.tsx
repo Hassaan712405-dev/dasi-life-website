@@ -50,6 +50,7 @@ export default function NewProductPage() {
     loadCategories();
   }, []);
 
+  // ✅ Auto-generate slug from name
   useEffect(() => {
     if (formData.name && !formData.slug) {
       setFormData((prev: any) => ({ ...prev, slug: slugify(prev.name) }));
@@ -60,6 +61,13 @@ export default function NewProductPage() {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
+  // ✅ Custom slug change handler (saaf slug banata hai)
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Live mein brackets aur spaces hatao
+    const cleanValue = slugify(e.target.value);
+    update('slug', cleanValue);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -68,10 +76,13 @@ export default function NewProductPage() {
       setError('Product name is required.');
       return;
     }
-    if (!formData.slug.trim()) {
-      setError('Slug is required.');
+    
+    const finalSlug = slugify(formData.slug || formData.name);
+    if (!finalSlug) {
+      setError('Valid slug is required.');
       return;
     }
+
     if (formData.price <= 0) {
       setError('Price must be greater than 0.');
       return;
@@ -85,6 +96,7 @@ export default function NewProductPage() {
 
     const result = await createProduct({
       ...formData,
+      slug: finalSlug,
       image_url: null,
     });
 
@@ -182,10 +194,13 @@ export default function NewProductPage() {
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => update('slug', e.target.value)}
+                onChange={handleSlugChange} 
                 required
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
+              <p className="text-[10px] text-brand-text-muted mt-1">
+                Only lowercase letters, numbers, and hyphens allowed.
+              </p>
             </div>
 
             <div>
@@ -230,9 +245,6 @@ export default function NewProductPage() {
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
                 placeholder="Full product description that appears on the product page..."
               />
-              <p className="text-xs text-brand-text-muted mt-2">
-                This appears in the "Description" section on the product details page.
-              </p>
             </div>
           )}
         </div>
@@ -262,16 +274,13 @@ export default function NewProductPage() {
                 onChange={(e) => update('usage_instructions', e.target.value)}
                 rows={5}
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
-                placeholder="Enter each step on a new line (one step per line)..."
+                placeholder="Enter each step on a new line..."
               />
-              <p className="text-xs text-brand-text-muted mt-2">
-                Each line becomes a numbered step in the "How to Use" section on the product page.
-              </p>
             </div>
           )}
         </div>
 
-        {/* Specifications — Only Expire Life + Video URL */}
+        {/* Specifications */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-heading font-semibold text-lg text-brand-green">
@@ -294,7 +303,7 @@ export default function NewProductPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.shelf_life || ''}
+                  value={formData.shelf_life}
                   onChange={(e) => update('shelf_life', e.target.value)}
                   className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
                   placeholder="e.g., 24 months"
@@ -307,10 +316,10 @@ export default function NewProductPage() {
                 </label>
                 <input
                   type="url"
-                  value={formData.video_url || ''}
+                  value={formData.video_url}
                   onChange={(e) => update('video_url', e.target.value)}
                   className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                  placeholder="https://youtube.com/watch?v=... or https://...mp4"
+                  placeholder="https://youtube.com/watch?v=..."
                 />
               </div>
             </div>

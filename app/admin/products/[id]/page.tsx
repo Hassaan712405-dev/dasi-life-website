@@ -10,6 +10,7 @@ import {
   getProductImages,
   updateProductImages,
   getAllCategories,
+  slugify,
   ProductImageData,
 } from '@/services/admin/productAdmin';
 import ProductImageManager from '@/components/admin/ProductImageManager';
@@ -83,6 +84,11 @@ export default function EditProductPage() {
     setFormData((prev: any) => (prev ? { ...prev, [field]: value } : prev));
   };
 
+  // ✅ Custom slug change handler
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    update('slug', slugify(e.target.value));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
@@ -92,6 +98,13 @@ export default function EditProductPage() {
       setError('Product name is required.');
       return;
     }
+    
+    const finalSlug = slugify(formData.slug || formData.name);
+    if (!finalSlug) {
+      setError('Valid slug is required.');
+      return;
+    }
+
     if (formData.price <= 0) {
       setError('Price must be greater than 0.');
       return;
@@ -103,7 +116,10 @@ export default function EditProductPage() {
 
     setSaving(true);
 
-    const result = await updateProduct(id, formData);
+    const result = await updateProduct(id, {
+      ...formData,
+      slug: finalSlug,
+    });
 
     if (!result.success) {
       setError(result.error || 'Failed to update product.');
@@ -219,10 +235,13 @@ export default function EditProductPage() {
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => update('slug', e.target.value)}
+                onChange={handleSlugChange} 
                 required
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
+              <p className="text-[10px] text-brand-text-muted mt-1">
+                Only lowercase letters, numbers, and hyphens allowed.
+              </p>
             </div>
 
             <div>
@@ -294,16 +313,12 @@ export default function EditProductPage() {
                 onChange={(e) => update('usage_instructions', e.target.value)}
                 rows={5}
                 className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
-                placeholder="Enter each step on a new line..."
               />
-              <p className="text-xs text-brand-text-muted mt-2">
-                Each line becomes a numbered step in the "How to Use" section.
-              </p>
             </div>
           )}
         </div>
 
-        {/* Specifications — Only Expire Life + Video URL */}
+        {/* Specifications */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-heading font-semibold text-lg text-brand-green">
@@ -326,10 +341,9 @@ export default function EditProductPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.shelf_life || ''}
+                  value={formData.shelf_life}
                   onChange={(e) => update('shelf_life', e.target.value)}
                   className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                  placeholder="e.g., 24 months"
                 />
               </div>
 
@@ -339,10 +353,9 @@ export default function EditProductPage() {
                 </label>
                 <input
                   type="url"
-                  value={formData.video_url || ''}
+                  value={formData.video_url}
                   onChange={(e) => update('video_url', e.target.value)}
                   className="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
-                  placeholder="https://..."
                 />
               </div>
             </div>

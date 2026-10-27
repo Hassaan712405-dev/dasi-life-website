@@ -2,6 +2,18 @@ import { createPublicClient } from '@/lib/supabase/public';
 import type { Product } from '@/types/database';
 
 // ============================================
+// HELPER: Clean slug for URL
+// ============================================
+function formatSlug(slug: string): string {
+  return decodeURIComponent(slug)
+    .toLowerCase()
+    .replace(/[()]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// ============================================
 // GET PRODUCTS
 // ============================================
 export async function getProducts(options: {
@@ -13,7 +25,6 @@ export async function getProducts(options: {
 } = {}): Promise<Product[]> {
   const supabase = createPublicClient();
 
-  // ✅ Base query — product_images MUST be included
   let query = supabase
     .from('products')
     .select(`
@@ -22,7 +33,6 @@ export async function getProducts(options: {
     `)
     .eq('is_active', true);
 
-  // Category filter
   if (options.categorySlug) {
     const { data: category } = await supabase
       .from('categories')
@@ -35,7 +45,6 @@ export async function getProducts(options: {
     }
   }
 
-  // Price filter
   if (options.minPrice !== undefined) {
     query = query.gte('price', options.minPrice);
   }
@@ -43,7 +52,6 @@ export async function getProducts(options: {
     query = query.lte('price', options.maxPrice);
   }
 
-  // Sort
   switch (options.sortBy) {
     case 'price-asc':
       query = query.order('price', { ascending: true });
@@ -60,7 +68,6 @@ export async function getProducts(options: {
       break;
   }
 
-  // Limit
   if (options.limit) {
     query = query.limit(options.limit);
   }
@@ -80,24 +87,63 @@ export async function getProducts(options: {
 // ============================================
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const supabase = createPublicClient();
+  const cleanSlug = formatSlug(slug);
 
-  const { data, error } = await supabase
+  // ✅ 1. Pehle product fetch karein (bina images ke) taake details load hon
+  const { data: productData, error: productError } = await supabase
     .from('products')
-    .select(`
-      *,
-      product_images ( id, url, alt, sort_order, is_primary ),
-      product_variants ( * )
-    `)
-    .eq('slug', slug)
+    .select('*')
+    .eq('slug', cleanSlug)
     .eq('is_active', true)
-    .single();
+    .maybeSingle(); // maybeSingle use karein taake error na aaye agar 0 rows hon
 
-  if (error) {
-    console.error('getProductBySlug error:', error);
+  if (productError) {
+    console.error('getProductBySlug error:', productError);
     return null;
   }
 
-  return data as Product;
+  // Agar clean slug se nahi mila, to fallback try karein
+  if (!productData) {
+    const originalSlug = decodeURIComponent(slug).toLowerCase();
+    const { data: fallbackData } = await supabase
+      .from('products')
+      .select('*')
+      .eq('slug', originalSlug)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (fallbackData) {
+      return await attachImagesAndVariants(supabase, fallbackData);
+    }
+    return null;
+  }
+
+  return await attachImagesAndVariants(supabase, productData);
+}
+
+// ============================================
+// HELPER: Attach Images & Variants Safely
+// ============================================
+async function attachImagesAndVariants(supabase: any, product: any): Promise<Product> {
+  // 1. Fetch Images
+  const { data: images } = await supabase
+    .from('product_images')
+    .select('id, url, alt, sort_order, is_primary')
+    .eq('product_id', product.id)
+    .order('sort_order', { ascending: true });
+
+  // 2. Fetch Variants
+  const { data: variants } = await supabase
+    .from('product_variants')
+    .select('*')
+    .eq('product_id', product.id)
+    .order('sort_order', { ascending: true });
+
+  return {
+    ...product,
+    product_images: images || [],
+    product_variants: variants || [],
+  } as Product;
 }
 
 // ============================================

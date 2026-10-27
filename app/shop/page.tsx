@@ -9,24 +9,11 @@ import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 
 export const revalidate = 600;
 
-export default async function ShopPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    category?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    sortBy?: string;
-  }>;
-}) {
-  // ✅ Remove filter params from URL logic
+export default async function ShopPage() {
   const supabase = createPublicClient();
 
   const [products, totalCountResult] = await Promise.all([
-    // ✅ Only get all products, no filters
-    getProducts({
-      limit: 100,
-    }),
+    getProducts({ limit: 100 }),
     supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
@@ -37,8 +24,7 @@ export default async function ShopPage({
 
   return (
     <div className="bg-brand-cream min-h-screen relative overflow-hidden">
-
-      {/* Subtle botanical decorative accent */}
+      {/* Botanical Accent */}
       <div className="absolute top-20 right-0 w-64 h-64 opacity-[0.03] pointer-events-none">
         <svg viewBox="0 0 100 100" fill="#1B5E20">
           <path d="M50 10 Q30 30 30 50 Q30 70 50 90 Q70 70 70 50 Q70 30 50 10 Z" />
@@ -47,17 +33,13 @@ export default async function ShopPage({
 
       {/* Main Container */}
       <div className="container-custom pt-6 md:pt-10 pb-16 sm:pb-20 relative z-10">
-
         {/* Breadcrumb */}
         <FadeIn>
           <nav
             className="flex items-center gap-2 text-[11px] sm:text-xs md:text-sm text-brand-text-muted mb-4 sm:mb-6"
             aria-label="Breadcrumb"
           >
-            <Link
-              href="/"
-              className="hover:text-brand-green transition-colors duration-300"
-            >
+            <Link href="/" className="hover:text-brand-green transition-colors duration-300">
               Home
             </Link>
             <ChevronRight size={12} className="text-gray-400" />
@@ -120,13 +102,14 @@ export default async function ShopPage({
             {products.map((product) => (
               <StaggerItem key={product.id}>
                 <ProductCard
+                  id={product.id}
                   name={product.name}
                   slug={product.slug}
-                  shortDescription={product.short_description || ''}
                   price={product.price}
-                  compareAtPrice={product.compare_at_price || product.price}
+                  compareAtPrice={product.compare_at_price || undefined}
                   imageUrl={getProductImageUrl(product)}
-                  productId={product.id}
+                  rating={product.rating_avg}
+                  reviewCount={product.rating_count}
                 />
               </StaggerItem>
             ))}

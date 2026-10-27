@@ -1,10 +1,9 @@
 import Link from 'next/link';
-import { ChevronRight, Package, ShieldCheck } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import ProductGallery from '@/components/products/ProductGallery';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductCard from '@/components/products/ProductCard';
-import ProductVideo from '@/components/products/ProductVideo';
 import ReviewSection from '@/components/products/ReviewSection';
 import StickyCTA from '@/components/products/StickyCTA';
 import { getProductBySlug, getProducts } from '@/services/products/getProducts';
@@ -57,19 +56,14 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-
   const product = await getProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  const relatedProducts = await getProducts({
-    limit: 4,
-    categorySlug: product.category_id ? undefined : undefined,
-  });
+  const relatedProducts = await getProducts({ limit: 4 });
 
-  // ✅ Multi-image support (primary first)
   const images =
     product.product_images && product.product_images.length > 0
       ? [...product.product_images]
@@ -83,7 +77,6 @@ export default async function ProductPage({
 
   const imageUrl = images[0];
 
-  // ✅ Product Schema
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -105,7 +98,6 @@ export default async function ProductPage({
     },
   };
 
-  // ✅ Breadcrumb Schema
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -118,11 +110,9 @@ export default async function ProductPage({
 
   return (
     <div className="bg-brand-cream min-h-screen">
-      {/* Structured Data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
-      {/* Breadcrumb */}
       <div className="container-custom pt-6 md:pt-8">
         <FadeIn>
           <nav
@@ -140,7 +130,6 @@ export default async function ProductPage({
         </FadeIn>
       </div>
 
-      {/* Main Product Section */}
       <div className="container-custom pb-10 sm:pb-12 md:pb-16 pb-24 lg:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 mb-10 sm:mb-12 md:mb-16">
           <FadeIn delay={0.1}>
@@ -164,14 +153,6 @@ export default async function ProductPage({
           </FadeIn>
         </div>
 
-        {/* ✅ Video Section — Moved up, right after gallery */}
-        <ProductVideo
-          videoUrl={product.video_url}
-          posterUrl={imageUrl}
-          productName={product.name}
-        />
-
-        {/* ✅ Description Section */}
         {product.description && (
           <FadeIn>
             <section className="mb-10 sm:mb-12 md:mb-16">
@@ -195,7 +176,6 @@ export default async function ProductPage({
           </FadeIn>
         )}
 
-        {/* ✅ How to Use Section */}
         {product.usage_instructions && (
           <FadeIn>
             <section className="mb-10 sm:mb-12 md:mb-16">
@@ -226,7 +206,6 @@ export default async function ProductPage({
           </FadeIn>
         )}
 
-        {/* ✅ Specifications — Only Expire Life */}
         {product.shelf_life && (
           <FadeIn>
             <section className="mb-10 sm:mb-12 md:mb-16">
@@ -253,7 +232,6 @@ export default async function ProductPage({
           </FadeIn>
         )}
 
-        {/* ✅ Reviews Section */}
         <FadeIn>
           <section id="reviews" className="mb-10 sm:mb-12 md:mb-16">
             <div className="flex items-center gap-3 mb-4 sm:mb-5">
@@ -273,7 +251,6 @@ export default async function ProductPage({
           </section>
         </FadeIn>
 
-        {/* ✅ Related Products */}
         {relatedProducts.filter((p) => p.id !== product.id).length > 0 && (
           <FadeIn>
             <section>
@@ -301,13 +278,14 @@ export default async function ProductPage({
                   .map((p) => (
                     <StaggerItem key={p.id}>
                       <ProductCard
+                        id={p.id}
                         name={p.name}
                         slug={p.slug}
-                        shortDescription={p.short_description || ''}
                         price={p.price}
-                        compareAtPrice={p.compare_at_price || p.price}
+                        compareAtPrice={p.compare_at_price || undefined}
                         imageUrl={getProductImageUrl(p)}
-                        productId={p.id}
+                        rating={p.rating_avg}
+                        reviewCount={p.rating_count}
                       />
                     </StaggerItem>
                   ))}
@@ -317,7 +295,6 @@ export default async function ProductPage({
         )}
       </div>
 
-      {/* ✅ Sticky CTA (mobile only) */}
       <StickyCTA
         productId={product.id}
         name={product.name}
