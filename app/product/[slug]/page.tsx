@@ -5,7 +5,6 @@ import { ChevronRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getProductImageUrl } from '@/lib/utils/productImage';
 
-import ProductGallery from '@/components/products/ProductGallery';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductBenefits from '@/components/products/ProductBenefits';
 import ReviewSection from '@/components/products/ReviewSection';
@@ -17,7 +16,6 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// ✅ Metadata generate karein
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
@@ -65,7 +63,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // ✅ Related products fetch karein (same category, alag product)
+  // ✅ Approved reviews fetch karein
+  const { data: reviews } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('product_id', product.id)
+    .eq('is_approved', true)
+    .order('created_at', { ascending: false });
+
+  // ✅ Related products fetch karein
   const { data: relatedProducts } = await supabase
     .from('products')
     .select('*, product_images(url, alt, sort_order)')
@@ -73,6 +79,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .neq('id', product.id)
     .eq('category_id', product.category_id)
     .limit(4);
+
+  // ✅ ProductInfo ke liye image URL nikaalein
+  const primaryImageUrl = getProductImageUrl(product as any);
 
   return (
     <div className="bg-brand-cream min-h-screen">
@@ -102,17 +111,30 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <span className="text-brand-green font-medium truncate">{product.name}</span>
         </nav>
 
-        {/* Product Main Section — Client component jisme Add to Cart, review button etc hain */}
-        <ProductInfo product={product} />
+        {/* ✅ ProductInfo ko SAARE 8 props pass karein */}
+        <ProductInfo 
+          name={product.name}
+          slug={product.slug}
+          price={product.price}
+          compareAtPrice={product.compare_at_price || 0}
+          description={product.short_description || ''}
+          rating={product.rating_avg || 0}
+          reviewCount={product.rating_count || 0}
+          imageUrl={primaryImageUrl}
+          productId={product.id}
+          stock={product.stock || 0}
+          sku={product.sku || null}
+          variants={product.product_variants || []}
+        />
 
         {/* Benefits */}
         <ProductBenefits />
 
-        {/* Reviews Section */}
+        {/* ✅ ReviewSection ko productId aur initialReviews dono chahiye */}
         <div className="mt-12 md:mt-16">
-          <ReviewSection
-            productId={product.id}         // ✅ Review submit ke liye zaroori
-            productName={product.name}     // ✅ Sirf dikhane ke liye
+          <ReviewSection 
+            productId={product.id} 
+            initialReviews={reviews || []}
           />
         </div>
 
