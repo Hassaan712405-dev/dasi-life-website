@@ -1,82 +1,180 @@
 'use client';
-import { useState } from 'react';
-import { Star, MessageSquarePlus } from 'lucide-react';
+
+import { useState, useEffect } from 'react';
+import { Star, MessageSquare, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import ReviewModal from './ReviewModal';
 
-export default function ReviewSection({ productId, initialReviews }: { productId: string; initialReviews: any[] }) {
-  const [reviews, setReviews] = useState(initialReviews);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', rating: 5, comment: '' });
-  const [submitting, setSubmitting] = useState(false);
+interface ReviewSectionProps {
+  productId: string;
+  initialReviews?: any[];
+  productName?: string;
+}
+
+export default function ReviewSection({
+  productId,
+  initialReviews = [],
+  productName,
+}: ReviewSectionProps) {
   const supabase = createClient();
+  const [reviews, setReviews] = useState<any[]>(initialReviews);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    
-    const { data, error } = await supabase.from('reviews').insert({
-      product_id: productId,
-      name: formData.name,
-      email: formData.email || null,
-      rating: formData.rating,
-      comment: formData.comment,
-      verified_purchase: false, // Server side logic baad mein
-    }).select().single();
+  // Logged-in user ka email nikaalein
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email || null);
+    });
+  }, [supabase]);
 
-    setSubmitting(false);
-    if (!error && data) {
-      setReviews([data, ...reviews]);
-      setShowForm(false);
-      setFormData({ name: '', email: '', rating: 5, comment: '' });
+  // Reviews fetch karein (hamesha fresh)
+  const fetchReviews = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Reviews fetch error:', error);
     }
+    if (data) {
+      setReviews(data);
+    }
+    setLoading(false);
   };
 
+  useEffect(() => {
+    if (initialReviews.length === 0) {
+      fetchReviews();
+    } else {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    fetchReviews(); // naya review dikhane ke liye refresh
+  };
+
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0;
+
   return (
-    <div className="mt-12 bg-white p-6 rounded-xl border border-gray-200">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-heading font-bold text-brand-green">Customer Reviews</h3>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-brand-green text-white px-4 py-2 rounded-md hover:bg-black transition-colors text-sm font-medium"
+    <div className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-green mb-1">
+            Customer Reviews
+          </h2>
+          {reviews.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={16}
+                    className={
+                      i < Math.floor(averageRating)
+                        ? 'fill-brand-gold text-brand-gold'
+                        : 'text-gray-300'
+                    }
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-brand-text-muted">
+                {averageRating.toFixed(1)} out of 5 ({reviews.length} reviews)
+              </span>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center justify-center gap-2 bg-brand-green hover:bg-black text-white font-medium px-5 py-3 rounded-md transition-colors text-sm shrink-0"
         >
-          <MessageSquarePlus size={18} /> Write a Review
+          <MessageSquare size={16} />
+          Write a Review
         </button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-lg mb-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="text" placeholder="Your Name *" required className="border p-2 rounded" onChange={(e) => setFormData({...formData, name: e.target.value})} />
-            <input type="email" placeholder="Email (optional, for verified badge)" className="border p-2 rounded" onChange={(e) => setFormData({...formData, email: e.target.value})} />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Rating:</span>
-            {[1,2,3,4,5].map(star => (
-              <Star key={star} size={24} className={star <= formData.rating ? 'fill-yellow-400 text-yellow-400 cursor-pointer' : 'text-gray-300 cursor-pointer'} onClick={() => setFormData({...formData, rating: star})} />
-            ))}
-          </div>
-          <textarea placeholder="Your Review *" required rows={3} className="w-full border p-2 rounded" onChange={(e) => setFormData({...formData, comment: e.target.value})} />
-          <button type="submit" disabled={submitting} className="bg-brand-green text-white px-6 py-2 rounded font-medium disabled:opacity-50">
-            {submitting ? 'Submitting...' : 'Submit Review'}
+      {/* Reviews List */}
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 size={24} className="animate-spin text-brand-green" />
+        </div>
+      ) : reviews.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-sm text-brand-text-muted mb-4">
+            No reviews yet. Be the first to review this product!
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 bg-brand-green hover:bg-black text-white font-medium px-5 py-3 rounded-md transition-colors text-sm"
+          >
+            <MessageSquare size={16} />
+            Write the First Review
           </button>
-        </form>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <p className="font-medium text-brand-text-dark">
+                    {review.customer_name || review.name || 'Anonymous'}
+                  </p>
+                  <div className="flex items-center gap-0.5 mt-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={12}
+                        className={
+                          i < review.rating
+                            ? 'fill-brand-gold text-brand-gold'
+                            : 'text-gray-300'
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+                <span className="text-xs text-brand-text-muted shrink-0">
+                  {new Date(review.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              {review.title && (
+                <p className="font-medium text-sm text-brand-text-dark mb-1">
+                  {review.title}
+                </p>
+              )}
+              <p className="text-sm text-brand-text-muted leading-relaxed">
+                {review.body}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
 
-      <div className="space-y-4">
-        {reviews.map((review) => (
-          <div key={review.id} className="border-b pb-3">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-sm">{review.name}</span>
-              {review.verified_purchase && <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full">Verified Purchase</span>}
-              <div className="flex text-yellow-400 ml-auto">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} className={i < review.rating ? 'fill-current' : 'text-gray-300'} />)}
-              </div>
-            </div>
-            <p className="text-gray-600 text-sm">{review.comment}</p>
-            <span className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString()}</span>
-          </div>
-        ))}
-      </div>
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={showModal}
+        onClose={handleModalClose}
+        userEmail={userEmail}
+        productId={productId}
+        productName={productName}
+      />
     </div>
   );
 }

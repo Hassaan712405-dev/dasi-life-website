@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, CheckCircle2, Loader2, User, Mail, MessageSquare, ShoppingBag, ChevronDown } from 'lucide-react';
+import {
+  Star,
+  CheckCircle2,
+  Loader2,
+  User,
+  Mail,
+  MessageSquare,
+  ShoppingBag,
+  ChevronDown,
+} from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -10,19 +19,27 @@ interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   userEmail?: string | null;
+  productId?: string;     // ✅ ADDED
+  productName?: string;   // ✅ ADDED
 }
 
-export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalProps) {
+export default function ReviewModal({
+  isOpen,
+  onClose,
+  userEmail,
+  productId,
+  productName,
+}: ReviewModalProps) {
   const supabase = createClient();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductId, setSelectedProductId] = useState('');
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState(userEmail || '');
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -34,7 +51,8 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
       setEmail(userEmail || '');
       setRating(5);
       setComment('');
-      setSelectedProductId('');
+      // ✅ Agar product page se aaya hai to wo product pehle se selected ho
+      setSelectedProductId(productId || '');
       setSuccess(false);
       setError('');
 
@@ -44,17 +62,17 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
           .select('id, name')
           .eq('is_active', true)
           .order('name');
-          
+
         if (data) setProducts(data as Product[]);
-        if (error) console.error("Error fetching products:", error);
+        if (error) console.error('Error fetching products:', error);
       };
       fetchProducts();
     }
-  }, [isOpen, userEmail, supabase]);
+  }, [isOpen, userEmail, supabase, productId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedProductId || !name.trim() || !comment.trim()) {
       setError('Please select a product and fill in all required fields.');
       setShake(true);
@@ -66,7 +84,9 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
     setError('');
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       let isVerified = false;
       if (email.trim()) {
@@ -79,7 +99,6 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
         if (orderData && orderData.length > 0) isVerified = true;
       }
 
-      // ✅ Insert review — saare columns jo SQL se add kiye hain
       const { error: dbError } = await supabase.from('reviews').insert({
         product_id: selectedProductId,
         user_id: user?.id || null,
@@ -146,7 +165,9 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 size={32} className="text-green-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Thank You!</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Thank You!
+                </h3>
                 <p className="text-sm text-gray-500">
                   Your review has been submitted successfully.
                 </p>
@@ -161,7 +182,9 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                     Write a Review
                   </h3>
                   <p className="text-sm text-slate-500 text-center">
-                    Share your experience with us
+                    {productName
+                      ? `Reviewing: ${productName}`
+                      : 'Share your experience with us'}
                   </p>
                 </div>
 
@@ -173,7 +196,6 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  
                   <div className="relative group">
                     <ShoppingBag
                       size={18}
@@ -183,7 +205,8 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                       required
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="w-full h-[48px] bg-slate-50 border border-slate-300 rounded-[5px] pl-11 pr-10 text-[14px] text-slate-900 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B5E20] focus:border-[#1B5E20] appearance-none cursor-pointer"
+                      disabled={!!productId}  // ✅ Agar product page se aaya hai to lock
+                      className="w-full h-[48px] bg-slate-50 border border-slate-300 rounded-[5px] pl-11 pr-10 text-[14px] text-slate-900 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B5E20] focus:border-[#1B5E20] appearance-none cursor-pointer disabled:opacity-80 disabled:cursor-not-allowed"
                     >
                       <option value="" disabled>
                         Select a Product
@@ -194,12 +217,18 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                         </option>
                       ))}
                     </select>
-                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <ChevronDown
+                      size={18}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="relative group">
-                      <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors" />
+                      <User
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors"
+                      />
                       <input
                         type="text"
                         required
@@ -210,7 +239,10 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                       />
                     </div>
                     <div className="relative group">
-                      <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors" />
+                      <Mail
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors"
+                      />
                       <input
                         type="email"
                         value={email}
