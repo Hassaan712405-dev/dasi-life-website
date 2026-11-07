@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, CheckCircle2, Loader2, User, Mail, ShoppingBag, MessageSquare } from 'lucide-react';
+import { Star, CheckCircle2, Loader2, User, Mail, MessageSquare, ShoppingBag, ChevronDown } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import type { Product } from '@/types/database';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -13,16 +14,18 @@ interface ReviewModalProps {
 
 export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalProps) {
   const supabase = createClient();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState('');
   
-  const [productNameInput, setProductNameInput] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState(userEmail || '');
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
@@ -31,16 +34,29 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
       setEmail(userEmail || '');
       setRating(5);
       setComment('');
-      setProductNameInput('');
+      setSelectedProductId('');
       setSuccess(false);
       setError('');
+
+      const fetchProducts = async () => {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+          
+        if (data) setProducts(data as Product[]);
+        if (error) console.error("Error fetching products:", error);
+      };
+      fetchProducts();
     }
-  }, [isOpen, userEmail]);
+  }, [isOpen, userEmail, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productNameInput.trim() || !name.trim() || !comment.trim()) {
-      setError('Please fill in all required fields.');
+    
+    if (!selectedProductId || !name.trim() || !comment.trim()) {
+      setError('Please select a product and fill in all required fields.');
       setShake(true);
       setTimeout(() => setShake(false), 500);
       return;
@@ -50,59 +66,36 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
     setError('');
 
     try {
-      // 1. Product dhoondein
-      const { data: productData, error: productError } = await supabase
-        .from('products')
-        .select('id, name')
-        .ilike('name', `%${productNameInput.trim()}%`)
-        .limit(1)
-        .single();
-
-      if (productError || !productData) {
-        setError('We could not find this product in our store. Please check the spelling.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 2. ✅ Logged-in user ka ID lein (agar hai)
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 3. Verified purchase check
       let isVerified = false;
-      
       if (email.trim()) {
         const { data: orderData } = await supabase
           .from('orders')
           .select('id, order_items!inner(product_id)')
           .eq('customer_email', email.trim().toLowerCase())
-          .eq('order_items.product_id', productData.id)
+          .eq('order_items.product_id', selectedProductId)
           .limit(1);
-
-        if (orderData && orderData.length > 0) {
-          isVerified = true;
-        }
+        if (orderData && orderData.length > 0) isVerified = true;
       }
 
-      // 4. ✅ Insert mein user_id aur customer_name add karein
+      // ✅ Insert review — saare columns jo SQL se add kiye hain
       const { error: dbError } = await supabase.from('reviews').insert({
-        product_id: productData.id,
-        user_id: user?.id || null, // ✅ RLS policy ke liye zaroori
+        product_id: selectedProductId,
+        user_id: user?.id || null,
         name: name.trim(),
-        customer_name: name.trim(), // ✅ service file ke saath consistency
+        customer_name: name.trim(),
         email: email.trim() || null,
         rating,
-        comment: comment.trim(),
-        is_approved: false, // ✅ Admin approval zaroori
+        body: comment.trim(),
+        is_approved: false,
         verified_purchase: isVerified,
       });
 
       if (dbError) throw dbError;
 
       setSuccess(true);
-      setTimeout(() => {
-        onClose();
-      }, 2500);
-
+      setTimeout(() => onClose(), 2500);
     } catch (err: any) {
       setError(err.message || 'Failed to submit review. Please try again.');
     } finally {
@@ -122,25 +115,28 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-        
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-black/50 backdrop-blur-md"
-          onClick={handleBackdropClick} 
+          onClick={handleBackdropClick}
         />
-        
+
         <motion.div
           initial={{ scale: 0.96, opacity: 0, y: 16 }}
-          animate={{ 
-            scale: 1, 
-            opacity: 1, 
+          animate={{
+            scale: 1,
+            opacity: 1,
             y: 0,
-            x: shake ? [0, -6, 6, -6, 6, 0] : 0 
+            x: shake ? [0, -6, 6, -6, 6, 0] : 0,
           }}
           exit={{ scale: 0.96, opacity: 0, y: 16 }}
-          transition={shake ? { duration: 0.4 } : { type: "spring", stiffness: 300, damping: 28 }}
+          transition={
+            shake
+              ? { duration: 0.4 }
+              : ({ type: 'spring', stiffness: 300, damping: 28 } as const)
+          }
           className="bg-white rounded-2xl w-full max-w-[420px] shadow-[0_24px_70px_-20px_rgba(0,0,0,0.35)] relative overflow-hidden flex flex-col max-h-[90dvh]"
           onClick={(e) => e.stopPropagation()}
         >
@@ -151,16 +147,16 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                   <CheckCircle2 size={32} className="text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Thank You!</h3>
-                <p className="text-sm text-gray-500">Your review has been submitted successfully.</p>
+                <p className="text-sm text-gray-500">
+                  Your review has been submitted successfully.
+                </p>
               </div>
             ) : (
               <>
                 <div className="flex flex-col items-center justify-center mb-6">
-                  
                   <div className="w-16 h-16 bg-[#1B5E20] rounded-full flex items-center justify-center shadow-sm relative z-10 mb-4">
                     <MessageSquare size={28} className="text-white" />
                   </div>
-
                   <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mb-1 text-center font-heading">
                     Write a Review
                   </h3>
@@ -179,15 +175,26 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                 <form onSubmit={handleSubmit} className="space-y-4">
                   
                   <div className="relative group">
-                    <ShoppingBag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors" />
-                    <input
-                      type="text"
-                      required
-                      value={productNameInput}
-                      onChange={(e) => setProductNameInput(e.target.value)}
-                      placeholder="Product Name"
-                      className="w-full h-[48px] bg-slate-50 border border-slate-300 rounded-[5px] pl-11 pr-4 text-[14px] placeholder:text-[14px] text-slate-900 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B5E20] focus:border-[#1B5E20]"
+                    <ShoppingBag
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors pointer-events-none z-10"
                     />
+                    <select
+                      required
+                      value={selectedProductId}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
+                      className="w-full h-[48px] bg-slate-50 border border-slate-300 rounded-[5px] pl-11 pr-10 text-[14px] text-slate-900 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B5E20] focus:border-[#1B5E20] appearance-none cursor-pointer"
+                    >
+                      <option value="" disabled>
+                        Select a Product
+                      </option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -202,7 +209,6 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                         className="w-full h-[48px] bg-slate-50 border border-slate-300 rounded-[5px] pl-11 pr-4 text-[14px] placeholder:text-[14px] text-slate-900 transition-all duration-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B5E20] focus:border-[#1B5E20]"
                       />
                     </div>
-                    
                     <div className="relative group">
                       <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1B5E20] transition-colors" />
                       <input
@@ -216,7 +222,9 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                   </div>
 
                   <div className="flex flex-col items-start pt-1">
-                    <label className="text-sm font-medium text-slate-700 mb-2">Your Rating</label>
+                    <label className="text-sm font-medium text-slate-700 mb-2">
+                      Your Rating
+                    </label>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -227,7 +235,11 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                         >
                           <Star
                             size={30}
-                            className={star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                            className={
+                              star <= rating
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
+                            }
                           />
                         </button>
                       ))}
@@ -251,7 +263,11 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
                     className="relative overflow-hidden w-full h-[48px] bg-[#1B5E20] text-white text-sm font-medium rounded-md transition-all duration-300 flex items-center justify-center gap-2 z-[1] before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-full before:w-0 before:bg-black before:transition-all before:duration-300 before:rounded-md before:z-[-1] hover:before:w-full disabled:opacity-60 disabled:before:w-0"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Submit Review'}
+                      {isSubmitting ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        'Submit Review'
+                      )}
                     </span>
                   </button>
                 </form>
