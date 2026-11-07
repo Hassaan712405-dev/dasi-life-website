@@ -49,7 +49,8 @@ export default function LoginPanel({ isOpen, onClose, onSuccess }: LoginPanelPro
   const validateEmail = () => {
     const result = emailSchema.safeParse({ email });
     if (!result.success) {
-      setError(result.error.errors[0].message);
+      // ✅ Zod v4 fix: 'errors' nahi, 'issues' use karein
+      setError(result.error.issues[0].message);
       return false;
     }
     return true;
@@ -142,7 +143,11 @@ export default function LoginPanel({ isOpen, onClose, onSuccess }: LoginPanelPro
               x: shake ? [0, -6, 6, -6, 6, 0] : 0 // ✅ Shake animation
             }}
             exit={{ opacity: 0, scale: 0.95, y: 24 }}
-            transition={shake ? { duration: 0.4 } : { type: 'spring', stiffness: 300, damping: 28 }}
+            transition={
+              shake
+                ? { duration: 0.4 }
+                : ({ type: 'spring', stiffness: 300, damping: 28 } as const)
+            }
             className="relative bg-white w-full max-w-[380px] rounded-2xl shadow-2xl overflow-hidden flex flex-col z-10"
             onClick={(e) => e.stopPropagation()} // Prevent click from propagating
           >

@@ -144,9 +144,10 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
-  const springTransition = shouldReduceMotion 
-    ? { duration: 0 } 
-    : { type: 'spring', stiffness: 300, damping: 28 };
+  // ✅ FIX: 'as const' zaroori hai framer-motion v13+ ke liye
+  const springTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : ({ type: 'spring', stiffness: 300, damping: 28 } as const);
 
   return (
     <AnimatePresence>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -22,7 +21,12 @@ import {
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+  type Variants,
+} from 'framer-motion';
 
 import { createClient } from '@/lib/supabase/client';
 import { useCart } from '@/contexts/CartContext';
@@ -124,12 +128,13 @@ export default function Header() {
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail);
 
-  // Reduced-motion-aware transitions
+  // ✅ FIX: 'as const' framer-motion v13+ ke liye
   const springTransition = shouldReduceMotion
     ? { duration: 0 }
-    : { type: 'spring', stiffness: 300, damping: 28 };
+    : ({ type: 'spring', stiffness: 300, damping: 28 } as const);
 
-  const staggerContainer = {
+  // ✅ FIX: explicit Variants type
+  const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -139,7 +144,8 @@ export default function Header() {
     },
   };
 
-  const staggerItem = {
+  // ✅ FIX: explicit Variants type
+  const staggerItem: Variants = {
     hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 10 },
     show: {
       opacity: 1,
