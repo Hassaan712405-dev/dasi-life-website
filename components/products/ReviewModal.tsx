@@ -50,6 +50,7 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
     setError('');
 
     try {
+      // 1. Product dhoondein
       const { data: productData, error: productError } = await supabase
         .from('products')
         .select('id, name')
@@ -63,6 +64,10 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
         return;
       }
 
+      // 2. ✅ Logged-in user ka ID lein (agar hai)
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // 3. Verified purchase check
       let isVerified = false;
       
       if (email.trim()) {
@@ -78,12 +83,16 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
         }
       }
 
+      // 4. ✅ Insert mein user_id aur customer_name add karein
       const { error: dbError } = await supabase.from('reviews').insert({
         product_id: productData.id,
+        user_id: user?.id || null, // ✅ RLS policy ke liye zaroori
         name: name.trim(),
+        customer_name: name.trim(), // ✅ service file ke saath consistency
         email: email.trim() || null,
         rating,
         comment: comment.trim(),
+        is_approved: false, // ✅ Admin approval zaroori
         verified_purchase: isVerified,
       });
 
@@ -148,7 +157,6 @@ export default function ReviewModal({ isOpen, onClose, userEmail }: ReviewModalP
               <>
                 <div className="flex flex-col items-center justify-center mb-6">
                   
-                  {/* ✅ Updated Icon Badge */}
                   <div className="w-16 h-16 bg-[#1B5E20] rounded-full flex items-center justify-center shadow-sm relative z-10 mb-4">
                     <MessageSquare size={28} className="text-white" />
                   </div>
