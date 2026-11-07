@@ -141,7 +141,7 @@ export default function PrivacyPage() {
               For any privacy-related inquiries, please contact our data
               protection officer at{' '}
               <strong className="text-brand-text-dark">
-                dasilife@gmail.com
+                desilifestore@gmail.com
               </strong>{' '}
               or call +92 342 2544495. Our physical office is at: Rehman Town
               Mailsi, Pakistan.

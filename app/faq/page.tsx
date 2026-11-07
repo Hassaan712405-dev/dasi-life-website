@@ -29,7 +29,7 @@ const faqs = [
   {
     question: 'What is your return and exchange policy?',
     answer:
-      'We want you to be completely satisfied with your wellness journey. If you receive a damaged jar or would like to request an exchange, you can contact us at dasilife@gmail.com or WhatsApp +92 342 2544495 within 14 days of purchase. Unopened bottles in original packaging qualify for immediate refunds or replacements.',
+      'We want you to be completely satisfied with your wellness journey. If you receive a damaged jar or would like to request an exchange, you can contact us at desilife@gmail.com or WhatsApp +92 342 2544495 within 14 days of purchase. Unopened bottles in original packaging qualify for immediate refunds or replacements.',
     category: 'Returns',
   },
   {

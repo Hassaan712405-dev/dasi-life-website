@@ -289,15 +289,13 @@ export default function ContactPage() {
                         Support Email
                       </p>
                       <a
-                        href="mailto:dasilife@gmail.com"
+                        href="mailto:desilifestore@gmail.com"
                         className="text-xs sm:text-sm text-brand-text-muted hover:text-brand-green transition-colors break-all"
                       >
-                        dasilife@gmail.com
+                        desilifestore@gmail.com
                       </a>
                     </div>
                   </div>
-
-                  {/* ✅ Physical Studio / Address — REMOVED */}
 
                   {/* Support Hours */}
                   <div className="flex gap-3">
@@ -342,8 +340,6 @@ export default function ContactPage() {
             </div>
           </FadeIn>
         </div>
-
-        {/* ✅ Our Location / Map — REMOVED */}
       </div>
     </div>
   );

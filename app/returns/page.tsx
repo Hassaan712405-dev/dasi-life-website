@@ -63,7 +63,7 @@ export default function ReturnsPage() {
                 <span>
                   Email us at{' '}
                   <strong className="text-brand-text-dark">
-                    dasilife@gmail.com
+                    desilifestore@gmail.com
                   </strong>{' '}
                   or Whatsapp our team at{' '}
                   <strong className="text-brand-text-dark">+92 342 2544495</strong>{' '}

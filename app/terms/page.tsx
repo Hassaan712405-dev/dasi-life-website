@@ -120,7 +120,7 @@ export default function TermsPage() {
               inquiries or dispute resolution, contact our corporate office at:
               Rehman Town Mailsi, Pakistan, or write to{' '}
               <strong className="text-brand-text-dark">
-                dasilife@gmail.com
+                desilife@gmail.com
               </strong>
               .
             </p>

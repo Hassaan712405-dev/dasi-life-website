@@ -153,7 +153,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@dasilife.store"
+                placeholder="admin@desilife.store"
                 required
                 disabled={loading}
                 autoComplete="email"

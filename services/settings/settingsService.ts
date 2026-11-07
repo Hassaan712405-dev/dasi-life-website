@@ -28,14 +28,14 @@ interface SettingRow {
 // ✅ Default fallback values — FREE delivery sab ke liye
 const DEFAULTS: SiteSettings = {
   store_name: 'Dasi Life',
-  store_email: 'dasilife@gmail.com',
+  store_email: 'desilifestore@gmail.com',
   store_phone: '03422544495',
   store_address: 'Rehman Town Mailsi',
   shipping_enabled: false,        // ✅ Shipping disabled (FREE)
   free_shipping_threshold: 0,     // ✅ Sab ke liye free
   shipping_fee: 0,                // ✅ Koi fee nahi
-  facebook_url: 'https://facebook.com/dasilife',
-  instagram_url: 'https://instagram.com/dasilife',
+  facebook_url: 'https://facebook.com/desilifestore',
+  instagram_url: 'https://instagram.com/desilifestore',
   whatsapp_number: '923422544495',
   support_hours_weekday: 'Mon–Sat, 9:00 AM – 8:00 PM',
   support_hours_weekend: 'Sunday, Closed',
