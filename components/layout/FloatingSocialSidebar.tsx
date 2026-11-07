@@ -41,32 +41,67 @@ export default function FloatingSocialSidebar() {
   if (isAdminRoute) return null;
 
   return (
-    <aside
-      // ✅ 'hidden md:flex' lagaya hai taake mobile par ye side icons hide ho jayein
-      className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-[60] flex-col items-end gap-1.5 w-max"
-      aria-label="Dasi Life social media and contact links"
-    >
-      {LINKS.map((link) => {
-        const Icon = link.icon;
-        return (
-          <a
-            key={link.id}
-            href={link.href}
-            target={link.external ? '_blank' : undefined}
-            rel={link.external ? 'noopener noreferrer' : undefined}
-            aria-label={link.aria}
-            className="group relative flex items-center h-[50px] w-[50px] hover:w-[180px] overflow-hidden rounded-l-[3px] text-white shadow-md transition-all duration-300 ease-out"
-            style={{ backgroundColor: link.color }}
-          >
-            <div className="flex items-center justify-center w-[50px] h-[50px] shrink-0">
-              <Icon size={22} />
-            </div>
-            <span className="pl-4 pr-4 font-bold text-[12px] tracking-wider whitespace-nowrap opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-              {link.name}
-            </span>
-          </a>
-        );
-      })}
-    </aside>
+    <>
+      {/* DESKTOP (md+) — RIGHT SIDE FLOATING SIDEBAR */}
+      <aside
+        className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-[60] flex-col items-end gap-1.5 w-max"
+        aria-label="Dasi Life social media and contact links"
+      >
+        {LINKS.map((link) => {
+          const Icon = link.icon;
+          return (
+            <a
+              key={link.id}
+              href={link.href}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
+              aria-label={link.aria}
+              className="group relative flex items-center h-[50px] w-[50px] hover:w-[180px] overflow-hidden rounded-l-[3px] text-white shadow-md transition-all duration-300 ease-out"
+              style={{ backgroundColor: link.color }}
+            >
+              <div className="flex items-center justify-center w-[50px] h-[50px] shrink-0">
+                <Icon size={22} />
+              </div>
+              <span className="pl-4 pr-4 font-bold text-[12px] tracking-wider whitespace-nowrap opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                {link.name}
+              </span>
+            </a>
+          );
+        })}
+      </aside>
+
+      {/* MOBILE (<md) — BOTTOM BAR */}
+      <aside
+        className="md:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white/95 backdrop-blur-md border-t border-[#EBE4D6] shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.15)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        aria-label="Dasi Life social media and contact links"
+      >
+        <nav className="grid grid-cols-4 items-center h-[68px] max-w-lg mx-auto">
+          {LINKS.map((link) => {
+            const Icon = link.icon;
+            return (
+              <a
+                key={link.id}
+                href={link.href}
+                target={link.external ? '_blank' : undefined}
+                rel={link.external ? 'noopener noreferrer' : undefined}
+                aria-label={link.aria}
+                className="group flex flex-col items-center justify-center gap-1 h-full active:scale-[0.94] transition-transform duration-150"
+              >
+                <span
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm transition-all duration-200 group-active:scale-95"
+                  style={{ backgroundColor: link.color }}
+                >
+                  <Icon size={20} />
+                </span>
+                <span className="text-[10px] font-bold tracking-wider text-[#1A1A1A] group-active:text-[#1B5E20] transition-colors">
+                  {link.name}
+                </span>
+              </a>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 }

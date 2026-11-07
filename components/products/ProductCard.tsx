@@ -81,10 +81,16 @@ export default function ProductCard({
   };
 
   // ✅ Same design + same slide-fill hover effect on both buttons
+  // ✅ Mobile-friendly padding + min height for touch
   const btnClass =
-    "relative overflow-hidden w-full bg-[#1B5E20] text-white text-xs sm:text-sm font-medium py-2.5 rounded-md transition-all duration-300 text-center block z-[1] " +
-    "before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-full before:w-0 before:bg-black before:transition-all before:duration-300 before:rounded-md before:z-[-1] " +
-    "hover:before:w-full";
+    "relative overflow-hidden w-full bg-[#1B5E20] text-white text-xs sm:text-sm font-medium " +
+    "min-h-[44px] py-3 px-2 rounded-md transition-all duration-300 text-center " +
+    "flex items-center justify-center z-[1] " +
+    "before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-full before:w-0 " +
+    "before:bg-black before:transition-all before:duration-300 before:rounded-md before:z-[-1] " +
+    "hover:before:w-full " +
+    "active:scale-[0.98] " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1B5E20] focus-visible:ring-offset-2";
 
   return (
     <div className="group bg-white rounded-xl border border-[#EBE4D6] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full">
@@ -95,47 +101,49 @@ export default function ProductCard({
             src={imageUrl}
             alt={name}
             fill
-            sizes="(max-width: 768px) 50vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
         <Link href={`/product/${slug}`} className="mb-1 block">
-          <h3 className="text-sm sm:text-base font-heading font-semibold text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-2">
+          <h3 className="text-sm sm:text-base font-heading font-semibold text-brand-text-dark group-hover:text-brand-green transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem]">
             {name}
           </h3>
         </Link>
 
         {/* Ratings */}
-        <div className="flex items-center gap-1.5 mb-2">
+        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           <div className="flex items-center gap-[2px]">{renderStars()}</div>
-          <span className="text-[11px] text-brand-text-muted font-medium">
+          <span className="text-[10px] sm:text-[11px] text-brand-text-muted font-medium truncate">
             {rating > 0
-              ? `${rating.toFixed(1)} (${reviewCount} reviews)`
+              ? `${rating.toFixed(1)} (${reviewCount})`
               : 'No reviews yet'}
           </span>
         </div>
 
         {/* Price */}
-        <div className="mt-auto mb-4 flex items-end gap-2">
+        <div className="mt-auto mb-3 sm:mb-4 flex items-end gap-1.5 sm:gap-2 flex-wrap">
           <span className="text-base sm:text-lg font-bold text-brand-green">
             Rs. {price.toLocaleString()}
           </span>
           {compareAtPrice && compareAtPrice > price && (
-            <span className="text-xs text-brand-text-muted line-through mb-0.5">
+            <span className="text-[11px] sm:text-xs text-brand-text-muted line-through mb-0.5">
               Rs. {compareAtPrice.toLocaleString()}
             </span>
           )}
         </div>
 
-        {/* ✅ 2 Buttons — same design + same hover effect */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* ✅ Buttons: mobile par upar-neeche, sm+ par side-by-side — SAME DESIGN */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* View Details */}
           <Link href={`/product/${slug}`} className={btnClass}>
-            <span className="relative z-10">View Details</span>
+            <span className="relative z-10 whitespace-nowrap">
+              View Details
+            </span>
           </Link>
 
           {/* Add to Cart */}
@@ -144,7 +152,7 @@ export default function ProductCard({
             onClick={handleAddToCart}
             className={btnClass}
           >
-            <span className="relative z-10">
+            <span className="relative z-10 whitespace-nowrap">
               {added ? '✓ Added' : 'Add to Cart'}
             </span>
           </button>

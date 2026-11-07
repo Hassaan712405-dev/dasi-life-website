@@ -14,21 +14,28 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['shopping', 'health', 'wellness'],
     icons: [
       {
-        src: '/icon.png',
-        sizes: '512x512',
+        src: '/icons/android-chrome-192x192.png',
+        sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/icon.png',
-        sizes: '512x512',
+        src: '/icons/android-chrome-256x256.png',
+        sizes: '256x256',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/android-chrome-256x256.png',
+        sizes: '256x256',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: '/apple-icon.png',
+        src: '/icons/apple-touch-icon.png',
         sizes: '180x180',
         type: 'image/png',
+        purpose: 'any',
       },
     ],
   };

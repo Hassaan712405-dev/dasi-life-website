@@ -107,7 +107,6 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Authentication states
   const [user, setUser] = useState<any>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -125,15 +124,12 @@ export default function Header() {
   const cartCount = getTotalItems();
 
   const isAnyLoading = authLoading || googleLoading;
-
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail);
 
-  // ✅ FIX: 'as const' framer-motion v13+ ke liye
   const springTransition = shouldReduceMotion
     ? { duration: 0 }
     : ({ type: 'spring', stiffness: 300, damping: 28 } as const);
 
-  // ✅ FIX: explicit Variants type
   const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -144,7 +140,6 @@ export default function Header() {
     },
   };
 
-  // ✅ FIX: explicit Variants type
   const staggerItem: Variants = {
     hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 10 },
     show: {
@@ -182,9 +177,7 @@ export default function Header() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-
       setUser(session?.user ?? null);
-
       if (event === 'SIGNED_OUT') {
         setShowLoginModal(false);
       }
@@ -201,13 +194,8 @@ export default function Header() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
-
     handleScroll();
-
-    window.addEventListener('scroll', handleScroll, {
-      passive: true,
-    });
-
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -223,9 +211,7 @@ export default function Header() {
         setIsSearchFocused(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -237,7 +223,6 @@ export default function Header() {
       const timer = window.setTimeout(() => {
         emailInputRef.current?.focus();
       }, 150);
-
       return () => window.clearTimeout(timer);
     }
   }, [showLoginModal]);
@@ -255,17 +240,13 @@ export default function Header() {
       if (e.key === 'Escape') {
         setMobileMenuOpen(false);
         setIsSearchFocused(false);
-
         if (!isAnyLoading) {
           setShowLoginModal(false);
         }
-
         setShowReviewModal(false);
       }
     };
-
     document.addEventListener('keydown', handleEscape);
-
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
@@ -274,17 +255,13 @@ export default function Header() {
   // Product search
   useEffect(() => {
     const searchTerm = query.trim();
-
     if (searchTerm.length < 2) {
       setResults([]);
       setLoading(false);
       return;
     }
-
     let cancelled = false;
-
     setLoading(true);
-
     const timer = window.setTimeout(async () => {
       try {
         const { data, error } = await supabase
@@ -297,7 +274,6 @@ export default function Header() {
             `name.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`
           )
           .limit(5);
-
         if (!cancelled) {
           if (error) {
             console.error('Product search error:', error);
@@ -305,7 +281,6 @@ export default function Header() {
           } else {
             setResults((data as unknown as Product[]) || []);
           }
-
           setLoading(false);
         }
       } catch (error) {
@@ -316,75 +291,53 @@ export default function Header() {
         }
       }
     }, 300);
-
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
   }, [query, supabase]);
 
-  // Search submit
   const handleSubmitSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
     const searchTerm = query.trim();
-
     if (searchTerm) {
       router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
       setIsSearchFocused(false);
     }
   };
 
-  // Email login
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!loginEmail.trim() || !isEmailValid) {
       setShake(true);
-
       window.setTimeout(() => setShake(false), 500);
       return;
     }
-
     setAuthLoading(true);
     setAuthError('');
-
     try {
       const res = await fetch('/api/auto-login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: loginEmail.trim().toLowerCase(),
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase() }),
       });
-
       const data = await res.json();
-
       if (!res.ok || !data.token_hash) {
-        setAuthError(
-          data.error || 'Failed to login. Please try again.'
-        );
+        setAuthError(data.error || 'Failed to login. Please try again.');
         setAuthLoading(false);
         return;
       }
-
-      const { error: verifyError } =
-        await supabase.auth.verifyOtp({
-          token_hash: data.token_hash,
-          type: 'magiclink',
-        });
-
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: data.token_hash,
+        type: 'magiclink',
+      });
       if (verifyError) {
         setAuthError(verifyError.message);
         setAuthLoading(false);
         return;
       }
-
       setShowLoginModal(false);
       setLoginEmail('');
-
       router.refresh();
     } catch (err: any) {
       setAuthError(err.message || 'Something went wrong.');
@@ -392,56 +345,40 @@ export default function Header() {
     }
   };
 
-  // Google login
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setAuthError('');
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          prompt: 'select_account',
-        },
+        queryParams: { prompt: 'select_account' },
       },
     });
-
     if (error) {
       setAuthError(error.message);
       setGoogleLoading(false);
     }
   };
 
-  // Logout
   const handleLogout = async () => {
     setShowLoginModal(false);
-
     await supabase.auth.signOut();
-
     router.push('/');
     router.refresh();
   };
 
-  // Modal backdrop
-  const handleModalBackdropClick = (
-    e: React.MouseEvent<HTMLDivElement>
-  ) => {
+  const handleModalBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-
     if (isAnyLoading) return;
-
     setShake(true);
-
     window.setTimeout(() => setShake(false), 500);
   };
 
-  // Active route detection
   const isActive = (href: string) => {
     if (href === '/') {
       return pathname === '/';
     }
-
     if (href === '/shop') {
       return (
         pathname === '/shop' ||
@@ -450,7 +387,6 @@ export default function Header() {
         pathname.startsWith('/search')
       );
     }
-
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
@@ -466,7 +402,6 @@ export default function Header() {
       >
         <div className="mx-auto h-full max-w-[1400px] px-3 sm:px-6">
           <div className="grid h-full grid-cols-[auto_1fr_auto] items-center gap-2 sm:gap-4">
-
             {/* LOGO */}
             <Link
               href="/"
@@ -492,7 +427,6 @@ export default function Header() {
             >
               {NAV_LINKS.map((link) => {
                 const active = isActive(link.href);
-
                 return (
                   <Link
                     key={link.href}
@@ -500,9 +434,7 @@ export default function Header() {
                     aria-current={active ? 'page' : undefined}
                     className={navLinkClass(active)}
                   >
-                    <span className="relative z-10">
-                      {link.label}
-                    </span>
+                    <span className="relative z-10">{link.label}</span>
                   </Link>
                 );
               })}
@@ -510,7 +442,6 @@ export default function Header() {
 
             {/* RIGHT SIDE ACTIONS */}
             <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-
               {/* DESKTOP SEARCH */}
               <div
                 ref={searchRef}
@@ -522,7 +453,6 @@ export default function Header() {
                       size={15}
                       className="pointer-events-none absolute left-3 text-gray-500"
                     />
-
                     <input
                       type="search"
                       value={query}
@@ -532,7 +462,6 @@ export default function Header() {
                       aria-label="Search products"
                       className="h-9 w-full rounded-full border border-[#DCD5C6] bg-white pl-9 pr-8 text-[13px] transition-all focus:border-[#1B5E20] focus:outline-none focus:ring-1 focus:ring-[#1B5E20]/30"
                     />
-
                     {query && (
                       <button
                         type="button"
@@ -552,17 +481,12 @@ export default function Header() {
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 6 }}
-                      transition={{
-                        duration: shouldReduceMotion ? 0 : 0.2,
-                      }}
+                      transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
                       className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-[#EBE4D6] bg-white shadow-xl"
                     >
                       {loading ? (
                         <div className="flex items-center justify-center gap-2 p-4 text-center text-sm text-gray-500">
-                          <Loader2
-                            size={14}
-                            className="animate-spin text-[#1B5E20]"
-                          />
+                          <Loader2 size={14} className="animate-spin text-[#1B5E20]" />
                           Searching...
                         </div>
                       ) : results.length === 0 ? (
@@ -587,12 +511,10 @@ export default function Header() {
                                   className="object-cover"
                                 />
                               </div>
-
                               <div className="min-w-0 flex-1">
                                 <p className="truncate text-sm font-medium text-[#1A1A1A] transition-colors group-hover:text-[#1B5E20]">
                                   {product.name}
                                 </p>
-
                                 <p className="text-xs text-gray-500">
                                   Rs {Number(product.price).toLocaleString()}
                                 </p>
@@ -606,7 +528,7 @@ export default function Header() {
                 </AnimatePresence>
               </div>
 
-              {/* REVIEW ICON - MOBILE + DESKTOP */}
+              {/* REVIEW ICON */}
               <button
                 type="button"
                 onClick={() => setShowReviewModal(true)}
@@ -614,10 +536,7 @@ export default function Header() {
                 aria-label="Write a Review"
                 title="Write a Review"
               >
-                <MessageSquareText
-                  size={21}
-                  strokeWidth={1.8}
-                />
+                <MessageSquareText size={21} strokeWidth={1.8} />
               </button>
 
               {/* ACCOUNT ICON */}
@@ -640,26 +559,19 @@ export default function Header() {
                         className="fixed inset-0 z-40"
                         onClick={() => setShowLoginModal(false)}
                       />
-
                       <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        transition={{
-                          duration: shouldReduceMotion ? 0 : 0.2,
-                        }}
+                        transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
                         className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
                       >
                         <div className="border-b border-gray-100 bg-[#FDFBF7] px-4 py-3">
-                          <p className="text-xs text-gray-500">
-                            Signed in as
-                          </p>
-
+                          <p className="text-xs text-gray-500">Signed in as</p>
                           <p className="truncate text-sm font-medium">
                             {user.email}
                           </p>
                         </div>
-
                         <div className="py-1">
                           <Link
                             href="/account/orders"
@@ -670,7 +582,6 @@ export default function Header() {
                             My Orders
                           </Link>
                         </div>
-
                         <div className="border-t border-gray-100 py-1">
                           <button
                             type="button"
@@ -695,7 +606,6 @@ export default function Header() {
                 title="Shopping Cart"
               >
                 <ShoppingCart size={20} strokeWidth={1.8} />
-
                 {cartCount > 0 && (
                   <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#1B5E20] px-1 text-[10px] font-bold text-white">
                     {cartCount > 99 ? '99+' : cartCount}
@@ -719,7 +629,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* EXISTING REVIEW MODAL - SINGLE INSTANCE */}
+      {/* REVIEW MODAL */}
       <ReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
@@ -733,9 +643,7 @@ export default function Header() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{
-              duration: shouldReduceMotion ? 0 : 0.2,
-            }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-md sm:p-6"
             onClick={handleModalBackdropClick}
           >
@@ -749,9 +657,7 @@ export default function Header() {
                 scale: 1,
                 opacity: 1,
                 y: 0,
-                x: shake && !shouldReduceMotion
-                  ? [0, -6, 6, -6, 6, 0]
-                  : 0,
+                x: shake && !shouldReduceMotion ? [0, -6, 6, -6, 6, 0] : 0,
               }}
               exit={{
                 scale: shouldReduceMotion ? 1 : 0.96,
@@ -783,14 +689,12 @@ export default function Header() {
                     <div className="relative z-10 mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#1B5E20] shadow-sm">
                       <User size={30} className="text-white" />
                     </div>
-
                     <h3
                       id="login-heading"
                       className="mb-1 text-center font-heading text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl"
                     >
                       Login
                     </h3>
-
                     <p className="text-center text-sm text-slate-500">
                       Welcome to Dasi Life
                     </p>
@@ -799,40 +703,19 @@ export default function Header() {
                   <AnimatePresence>
                     {authError && (
                       <motion.div
-                        initial={{
-                          opacity: 0,
-                          height: 0,
-                          marginBottom: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          height: 'auto',
-                          marginBottom: 16,
-                        }}
-                        exit={{
-                          opacity: 0,
-                          height: 0,
-                          marginBottom: 0,
-                        }}
+                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                         className="flex items-start gap-2 overflow-hidden rounded-md border border-red-100 bg-red-50 p-3 text-sm text-red-600"
                       >
-                        <AlertCircle
-                          size={16}
-                          className="mt-0.5 shrink-0"
-                        />
+                        <AlertCircle size={16} className="mt-0.5 shrink-0" />
                         <p>{authError}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
-                  <form
-                    onSubmit={handleEmailLogin}
-                    className="space-y-4"
-                  >
-                    <motion.div
-                      variants={staggerItem}
-                      className="group relative"
-                    >
+                  <form onSubmit={handleEmailLogin} className="space-y-4">
+                    <motion.div variants={staggerItem} className="group relative">
                       <Mail
                         size={18}
                         className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${
@@ -841,7 +724,6 @@ export default function Header() {
                             : 'text-slate-400 group-focus-within:text-[#1B5E20]'
                         }`}
                       />
-
                       <input
                         ref={emailInputRef}
                         type="email"
@@ -861,7 +743,6 @@ export default function Header() {
                             : 'border-slate-300 focus:border-[#1B5E20]'
                         }`}
                       />
-
                       {isEmailValid && (
                         <CheckCircle2
                           size={16}
@@ -875,11 +756,9 @@ export default function Header() {
                       className="relative flex items-center py-2"
                     >
                       <div className="flex-grow border-t border-slate-200" />
-
                       <span className="mx-4 flex-shrink-0 bg-white px-2 text-xs font-medium uppercase tracking-widest text-slate-400">
                         OR
                       </span>
-
                       <div className="flex-grow border-t border-slate-200" />
                     </motion.div>
 
@@ -891,14 +770,10 @@ export default function Header() {
                         className="flex h-[48px] w-full items-center justify-center gap-3 rounded-md border border-slate-300 bg-white font-medium text-slate-700 transition-all hover:border-slate-400 hover:bg-slate-50 active:scale-[0.98] disabled:opacity-60"
                       >
                         {googleLoading ? (
-                          <Loader2
-                            size={20}
-                            className="animate-spin text-slate-500"
-                          />
+                          <Loader2 size={20} className="animate-spin text-slate-500" />
                         ) : (
                           <GoogleIcon />
                         )}
-
                         Continue with Google
                       </button>
                     </motion.div>
@@ -912,10 +787,7 @@ export default function Header() {
                         <span className="relative z-10">
                           {authLoading ? (
                             <>
-                              <Loader2
-                                size={18}
-                                className="mr-2 inline-block animate-spin"
-                              />
+                              <Loader2 size={18} className="mr-2 inline-block animate-spin" />
                               Logging in...
                             </>
                           ) : (
@@ -926,10 +798,7 @@ export default function Header() {
                     </motion.div>
                   </form>
 
-                  <motion.div
-                    variants={staggerItem}
-                    className="mt-3"
-                  >
+                  <motion.div variants={staggerItem} className="mt-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -965,22 +834,15 @@ export default function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{
-                duration: shouldReduceMotion ? 0 : 0.25,
-              }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.25 }}
               onClick={() => setMobileMenuOpen(false)}
               className="fixed inset-0 z-[100] bg-black/50 lg:hidden"
               aria-hidden="true"
             />
-
             <motion.aside
-              initial={{
-                x: shouldReduceMotion ? 0 : '-100%',
-              }}
+              initial={{ x: shouldReduceMotion ? 0 : '-100%' }}
               animate={{ x: 0 }}
-              exit={{
-                x: shouldReduceMotion ? 0 : '-100%',
-              }}
+              exit={{ x: shouldReduceMotion ? 0 : '-100%' }}
               transition={
                 shouldReduceMotion
                   ? { duration: 0 }
@@ -989,22 +851,23 @@ export default function Header() {
               className="fixed left-0 top-0 z-[110] flex h-[100dvh] w-[85%] max-w-sm flex-col bg-[#FDFBF7] shadow-2xl lg:hidden"
               aria-label="Mobile navigation"
             >
-              {/* DRAWER HEADER */}
               <div className="flex items-center justify-between border-b border-[#EBE4D6] px-5 py-4">
                 <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
                   aria-label="Dasi Life Home"
                 >
-                  <Image
-                    src="/images/logo.png"
-                    alt="Dasi Life"
-                    width={120}
-                    height={40}
-                    className="h-9 w-auto object-contain"
-                  />
+                  {/* ✅ FIX: sizes prop add kiya mobile drawer logo par bhi */}
+                  <div className="relative h-9 w-[120px]">
+                    <Image
+                      src="/images/logo.png"
+                      alt="Dasi Life"
+                      fill
+                      sizes="120px"
+                      className="object-contain object-left"
+                    />
+                  </div>
                 </Link>
-
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -1016,7 +879,6 @@ export default function Header() {
                 </button>
               </div>
 
-              {/* DRAWER CONTENT */}
               <nav
                 className="flex-1 overflow-y-auto px-3 py-4"
                 aria-label="Mobile navigation links"
@@ -1024,7 +886,6 @@ export default function Header() {
                 <ul className="space-y-1">
                   {NAV_LINKS.map((link) => {
                     const active = isActive(link.href);
-
                     return (
                       <li key={link.href}>
                         <Link
@@ -1038,7 +899,6 @@ export default function Header() {
                           }`}
                         >
                           {link.label}
-
                           <ChevronRight
                             size={16}
                             className="opacity-40 transition-transform duration-200 group-hover:translate-x-1"
@@ -1052,8 +912,6 @@ export default function Header() {
                 <div className="my-4 border-t border-[#EBE4D6]" />
 
                 <ul className="space-y-1">
-
-                  {/* REVIEW */}
                   <li>
                     <button
                       type="button"
@@ -1068,7 +926,6 @@ export default function Header() {
                     </button>
                   </li>
 
-                  {/* CART */}
                   <li>
                     <Link
                       href="/cart"
@@ -1079,7 +936,6 @@ export default function Header() {
                         <ShoppingCart size={18} />
                         Cart
                       </span>
-
                       {cartCount > 0 && (
                         <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#1B5E20] px-1.5 text-xs font-bold text-white">
                           {cartCount > 99 ? '99+' : cartCount}
@@ -1088,7 +944,6 @@ export default function Header() {
                     </Link>
                   </li>
 
-                  {/* AUTHENTICATED USER */}
                   {user ? (
                     <>
                       <li>
@@ -1101,7 +956,6 @@ export default function Header() {
                           My Orders
                         </Link>
                       </li>
-
                       <li>
                         <button
                           type="button"
@@ -1134,7 +988,6 @@ export default function Header() {
                 </ul>
               </nav>
 
-              {/* DRAWER FOOTER */}
               <div className="border-t border-[#EBE4D6] px-5 py-4">
                 <p className="text-center text-xs text-gray-500">
                   © {new Date().getFullYear()} Dasi Life. All rights reserved.
