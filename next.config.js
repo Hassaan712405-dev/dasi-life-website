@@ -2,13 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // ✅ Turbopack ko batayein ke root yahi project folder hai
-  // (Isse "package-lock.json outside Git repo" wali warning khatam ho jayegi)
   turbopack: {
     root: __dirname,
   },
 
-  // ✅ Supabase storage images allow karein
   images: {
     remotePatterns: [
       {
@@ -18,9 +15,7 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
-    // Local dev mein 504 Gateway Timeout fix (production mein optimization on rahegi)
     unoptimized: process.env.NODE_ENV === 'development',
-    // Remote image cache 24 hours
     minimumCacheTTL: 86400,
   },
 
@@ -28,11 +23,11 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
 
-  // ❌ 'eslint' block yahan se hata diya gaya hai (Next.js 16 mein support nahi)
+  // ❌ 'eslint' block yahan nahi hona chahiye
+  // ❌ 'experimental' block bhi hata dein agar koi error de raha ho
 
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
-    // Image optimizer ka timeout 30 seconds (504 fix)
     imgOptTimeoutInSeconds: 30,
   },
 };
